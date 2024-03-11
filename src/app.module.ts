@@ -1,10 +1,40 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { join } from 'path';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
+import { UserModule } from './user/user.module';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: `.env`,
+    }),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async () => ({
+        uri: process.env.DB_URL,
+      }),
+      inject: [ConfigService],
+    }),
+    GraphQLModule.forRoot({
+      playground: true,
+      installSubscriptionHandlers: true,
+      // subscriptions: {
+      //   verifyClient: (info, next) => {
+      //     const authorization = info.req.headers?.authorization as string;
+      //     if (!authorization?.startsWith('Bearer ')) {
+      //       return next(false);
+      //     }
+      //     next(true);
+      //   },
+      // },
+      autoSchemaFile: join(process.cwd(), 'src/graphql-schema.gql'),
+      context: ({ req }) => ({ headers: req?.headers }),
+    }),
+    UserModule,
+  ],
+  providers: [],
 })
 export class AppModule {}
