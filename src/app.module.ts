@@ -4,6 +4,7 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserModule } from './user/user.module';
+import { AssertAssingmentModuleModule } from './assert-asingment/assert-asingment.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { UserModule } from './user/user.module';
       context: ({ req }) => ({ headers: req?.headers }),
     }),
     UserModule,
+    AssertAssingmentModuleModule,
   ],
   providers: [],
 })

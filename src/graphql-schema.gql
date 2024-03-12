@@ -47,6 +47,30 @@ The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://
 """
 scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
 
+type GeozoneResponse {
+  _id: String!
+  name: String
+  code: String
+  description: String
+}
+
+type AssertAssingmentModuleEntity {
+  _id: String!
+  imei: Float!
+  lableName: String!
+  journey: GeozoneResponse!
+  boxSet: String!
+  createdBy: String
+  updatedBy: String
+}
+
+type AssertAssingmentModuleResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [AssertAssingmentModuleEntity!]
+}
+
 type Query {
   createUser(input: CreateUserInput!): UserResponse!
 }
@@ -73,6 +97,12 @@ type Mutation {
   deleteUser(input: UpdateUserInput!): UserResponse!
   searchUsers(input: SearchUsersInput!): UserResponse!
   refreshToken: String!
+  createAssertAssingmentModule(input: CreateAssertAssingmentModuleInput!): AssertAssingmentModuleResponse!
+  updateAssertAssingmentModule(input: UpdateAssertAssingmentModuleInput!): AssertAssingmentModuleResponse!
+  deleteAssertAssingmentModule(input: UpdateAssertAssingmentModuleInput!): AssertAssingmentModuleResponse!
+  searchAssertAssingmentModule(input: SearchAssertAssingmentModuleInput!): AssertAssingmentModuleResponse!
+  checkAssertAssingmentModuleExistsRecord(input: CheckAssertAssingmentModuleInput!): AssertAssingmentModuleResponse!
+  fetchAssertAssingmentModule(input: AssertAssingmentModuleInput!): AssertAssingmentModuleResponse!
 }
 
 input ChangePasswordInput {
@@ -105,6 +135,40 @@ input UpdateUserInput {
 
 input SearchUsersInput {
   search: String
+  page: Int
+  limit: Int
+}
+
+input CreateAssertAssingmentModuleInput {
+  imei: Float
+  boxNumber: Float!
+  journey: String!
+  boxSet: String
+  createdBy: String
+  updatedBy: String
+}
+
+input UpdateAssertAssingmentModuleInput {
+  imei: Float
+  boxNumber: Float
+  journey: String
+  boxSet: String
+  createdBy: String
+  updatedBy: String
+  _id: String!
+}
+
+input SearchAssertAssingmentModuleInput {
+  search: String
+  page: Int
+  limit: Int
+}
+
+input CheckAssertAssingmentModuleInput {
+  imei: Float
+}
+
+input AssertAssingmentModuleInput {
   page: Int
   limit: Int
 }
