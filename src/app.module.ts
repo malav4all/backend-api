@@ -16,7 +16,6 @@ import { UserModule } from './user/user.module';
       useFactory: async () => ({
         uri: process.env.DB_URL,
       }),
-      inject: [ConfigService],
     }),
     GraphQLModule.forRoot({
       playground: true,
