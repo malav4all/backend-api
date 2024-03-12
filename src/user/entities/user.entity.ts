@@ -58,10 +58,15 @@ export class User {
   @Column()
   updatedAt: Date;
 
-  // @Field({ nullable: true, defaultValue: 'Active' })
-  // @Prop({ text: true, default: 'Active' })
-  // @Column({ default: 'Active' })
-  // status: string;
+  @Field({ nullable: true })
+  @Prop()
+  @Column()
+  roleId: string;
+
+  @Field({ nullable: true, defaultValue: 'Active' })
+  @Prop({ text: true, default: 'Active' })
+  @Column({ default: 'Active' })
+  status: string;
 }
 
 export type UserDocument = User & Document;

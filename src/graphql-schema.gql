@@ -13,6 +13,8 @@ type User {
   createdBy: String!
   createdAt: DateTime
   updatedAt: DateTime
+  roleId: String
+  status: String
 }
 
 """

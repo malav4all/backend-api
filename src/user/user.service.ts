@@ -36,16 +36,6 @@ export class UserService {
       const records = await this.UserModel.find({})
         .skip(skip)
         .limit(limit)
-        .populate([
-          {
-            path: 'accountId',
-            populate: {
-              path: 'industryType',
-            },
-          },
-          { path: 'roleId' },
-          { path: 'industryType' },
-        ])
         .exec();
       const count = await this.UserModel.count().exec();
       return { records, count };
@@ -118,21 +108,10 @@ export class UserService {
       let user: any = await this.UserModel.findOne({
         email: inputUser.email,
       })
-        .populate('roleId')
         .lean()
         .exec();
 
       if (user) {
-        if (user.status !== 'Active') {
-          this.logger.error(
-            'Your account has been blocked due to multiple failed login attempts. Please contact the administrator.'
-          );
-          return {
-            success: 0,
-            message:
-              'Your account has been blocked due to multiple failed login attempts. Please contact the administrator.',
-          };
-        }
         const isPasswordValid = await this.verifyPassword(
           user,
           inputUser.password
