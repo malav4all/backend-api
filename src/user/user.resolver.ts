@@ -38,7 +38,7 @@ export class UserResolver {
     }
   }
 
-  // @UseGuards(new AuthGuard())
+  @UseGuards(new AuthGuard())
   @Mutation(() => UserResponse)
   async addUser(@Args('input') input: CreateUserInput) {
     try {
