@@ -57,7 +57,7 @@ type GeozoneResponse {
 type AssertAssingmentModuleEntity {
   _id: String!
   imei: Float!
-  lableName: String!
+  labelName: String!
   journey: GeozoneResponse!
   boxSet: String!
   createdBy: String
@@ -141,7 +141,7 @@ input SearchUsersInput {
 
 input CreateAssertAssingmentModuleInput {
   imei: Float
-  boxNumber: Float!
+  labelName: Float!
   journey: String!
   boxSet: String
   createdBy: String
@@ -150,7 +150,7 @@ input CreateAssertAssingmentModuleInput {
 
 input UpdateAssertAssingmentModuleInput {
   imei: Float
-  boxNumber: Float
+  labelName: Float
   journey: String
   boxSet: String
   createdBy: String

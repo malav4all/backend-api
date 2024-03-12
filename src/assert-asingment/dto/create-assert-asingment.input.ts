@@ -8,7 +8,7 @@ export class CreateAssertAssingmentModuleInput {
   imei: number;
 
   @Field()
-  boxNumber: number;
+  labelName: number;
 
   @Field()
   journey: string;

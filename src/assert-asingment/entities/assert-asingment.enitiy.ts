@@ -21,7 +21,7 @@ export class AssertAssingmentModuleEntity {
   @Field()
   @Prop({ text: true })
   @Column()
-  lableName: string;
+  labelName: string;
 
   @Field()
   @Prop({ type: Types.ObjectId, ref: 'Geozone' })
