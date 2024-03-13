@@ -106,9 +106,8 @@ export class UserResolver {
 
   @UseGuards(new AuthGuard())
   @Mutation(() => UserResponse)
-  async userListAll(@Args('input') input: UserInput, @Context() context) {
+  async userListAll(@Args('input') input: UserInput) {
     try {
-      const getLoggedInUser = context.user._id;
       const { count, records } = await this.userService.findAll(input);
       return {
         paginatorInfo: {

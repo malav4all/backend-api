@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserModule } from './user/user.module';
 import { AssertAssingmentModuleModule } from './assert-asingment/assert-asingment.module';
+import { GeozoneModule } from './geozone/geozone.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { AssertAssingmentModuleModule } from './assert-asingment/assert-asingmen
     }),
     UserModule,
     AssertAssingmentModuleModule,
+    GeozoneModule,
   ],
   providers: [],
 })

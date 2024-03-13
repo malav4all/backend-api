@@ -3,7 +3,7 @@ import { ObjectType, Field } from '@nestjs/graphql';
 import { ObjectIdColumn, Column } from 'typeorm';
 
 @ObjectType()
-export class GeozoneResponse {
+export class GeozoneResponseType {
   @Field()
   @ObjectIdColumn()
   _id: string;

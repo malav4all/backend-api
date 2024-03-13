@@ -3,7 +3,7 @@ import { ObjectType, Field } from '@nestjs/graphql';
 import { Entity, ObjectIdColumn, Column } from 'typeorm';
 import { Document, Types } from 'mongoose';
 import { IsOptional } from 'class-validator';
-import { GeozoneResponse } from '../dto/geozone';
+import { GeozoneResponseType } from '../dto/geozone';
 
 @Schema({ timestamps: true })
 @Entity()
@@ -25,7 +25,7 @@ export class AssertAssingmentModuleEntity {
 
   @Field()
   @Prop({ type: Types.ObjectId, ref: 'Geozone' })
-  journey: GeozoneResponse;
+  journey: GeozoneResponseType;
 
   @Field()
   @Prop({ text: true })
