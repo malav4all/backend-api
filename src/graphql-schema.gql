@@ -76,6 +76,7 @@ type AssertAssingmentModuleResponse {
 type Geozone {
   _id: String!
   name: String!
+  radius: Float!
   centerNo: String!
   type: String!
   mobileNumber: Float!
@@ -86,6 +87,8 @@ type Geozone {
   area: String!
   city: String!
   district: String!
+  lat: Float!
+  long: Float!
   createdBy: String!
 }
 
@@ -202,6 +205,7 @@ input AssertAssingmentModuleInput {
 
 input CreateGeoZoneInput {
   name: String
+  radius: Float
   centerNo: String
   type: String
   mobileNumber: Float
@@ -212,6 +216,8 @@ input CreateGeoZoneInput {
   area: String
   city: String
   district: String
+  lat: Float
+  long: Float
   createdBy: String
 }
 

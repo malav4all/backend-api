@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { ObjectType, Field } from '@nestjs/graphql';
+import { ObjectType, Field, Float } from '@nestjs/graphql';
 import { Entity, ObjectIdColumn, Column } from 'typeorm';
 import { Document } from 'mongoose';
 import { IsOptional } from 'class-validator';
@@ -16,6 +16,11 @@ export class Geozone {
   @Prop({ text: true })
   @Column()
   name: string;
+
+  @Field(() => Float)
+  @Prop({ text: true })
+  @Column()
+  radius: number;
 
   @Field()
   @Prop()
@@ -68,6 +73,16 @@ export class Geozone {
   @Prop()
   @Column()
   district: string;
+
+  @Field(() => Float)
+  @Prop()
+  @Column()
+  lat: number;
+
+  @Field(() => Float)
+  @Prop()
+  @Column()
+  long: number;
 
   @Field()
   @Prop()

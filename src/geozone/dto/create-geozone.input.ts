@@ -1,10 +1,13 @@
-import { Field, InputType, Int } from '@nestjs/graphql';
+import { Field, Float, InputType, Int } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
 
 @InputType()
 export class CreateGeoZoneInput {
   @Field({ nullable: true })
   name: string;
+
+  @Field(() => Float, { nullable: true })
+  radius: number;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -13,7 +16,7 @@ export class CreateGeoZoneInput {
   @Field({ nullable: true })
   type: string;
 
-  @Field({ nullable: true })
+  @Field(() => Number, { nullable: true })
   mobileNumber: number;
 
   @Field({ nullable: true })
@@ -36,6 +39,12 @@ export class CreateGeoZoneInput {
 
   @Field({ nullable: true })
   district: string;
+
+  @Field(() => Float, { nullable: true })
+  lat: number;
+
+  @Field(() => Float, { nullable: true })
+  long: number;
 
   @Field({ nullable: true })
   createdBy: string;
