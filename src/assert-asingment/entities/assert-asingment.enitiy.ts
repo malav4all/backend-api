@@ -23,9 +23,9 @@ export class AssertAssingmentModuleEntity {
   @Column()
   labelName: string;
 
-  @Field()
-  @Prop({ type: Types.ObjectId, ref: 'Geozone' })
-  journey: GeozoneResponseType;
+  // @Field()
+  // @Prop({ type: Types.ObjectId, ref: 'Geozone' })
+  // journey: GeozoneResponseType;
 
   @Field()
   @Prop({ text: true })

@@ -1,17 +1,16 @@
-import { Field, InputType, Int } from '@nestjs/graphql';
+import { Field, Float, InputType, Int } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
 
 @InputType()
 export class CreateAssertAssingmentModuleInput {
-  @Field({ nullable: true })
-  @IsOptional()
+  @Field(() => Float)
   imei: number;
 
   @Field()
-  labelName: number;
+  labelName: string;
 
-  @Field()
-  journey: string;
+  // @Field()
+  // journey: string;
 
   @Field({ nullable: true })
   boxSet: string;
