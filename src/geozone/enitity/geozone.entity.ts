@@ -4,6 +4,59 @@ import { Entity, ObjectIdColumn, Column } from 'typeorm';
 import { Document } from 'mongoose';
 import { IsOptional } from 'class-validator';
 
+@ObjectType()
+class PropertyTypeEntity {
+  @Field({ nullable: true })
+  @IsOptional()
+  name?: string;
+}
+
+@ObjectType()
+class GeoJsonGeometryEntity {
+  @Field(() => String)
+  type: string;
+
+  @Field(() => [Float])
+  coordinates: number[];
+
+  @Field(() => Float)
+  @IsOptional()
+  radius?: number;
+}
+
+@ObjectType()
+class GeoJsonEntity {
+  @Field(() => String)
+  type: string;
+
+  @Field(() => GeoJsonGeometryEntity)
+  geometry: GeoJsonGeometryEntity;
+
+  @Field(() => PropertyTypeEntity, { nullable: true })
+  @IsOptional()
+  properties?: PropertyTypeEntity;
+}
+@ObjectType()
+class AddressEntityType {
+  @Field({ nullable: true })
+  zipCode: string;
+
+  @Field({ nullable: true })
+  country: string;
+
+  @Field({ nullable: true })
+  state: string;
+
+  @Field({ nullable: true })
+  area: string;
+
+  @Field({ nullable: true })
+  city: string;
+
+  @Field({ nullable: true })
+  district: string;
+}
+
 @Schema({ timestamps: true })
 @ObjectType()
 @Entity()
@@ -17,21 +70,16 @@ export class Geozone {
   @Column()
   name: string;
 
-  @Field(() => Float)
+  @Field(() => String)
   @Prop({ text: true })
   @Column()
-  radius: number;
+  description: string;
 
   @Field()
   @Prop()
   @Column()
   @IsOptional()
-  centerNo?: string;
-
-  @Field()
-  @Prop({ text: true })
-  @Column()
-  type: string;
+  locationType: string;
 
   @Field()
   @Prop({ text: true })
@@ -39,50 +87,20 @@ export class Geozone {
   @IsOptional()
   mobileNumber: number;
 
-  @Field()
+  @Field(() => AddressEntityType)
   @Prop()
   @Column()
-  address: string;
+  address: AddressEntityType;
 
-  @Field()
+  @Field(() => GeoJsonEntity)
   @Prop()
   @Column()
-  zipCode: string;
+  geoCodeData: GeoJsonEntity;
 
-  @Field()
+  @Field(() => String)
   @Prop()
   @Column()
-  country: string;
-
-  @Field()
-  @Prop()
-  @Column()
-  state: string;
-
-  @Field()
-  @Prop()
-  @Column()
-  area: string;
-
-  @Field()
-  @Prop()
-  @Column()
-  city: string;
-
-  @Field()
-  @Prop()
-  @Column()
-  district: string;
-
-  @Field(() => Float)
-  @Prop()
-  @Column()
-  lat: number;
-
-  @Field(() => Float)
-  @Prop()
-  @Column()
-  long: number;
+  finalAddress: string;
 
   @Field()
   @Prop()

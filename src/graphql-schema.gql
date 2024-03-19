@@ -65,22 +65,40 @@ type AssertAssingmentModuleResponse {
   data: [AssertAssingmentModuleEntity!]
 }
 
+type PropertyTypeEntity {
+  name: String
+}
+
+type GeoJsonGeometryEntity {
+  type: String!
+  coordinates: [Float!]!
+  radius: Float!
+}
+
+type GeoJsonEntity {
+  type: String!
+  geometry: GeoJsonGeometryEntity!
+  properties: PropertyTypeEntity
+}
+
+type AddressEntityType {
+  zipCode: String
+  country: String
+  state: String
+  area: String
+  city: String
+  district: String
+}
+
 type Geozone {
   _id: String!
   name: String!
-  radius: Float!
-  centerNo: String!
-  type: String!
+  description: String!
+  locationType: String!
   mobileNumber: Float!
-  address: String!
-  zipCode: String!
-  country: String!
-  state: String!
-  area: String!
-  city: String!
-  district: String!
-  lat: Float!
-  long: Float!
+  address: AddressEntityType!
+  geoCodeData: GeoJsonEntity!
+  finalAddress: String!
   createdBy: String!
 }
 
@@ -195,20 +213,38 @@ input AssertAssingmentModuleInput {
 
 input CreateGeoZoneInput {
   name: String
-  radius: Float
-  centerNo: String
-  type: String
+  description: String
+  locationType: String
   mobileNumber: Float
-  address: String
+  address: AddressType
+  finalAddress: String
+  geoCodeData: GeoJsonData
+  createdBy: String
+}
+
+input AddressType {
   zipCode: String
   country: String
   state: String
   area: String
   city: String
   district: String
-  lat: Float
-  long: Float
-  createdBy: String
+}
+
+input GeoJsonData {
+  type: String!
+  geometry: GeoJsonGeometry!
+  properties: PropertyType!
+}
+
+input GeoJsonGeometry {
+  type: String!
+  coordinates: [Float!]!
+  radius: Float!
+}
+
+input PropertyType {
+  name: String
 }
 
 input GeozoneInput {

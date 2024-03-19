@@ -2,26 +2,40 @@ import { Field, Float, InputType, Int } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
 
 @InputType()
-export class CreateGeoZoneInput {
-  @Field({ nullable: true })
-  name: string;
-
-  @Field(() => Float, { nullable: true })
-  radius: number;
-
+class PropertyType {
   @Field({ nullable: true })
   @IsOptional()
-  centerNo?: string;
+  name?: string;
+}
 
-  @Field({ nullable: true })
+@InputType()
+class GeoJsonGeometry {
+  @Field(() => String)
   type: string;
 
-  @Field(() => Number, { nullable: true })
-  mobileNumber: number;
+  @Field(() => [Float])
+  coordinates: number[];
 
-  @Field({ nullable: true })
-  address: string;
+  @Field(() => Float)
+  @IsOptional()
+  radius?: number;
+}
 
+@InputType()
+class GeoJsonData {
+  @Field(() => String)
+  type: string;
+
+  @Field(() => GeoJsonGeometry)
+  geometry: GeoJsonGeometry;
+
+  @Field(() => PropertyType)
+  @IsOptional()
+  properties?: PropertyType;
+}
+
+@InputType()
+class AddressType {
   @Field({ nullable: true })
   zipCode: string;
 
@@ -39,12 +53,30 @@ export class CreateGeoZoneInput {
 
   @Field({ nullable: true })
   district: string;
+}
 
-  @Field(() => Float, { nullable: true })
-  lat: number;
+@InputType()
+export class CreateGeoZoneInput {
+  @Field({ nullable: true })
+  name: string;
 
-  @Field(() => Float, { nullable: true })
-  long: number;
+  @Field({ nullable: true })
+  description: string;
+
+  @Field({ nullable: true })
+  locationType: string;
+
+  @Field(() => Number, { nullable: true })
+  mobileNumber: number;
+
+  @Field(() => AddressType, { nullable: true })
+  address: AddressType;
+
+  @Field(() => String, { nullable: true })
+  finalAddress: string;
+
+  @Field(() => GeoJsonData, { nullable: true })
+  geoCodeData: GeoJsonData;
 
   @Field({ nullable: true })
   createdBy: string;
