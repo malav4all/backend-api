@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Journey, JourneyDocument } from './entity/journey.entity';
 import { CreateJourneyInput, JourneyInput } from './dto/create-journey.input';
+import { UpdateJourneyInput } from './dto/update-journey.input';
 
 @Injectable()
 export class JourneyService {
@@ -41,6 +42,27 @@ export class JourneyService {
         .exec();
       const count = await this.JourneyModel.count().exec();
       return { records, count };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async update(payload: UpdateJourneyInput) {
+    try {
+      const updatePayload = {
+        ...payload,
+        updatedAt: new Date(),
+      };
+      const record = await this.JourneyModel.findByIdAndUpdate(
+        payload._id,
+        updatePayload,
+        {
+          new: true,
+        }
+      )
+        .lean()
+        .exec();
+      return record;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }

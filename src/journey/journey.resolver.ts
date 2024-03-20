@@ -4,6 +4,7 @@ import { InternalServerErrorException, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@imz/user/guard';
 import { CreateJourneyInput, JourneyInput } from './dto/create-journey.input';
 import { JourneyService } from './journey.service';
+import { UpdateJourneyInput } from './dto/update-journey.input';
 
 @Resolver(() => JourneyResponseData)
 export class JourneyResolver {
@@ -37,6 +38,22 @@ export class JourneyResolver {
         success: 1,
         message: 'list available.',
         data: records,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @UseGuards(new AuthGuard())
+  @Mutation(() => JourneyResponseData)
+  async updateJourney(@Args('input') input: UpdateJourneyInput) {
+    try {
+      const record = await this.journeyService.update(input);
+      return {
+        success: record ? 1 : 0,
+        message: record
+          ? 'Records update successfully.'
+          : 'Technical issue please try again.',
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
