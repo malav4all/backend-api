@@ -109,6 +109,19 @@ type GeozoneResponse {
   data: [Geozone!]!
 }
 
+type LocationType {
+  _id: String!
+  type: String!
+  createdBy: String!
+}
+
+type LocationTypeResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [LocationType!]!
+}
+
 type Query {
   createUser(input: CreateUserInput!): UserResponse!
 }
@@ -143,6 +156,8 @@ type Mutation {
   fetchAssertAssingmentModule(input: AssertAssingmentModuleInput!): AssertAssingmentModuleResponse!
   addGeozone(input: CreateGeoZoneInput!): GeozoneResponse!
   listGeozone(input: GeozoneInput!): GeozoneResponse!
+  addLocationType(input: CreateLocationTypeInput!): LocationTypeResponse!
+  fetchLocationType(input: LocationTypeInput!): LocationTypeResponse!
 }
 
 input ChangePasswordInput {
@@ -248,6 +263,16 @@ input PropertyType {
 }
 
 input GeozoneInput {
+  page: Int
+  limit: Int
+}
+
+input CreateLocationTypeInput {
+  type: String!
+  createdBy: String!
+}
+
+input LocationTypeInput {
   page: Int
   limit: Int
 }

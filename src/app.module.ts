@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { UserModule } from './user/user.module';
 import { AssertAssingmentModuleModule } from './assert-asingment/assert-asingment.module';
 import { GeozoneModule } from './geozone/geozone.module';
+import { LocationTypeModule } from './location-type/location-type.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { GeozoneModule } from './geozone/geozone.module';
     UserModule,
     AssertAssingmentModuleModule,
     GeozoneModule,
+    LocationTypeModule,
   ],
   providers: [],
 })
