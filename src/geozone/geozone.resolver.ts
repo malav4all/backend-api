@@ -4,6 +4,7 @@ import { InternalServerErrorException, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@imz/user/guard';
 import { CreateGeoZoneInput, GeozoneInput } from './dto/create-geozone.input';
 import { GeozoneService } from './geozone.service';
+import { UpdateGeozoneInput } from './dto/update-geozone.input';
 
 @Resolver(() => GeozoneResponse)
 export class GeozoneResolver {
@@ -37,6 +38,22 @@ export class GeozoneResolver {
         success: 1,
         message: 'Geozone list available.',
         data: records,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @UseGuards(new AuthGuard())
+  @Mutation(() => GeozoneResponse)
+  async updateGeozone(@Args('input') input: UpdateGeozoneInput) {
+    try {
+      const record = await this.geoZoneService.update(input);
+      return {
+        success: record ? 1 : 0,
+        message: record
+          ? 'Records update successfully.'
+          : 'Technical issue please try again.',
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);

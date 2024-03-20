@@ -156,6 +156,7 @@ type Mutation {
   fetchAssertAssingmentModule(input: AssertAssingmentModuleInput!): AssertAssingmentModuleResponse!
   addGeozone(input: CreateGeoZoneInput!): GeozoneResponse!
   listGeozone(input: GeozoneInput!): GeozoneResponse!
+  updateGeozone(input: UpdateGeozoneInput!): GeozoneResponse!
   addLocationType(input: CreateLocationTypeInput!): LocationTypeResponse!
   fetchLocationType(input: LocationTypeInput!): LocationTypeResponse!
 }
@@ -265,6 +266,18 @@ input PropertyType {
 input GeozoneInput {
   page: Int
   limit: Int
+}
+
+input UpdateGeozoneInput {
+  name: String
+  description: String
+  locationType: String
+  mobileNumber: Float
+  address: AddressType
+  finalAddress: String
+  geoCodeData: GeoJsonData
+  createdBy: String
+  _id: String!
 }
 
 input CreateLocationTypeInput {

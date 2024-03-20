@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { GeozoneDocument, Geozone } from './enitity/geozone.entity';
 import { Model } from 'mongoose';
 import { CreateGeoZoneInput, GeozoneInput } from './dto/create-geozone.input';
+import { UpdateGeozoneInput } from './dto/update-geozone.input';
 
 @Injectable()
 export class GeozoneService {
@@ -41,6 +42,27 @@ export class GeozoneService {
         .exec();
       const count = await this.GeoZoneModel.count().exec();
       return { records, count };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async update(payload: UpdateGeozoneInput) {
+    try {
+      const updatePayload = {
+        ...payload,
+        updatedAt: new Date(),
+      };
+      const record = await this.GeoZoneModel.findByIdAndUpdate(
+        payload._id,
+        updatePayload,
+        {
+          new: true,
+        }
+      )
+        .lean()
+        .exec();
+      return record;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
