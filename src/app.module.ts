@@ -7,6 +7,7 @@ import { UserModule } from './user/user.module';
 import { AssertAssingmentModuleModule } from './assert-asingment/assert-asingment.module';
 import { GeozoneModule } from './geozone/geozone.module';
 import { LocationTypeModule } from './location-type/location-type.module';
+import { JourneyModule } from './journey/journey.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { LocationTypeModule } from './location-type/location-type.module';
     AssertAssingmentModuleModule,
     GeozoneModule,
     LocationTypeModule,
+    JourneyModule,
   ],
   providers: [],
 })

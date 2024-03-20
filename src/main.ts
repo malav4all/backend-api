@@ -20,5 +20,5 @@ const bootstrap = async () => {
 
 bootstrap().catch((error: any) => {
   const logger = new Logger();
-  logger.log(`Error in Application:::${error.message}`);
+  logger.error(`Error in Application:::${error.message}`);
 });

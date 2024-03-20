@@ -122,6 +122,57 @@ type LocationTypeResponse {
   data: [LocationType!]!
 }
 
+type PropertyTypeEntityResponse {
+  name: String
+}
+
+type GeoJsonGeometryEntityResponse {
+  type: String!
+  coordinates: [Float!]!
+  radius: Float!
+}
+
+type GeoJsonEntityResponse {
+  type: String!
+  geometry: GeoJsonGeometryEntityResponse!
+  properties: PropertyTypeEntityResponse
+}
+
+type AddressEntityTypeResponse {
+  zipCode: String
+  country: String
+  state: String
+  area: String
+  city: String
+  district: String
+}
+
+type JourneyResponse {
+  _id: String!
+  name: String!
+  description: String!
+  locationType: String!
+  mobileNumber: Float!
+  address: AddressEntityTypeResponse!
+  geoCodeData: GeoJsonEntityResponse!
+  finalAddress: String!
+  createdBy: String!
+}
+
+type Journey {
+  _id: String!
+  journeyName: String!
+  journeyData: JourneyResponse!
+  createdBy: String!
+}
+
+type JourneyResponseData {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [Journey!]!
+}
+
 type Query {
   createUser(input: CreateUserInput!): UserResponse!
 }
@@ -159,6 +210,8 @@ type Mutation {
   updateGeozone(input: UpdateGeozoneInput!): GeozoneResponse!
   addLocationType(input: CreateLocationTypeInput!): LocationTypeResponse!
   fetchLocationType(input: LocationTypeInput!): LocationTypeResponse!
+  addJourney(input: CreateJourneyInput!): JourneyResponseData!
+  fetchJourney(input: JourneyInput!): JourneyResponseData!
 }
 
 input ChangePasswordInput {
@@ -286,6 +339,21 @@ input CreateLocationTypeInput {
 }
 
 input LocationTypeInput {
+  page: Int
+  limit: Int
+}
+
+input CreateJourneyInput {
+  journeyName: String
+  journeyData: [LocationData!]
+  createdBy: String
+}
+
+input LocationData {
+  locationId: String!
+}
+
+input JourneyInput {
   page: Int
   limit: Int
 }
