@@ -15,7 +15,7 @@ export class JourneyService {
   async create(payload: CreateJourneyInput) {
     try {
       const existingRecord = await this.JourneyModel.findOne({
-        type: payload.journeyName,
+        journeyName: payload.journeyName,
       });
       if (existingRecord) {
         throw new Error('Record Already Exits');
