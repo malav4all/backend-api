@@ -152,7 +152,7 @@ type JourneyResponse {
   name: String!
   description: String!
   locationType: String!
-  mobileNumber: Float!
+  mobileNumber: String!
   address: AddressEntityTypeResponse!
   geoCodeData: GeoJsonEntityResponse!
   finalAddress: String!
@@ -162,7 +162,7 @@ type JourneyResponse {
 type Journey {
   _id: String!
   journeyName: String!
-  journeyData: JourneyResponse!
+  journeyData: [JourneyResponse!]!
   createdBy: String!
 }
 
@@ -212,6 +212,7 @@ type Mutation {
   fetchLocationType(input: LocationTypeInput!): LocationTypeResponse!
   addJourney(input: CreateJourneyInput!): JourneyResponseData!
   fetchJourney(input: JourneyInput!): JourneyResponseData!
+  updateJourney(input: UpdateJourneyInput!): JourneyResponseData!
 }
 
 input ChangePasswordInput {
@@ -345,15 +346,18 @@ input LocationTypeInput {
 
 input CreateJourneyInput {
   journeyName: String
-  journeyData: [LocationData!]
+  journeyData: [String!]
   createdBy: String
-}
-
-input LocationData {
-  locationId: String!
 }
 
 input JourneyInput {
   page: Int
   limit: Int
+}
+
+input UpdateJourneyInput {
+  journeyName: String
+  journeyData: [String!]
+  createdBy: String
+  _id: String!
 }

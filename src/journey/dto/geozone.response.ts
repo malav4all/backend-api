@@ -1,6 +1,6 @@
 import { Prop } from '@nestjs/mongoose';
 import { ObjectType, Field, Float } from '@nestjs/graphql';
-import { ObjectIdColumn, Column } from 'typeorm';
+import { Column, Entity, ObjectIdColumn } from 'typeorm';
 import { IsOptional } from 'class-validator';
 
 @ObjectType()
@@ -39,22 +39,22 @@ class GeoJsonEntityResponse {
 @ObjectType()
 class AddressEntityTypeResponse {
   @Field({ nullable: true })
-  zipCode: string;
+  zipCode?: string;
 
   @Field({ nullable: true })
-  country: string;
+  country?: string;
 
   @Field({ nullable: true })
-  state: string;
+  state?: string;
 
   @Field({ nullable: true })
-  area: string;
+  area?: string;
 
   @Field({ nullable: true })
-  city: string;
+  city?: string;
 
   @Field({ nullable: true })
-  district: string;
+  district?: string;
 }
 
 @ObjectType()
@@ -76,14 +76,12 @@ export class JourneyResponse {
   @Field()
   @Prop()
   @Column()
-  @IsOptional()
   locationType: string;
 
   @Field()
   @Prop({ text: true })
   @Column()
-  @IsOptional()
-  mobileNumber: number;
+  mobileNumber: string;
 
   @Field(() => AddressEntityTypeResponse)
   @Prop()
@@ -95,7 +93,7 @@ export class JourneyResponse {
   @Column()
   geoCodeData: GeoJsonEntityResponse;
 
-  @Field(() => String)
+  @Field()
   @Prop()
   @Column()
   finalAddress: string;

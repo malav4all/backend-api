@@ -35,12 +35,13 @@ export class JourneyService {
       const limit = Number(input.limit);
       const skip = page === -1 ? 0 : (page - 1) * limit;
 
-      const records = await this.JourneyModel.find()
-        .populate('journeyData')
+      const records = await this.JourneyModel.find({})
         .skip(skip)
         .limit(limit)
+        .populate({ path: 'journeyData' })
         .exec();
-      const count = await this.JourneyModel.count().exec();
+      const count = await this.JourneyModel.countDocuments().exec();
+
       return { records, count };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
