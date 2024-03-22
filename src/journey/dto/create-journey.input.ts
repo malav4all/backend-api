@@ -10,6 +10,12 @@ export class CreateJourneyInput {
 
   @Field({ nullable: true })
   createdBy: string;
+
+  @Field(() => Date)
+  startDate: Date;
+
+  @Field(() => Date)
+  endDate: Date;
 }
 
 @InputType()

@@ -20,6 +20,14 @@ export class Journey {
   @Field()
   @Prop()
   createdBy: string;
+
+  @Field(() => Date)
+  @Prop()
+  startDate: Date;
+
+  @Field(() => Date)
+  @Prop()
+  endDate: Date;
 }
 
 export type JourneyDocument = Journey & Document;

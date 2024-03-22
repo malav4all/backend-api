@@ -164,6 +164,8 @@ type Journey {
   journeyName: String!
   journeyData: [JourneyResponse!]!
   createdBy: String!
+  startDate: DateTime!
+  endDate: DateTime!
 }
 
 type JourneyResponseData {
@@ -348,6 +350,8 @@ input CreateJourneyInput {
   journeyName: String
   journeyData: [String!]
   createdBy: String
+  startDate: DateTime!
+  endDate: DateTime!
 }
 
 input JourneyInput {
@@ -359,5 +363,7 @@ input UpdateJourneyInput {
   journeyName: String
   journeyData: [String!]
   createdBy: String
+  startDate: DateTime
+  endDate: DateTime
   _id: String!
 }
