@@ -16,6 +16,10 @@ export class CreateJourneyInput {
 
   @Field(() => Date)
   endDate: Date;
+  @Field({ nullable: true })
+  totalDistance: number;
+  @Field({ nullable: true })
+  totalDuration: number;
 }
 
 @InputType()

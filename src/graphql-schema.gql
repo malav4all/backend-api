@@ -166,6 +166,8 @@ type Journey {
   createdBy: String!
   startDate: DateTime!
   endDate: DateTime!
+  totalDistance: Float!
+  totalDuration: Float!
 }
 
 type JourneyResponseData {
@@ -352,6 +354,8 @@ input CreateJourneyInput {
   createdBy: String
   startDate: DateTime!
   endDate: DateTime!
+  totalDistance: Float
+  totalDuration: Float
 }
 
 input JourneyInput {
@@ -365,5 +369,7 @@ input UpdateJourneyInput {
   createdBy: String
   startDate: DateTime
   endDate: DateTime
+  totalDistance: Float
+  totalDuration: Float
   _id: String!
 }
