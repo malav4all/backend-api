@@ -258,6 +258,7 @@ type Mutation {
   searchAssertAssingmentModule(input: SearchAssertAssingmentModuleInput!): AssertAssingmentModuleResponse!
   checkAssertAssingmentModuleExistsRecord(input: CheckAssertAssingmentModuleInput!): AssertAssingmentModuleResponse!
   fetchAssertAssingmentModule(input: AssertAssingmentModuleInput!): AssertAssingmentModuleResponse!
+  bulkJourneyUpload(input: [CreateAssertAssingmentModuleInput!]!): AssertAssingmentModuleResponse!
   addGeozone(input: CreateGeoZoneInput!): GeozoneResponse!
   listGeozone(input: GeozoneInput!): GeozoneResponse!
   updateGeozone(input: UpdateGeozoneInput!): GeozoneResponse!

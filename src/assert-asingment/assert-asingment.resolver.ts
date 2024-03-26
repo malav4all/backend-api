@@ -132,4 +132,25 @@ export class AssertAssingmentResolver {
       throw new InternalServerErrorException(error.message);
     }
   }
+
+  @UseGuards(new AuthGuard())
+  @Mutation(() => AssertAssingmentModuleResponse)
+  async bulkJourneyUpload(
+    @Args('input', { type: () => [CreateAssertAssingmentModuleInput] })
+    input: CreateAssertAssingmentModuleInput[]
+  ) {
+    try {
+      const record = await this.assertAssingmentModuleService.bulkJourneyUpload(
+        input
+      );
+      return {
+        success: record ? 1 : 0,
+        message: record
+          ? 'Assert Record uploaded.'
+          : 'Assert Record not uploaded. Please try again.',
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
 }
