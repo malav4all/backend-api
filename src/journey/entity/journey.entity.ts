@@ -28,6 +28,14 @@ export class Journey {
   @Field(() => Date)
   @Prop()
   endDate: Date;
+
+  @Field()
+  @Prop()
+  totalDistance: number;
+
+  @Field()
+  @Prop()
+  totalDuration: number;
 }
 
 export type JourneyDocument = Journey & Document;
