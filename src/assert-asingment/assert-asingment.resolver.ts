@@ -17,7 +17,7 @@ export class AssertAssingmentResolver {
     private readonly assertAssingmentModuleService: AssertAssingmentModuleService
   ) {}
 
-  // @UseGuards(new AuthGuard())
+  @UseGuards(new AuthGuard())
   @Mutation(() => AssertAssingmentModuleResponse)
   async createAssertAssingmentModule(
     @Args('input') input: CreateAssertAssingmentModuleInput
@@ -35,7 +35,7 @@ export class AssertAssingmentResolver {
     }
   }
 
-  // @UseGuards(new AuthGuard())
+  @UseGuards(new AuthGuard())
   @Mutation(() => AssertAssingmentModuleResponse)
   async updateAssertAssingmentModule(
     @Args('input') input: UpdateAssertAssingmentModuleInput
@@ -53,7 +53,7 @@ export class AssertAssingmentResolver {
     }
   }
 
-  // @UseGuards(new AuthGuard())
+  @UseGuards(new AuthGuard())
   @Mutation(() => AssertAssingmentModuleResponse)
   async deleteAssertAssingmentModule(
     @Args('input') input: UpdateAssertAssingmentModuleInput
@@ -71,7 +71,7 @@ export class AssertAssingmentResolver {
     }
   }
 
-  // @UseGuards(new AuthGuard())
+  @UseGuards(new AuthGuard())
   @Mutation(() => AssertAssingmentModuleResponse)
   async searchAssertAssingmentModule(
     @Args('input') input: SearchAssertAssingmentModuleInput
@@ -94,7 +94,7 @@ export class AssertAssingmentResolver {
     }
   }
 
-  // @UseGuards(new AuthGuard())
+  @UseGuards(new AuthGuard())
   @Mutation(() => AssertAssingmentModuleResponse)
   async checkAssertAssingmentModuleExistsRecord(
     @Args('input') input: CheckAssertAssingmentModuleInput
@@ -112,7 +112,7 @@ export class AssertAssingmentResolver {
     }
   }
 
-  // @UseGuards(new AuthGuard())
+  @UseGuards(new AuthGuard())
   @Mutation(() => AssertAssingmentModuleResponse)
   async fetchAssertAssingmentModule(
     @Args('input') input: AssertAssingmentModuleInput

@@ -9,8 +9,8 @@ export class CreateAssertAssingmentModuleInput {
   @Field()
   labelName: string;
 
-  // @Field()
-  // journey: string;
+  @Field()
+  journey: string;
 
   @Field({ nullable: true })
   boxSet: string;

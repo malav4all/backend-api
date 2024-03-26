@@ -32,6 +32,7 @@ export class AssertAssingmentModuleService {
 
       const skip = page === -1 ? 0 : (page - 1) * limit;
       const records = await this.AssertAssingmentModuleModule.find()
+        .populate('journey')
         .skip(skip)
         .limit(limit)
         .lean()
