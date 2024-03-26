@@ -8,6 +8,7 @@ import { AssertAssingmentModuleModule } from './assert-asingment/assert-asingmen
 import { GeozoneModule } from './geozone/geozone.module';
 import { LocationTypeModule } from './location-type/location-type.module';
 import { JourneyModule } from './journey/journey.module';
+import { InfluxService } from './helper/comman/influx-db/influx-db.connection';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { JourneyModule } from './journey/journey.module';
     LocationTypeModule,
     JourneyModule,
   ],
-  providers: [],
+  providers: [InfluxService],
+  exports: [InfluxService],
 })
 export class AppModule {}
