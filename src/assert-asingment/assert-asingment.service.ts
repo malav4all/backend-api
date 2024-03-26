@@ -132,4 +132,15 @@ export class AssertAssingmentModuleService {
       throw new InternalServerErrorException(error.message);
     }
   }
+
+  async bulkJourneyUpload(payload: CreateAssertAssingmentModuleInput[]) {
+    try {
+      const record = await this.AssertAssingmentModuleModule.insertMany(
+        payload
+      );
+      return record;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
 }
