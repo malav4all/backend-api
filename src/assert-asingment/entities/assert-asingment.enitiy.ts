@@ -1,46 +1,41 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ObjectType, Field } from '@nestjs/graphql';
-import { Entity, ObjectIdColumn, Column } from 'typeorm';
 import { Document, Types } from 'mongoose';
 import { IsOptional } from 'class-validator';
 import { JourneyResponseType } from '../dto/journey-response.type';
+import { Column, Index } from 'typeorm';
 
 @Schema({ timestamps: true })
-@Entity()
 @ObjectType()
 export class AssertAssingmentModuleEntity {
   @Field()
-  @ObjectIdColumn()
   _id: string;
 
   @Field()
   @Prop({ text: true })
-  @Column()
+  @Index({ unique: true })
   imei: number;
 
   @Field()
   @Prop({ text: true })
-  @Column()
   labelName: string;
 
-  @Field()
+  @Field(() => JourneyResponseType)
   @Prop({ type: Types.ObjectId, ref: 'Journey' })
-  journey: JourneyResponseType;
+  @Column()
+  journey: Types.ObjectId;
 
   @Field()
   @Prop({ text: true })
-  @Column()
   boxSet: string;
 
   @Field({ nullable: true })
   @Prop({ text: true })
-  @Column()
   @IsOptional()
   createdBy?: string;
 
   @Field({ nullable: true })
-  @Prop()
-  @Column()
+  @Prop({ text: true })
   @IsOptional()
   updatedBy?: string;
 }
@@ -50,4 +45,3 @@ export type AssertAssingmentModuleDocument = AssertAssingmentModuleEntity &
 export const AssertAssingmentModuleSchema = SchemaFactory.createForClass(
   AssertAssingmentModuleEntity
 );
-AssertAssingmentModuleSchema.index({ accountName: 'text' });

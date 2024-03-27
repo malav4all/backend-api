@@ -251,7 +251,6 @@ export class UserService {
       })
         .skip(skip)
         .limit(limit)
-        .populate([{ path: 'roleId' }])
         .lean()
         .exec();
 

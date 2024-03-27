@@ -1,4 +1,9 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Journey, JourneyDocument } from './entity/journey.entity';
@@ -18,7 +23,7 @@ export class JourneyService {
         journeyName: payload.journeyName,
       });
       if (existingRecord) {
-        throw new Error('Record Already Exits');
+        throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
       }
 
       const record = await this.JourneyModel.create({

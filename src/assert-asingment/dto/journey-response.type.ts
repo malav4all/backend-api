@@ -1,6 +1,7 @@
 import { Prop } from '@nestjs/mongoose';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { GeozoneAsset } from './geozone.-response.type';
+import { Index } from 'typeorm';
 
 @ObjectType()
 export class JourneyResponseType {
@@ -9,6 +10,7 @@ export class JourneyResponseType {
 
   @Field()
   @Prop()
+  @Index({ unique: true })
   journeyName: string;
 
   @Field(() => [GeozoneAsset])

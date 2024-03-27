@@ -97,17 +97,29 @@ export class AssertAssingmentModuleService {
       const limit = Number(input.limit);
       const skip = page === -1 ? 0 : (page - 1) * limit;
 
-      const records = await this.AssertAssingmentModuleModule.find({
-        $or: [{ imei: { $regex: input.search, $options: 'i' } }],
-      })
+      const query = {
+        $or: [
+          {
+            imei: isNaN(Number(input.search))
+              ? undefined
+              : Number(input.search),
+          },
+          { labelName: { $regex: input.search, $options: 'i' } },
+          { boxSet: { $regex: input.search, $options: 'i' } },
+          {
+            journey: { $regex: input.search, $options: 'i' },
+          },
+        ],
+      };
+
+      const records = await this.AssertAssingmentModuleModule.find(query)
+        .populate('journey')
         .skip(skip)
         .limit(limit)
         .lean()
         .exec();
 
-      const count = await this.AssertAssingmentModuleModule.countDocuments({
-        $or: [{ imei: { $regex: input.search, $options: 'i' } }],
-      });
+      const count = await this.AssertAssingmentModuleModule.count(query);
 
       return { records, count };
     } catch (error) {
