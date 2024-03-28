@@ -25,17 +25,13 @@ import { InfluxService } from './helper/comman/influx-db/influx-db.connection';
     GraphQLModule.forRoot({
       playground: true,
       installSubscriptionHandlers: true,
-      // subscriptions: {
-      //   verifyClient: (info, next) => {
-      //     const authorization = info.req.headers?.authorization as string;
-      //     if (!authorization?.startsWith('Bearer ')) {
-      //       return next(false);
-      //     }
-      //     next(true);
-      //   },
-      // },
       autoSchemaFile: join(process.cwd(), 'src/graphql-schema.gql'),
       context: ({ req }) => ({ headers: req?.headers }),
+      subscriptions: {
+        'subscriptions-transport-ws': {
+          path: '/graphql',
+        },
+      },
     }),
     UserModule,
     AssertAssingmentModuleModule,
