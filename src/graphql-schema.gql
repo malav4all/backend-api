@@ -33,6 +33,11 @@ type PaginatorInfo {
   total: Float
 }
 
+type Coordinate {
+  lat: Float!
+  long: Float!
+}
+
 type UserResponse {
   paginatorInfo: PaginatorInfo
   success: Float
@@ -432,6 +437,10 @@ input UpdateJourneyInput {
   totalDistance: Float
   totalDuration: Float
   _id: String!
+}
+
+type Subscription {
+  coordinatesUpdated(topic: String!): [Coordinate!]!
 }
 
 input SearchJourneysInput {
