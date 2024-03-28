@@ -9,6 +9,8 @@ import { GeozoneModule } from './geozone/geozone.module';
 import { LocationTypeModule } from './location-type/location-type.module';
 import { JourneyModule } from './journey/journey.module';
 import { InfluxService } from './helper/comman/influx-db/influx-db.connection';
+import { MqttService } from './helper/comman/mqtt/mqtt-service.connection';
+import { MqttResolver } from './helper/comman/mqtt/mqtt.resolver';
 
 @Module({
   imports: [
@@ -39,7 +41,7 @@ import { InfluxService } from './helper/comman/influx-db/influx-db.connection';
     LocationTypeModule,
     JourneyModule,
   ],
-  providers: [InfluxService],
+  providers: [InfluxService, MqttService, MqttResolver],
   exports: [InfluxService],
 })
 export class AppModule {}

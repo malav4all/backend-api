@@ -1,4 +1,4 @@
-import { ObjectType, Field } from '@nestjs/graphql';
+import { ObjectType, Field, Float } from '@nestjs/graphql';
 @ObjectType()
 export class PaginatorInfo {
   @Field({ nullable: true })
@@ -17,4 +17,13 @@ export class PaginatorInfo {
   perPage: number;
   @Field({ nullable: true })
   total: number;
+}
+
+@ObjectType()
+export class Coordinate {
+  @Field(() => Float)
+  lat: number;
+
+  @Field(() => Float)
+  long: number;
 }
