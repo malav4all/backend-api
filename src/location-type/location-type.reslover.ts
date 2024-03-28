@@ -5,6 +5,7 @@ import { AuthGuard } from '@imz/user/guard';
 import {
   CreateLocationTypeInput,
   LocationTypeInput,
+  SearchLocationsInput,
 } from './dto/create-location-type.input';
 import { LocationTypeService } from './location-type.service';
 
@@ -39,6 +40,25 @@ export class LocationTypeResolver {
         },
         success: 1,
         message: 'list available.',
+        data: records,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Mutation(() => LocationTypeResponse)
+  async searchLocations(@Args('input') input: SearchLocationsInput) {
+    try {
+      const { records, count } = await this.locationTypeService.searchLocations(
+        input
+      );
+      return {
+        paginatorInfo: {
+          count,
+        },
+        success: 1,
+        message: 'Location list available.',
         data: records,
       };
     } catch (error) {

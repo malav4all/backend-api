@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ObjectType, Field } from '@nestjs/graphql';
-import { Document, Types } from 'mongoose';
+import mongoose, { Document, Types } from 'mongoose';
 import { IsOptional } from 'class-validator';
 import { JourneyResponseType } from '../dto/journey-response.type';
 import { Column, Index } from 'typeorm';
@@ -45,3 +45,9 @@ export type AssertAssingmentModuleDocument = AssertAssingmentModuleEntity &
 export const AssertAssingmentModuleSchema = SchemaFactory.createForClass(
   AssertAssingmentModuleEntity
 );
+AssertAssingmentModuleSchema.index({
+  imei: 'text',
+  labelName: 'text',
+  boxSet: 'text',
+  createdBy: 'text',
+});

@@ -269,9 +269,11 @@ type Mutation {
   updateGeozone(input: UpdateGeozoneInput!): GeozoneResponse!
   addLocationType(input: CreateLocationTypeInput!): LocationTypeResponse!
   fetchLocationType(input: LocationTypeInput!): LocationTypeResponse!
+  searchLocations(input: SearchLocationsInput!): LocationTypeResponse!
   addJourney(input: CreateJourneyInput!): JourneyResponseData!
   fetchJourney(input: JourneyInput!): JourneyResponseData!
   updateJourney(input: UpdateJourneyInput!): JourneyResponseData!
+  searchJourneys(input: SearchJourneysInput!): JourneyResponseData!
 }
 
 input ChangePasswordInput {
@@ -405,6 +407,12 @@ input LocationTypeInput {
   limit: Int
 }
 
+input SearchLocationsInput {
+  search: String
+  page: Int
+  limit: Int
+}
+
 input CreateJourneyInput {
   journeyName: String
   journeyData: [String!]
@@ -433,4 +441,10 @@ input UpdateJourneyInput {
 
 type Subscription {
   coordinatesUpdated(topic: String!): [Coordinate!]!
+}
+
+input SearchJourneysInput {
+  search: String!
+  page: Int
+  limit: Int
 }

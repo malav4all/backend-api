@@ -40,3 +40,7 @@ export class Journey {
 
 export type JourneyDocument = Journey & Document;
 export const JourneySchema = SchemaFactory.createForClass(Journey);
+JourneySchema.index({
+  journeyName: 'text',
+  createdBy: 'text',
+});
