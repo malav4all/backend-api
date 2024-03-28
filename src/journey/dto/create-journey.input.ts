@@ -29,3 +29,14 @@ export class JourneyInput {
   @Field(() => Int, { nullable: true })
   limit: typeof Int;
 }
+@InputType()
+export class SearchJourneysInput {
+  @Field(() => String)
+  search: string;
+
+  @Field(() => Int, { nullable: true })
+  page: typeof Int;
+
+  @Field(() => Int, { nullable: true })
+  limit: typeof Int;
+}

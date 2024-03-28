@@ -2,7 +2,11 @@ import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import { JourneyResponseData } from './dto/response';
 import { InternalServerErrorException, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@imz/user/guard';
-import { CreateJourneyInput, JourneyInput } from './dto/create-journey.input';
+import {
+  CreateJourneyInput,
+  JourneyInput,
+  SearchJourneysInput,
+} from './dto/create-journey.input';
 import { JourneyService } from './journey.service';
 import { UpdateJourneyInput } from './dto/update-journey.input';
 
@@ -54,6 +58,25 @@ export class JourneyResolver {
         message: record
           ? 'Records update successfully.'
           : 'Technical issue please try again.',
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Mutation(() => JourneyResponseData)
+  async searchJourneys(@Args('input') input: SearchJourneysInput) {
+    try {
+      const { records, count } = await this.journeyService.searchJourneys(
+        input
+      );
+      return {
+        paginatorInfo: {
+          count,
+        },
+        success: 1,
+        message: 'Journey list available.',
+        data: records,
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);

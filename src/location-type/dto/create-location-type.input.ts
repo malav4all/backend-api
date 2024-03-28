@@ -16,3 +16,15 @@ export class LocationTypeInput {
   @Field(() => Int, { nullable: true })
   limit: typeof Int;
 }
+
+@InputType()
+export class SearchLocationsInput {
+  @Field({ nullable: true })
+  search: string;
+
+  @Field(() => Int, { nullable: true })
+  page: typeof Int;
+
+  @Field(() => Int, { nullable: true })
+  limit: typeof Int;
+}
