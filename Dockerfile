@@ -10,7 +10,7 @@ RUN npm run build
 FROM alpine AS runtime
 WORKDIR /code
 COPY package*.json ./
-RUN apk update ; npm install yarn ; apk add nodejs npm --no-cache ; yarn install --only=production --force ; apk add tzdata ; ln -snf /usr/share/zoneinfo/Asia/Kolkata /etc/localtime && echo "Asia/Kolkata" > /etc/timezone
+RUN apk update ; apk add nodejs npm --no-cache ; yarn install --only=production --force ; apk add tzdata ; ln -snf /usr/share/zoneinfo/Asia/Kolkata /etc/localtime && echo "Asia/Kolkata" > /etc/timezone
 COPY --from=build /code/dist ./dist
 COPY --from=build /code/.env /code/
 EXPOSE 8080
