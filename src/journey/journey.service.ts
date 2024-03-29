@@ -113,4 +113,15 @@ export class JourneyService {
       throw new InternalServerErrorException(error.message);
     }
   }
+
+  public async getJourneyCount() {
+    return await this.JourneyModel.countDocuments();
+  }
+
+  public async getOngoingJourneyCount() {
+    const currentDate = new Date();
+    return await this.JourneyModel.countDocuments({
+      endDate: { $gte: currentDate },
+    });
+  }
 }

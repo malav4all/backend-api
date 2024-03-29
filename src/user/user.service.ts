@@ -91,6 +91,10 @@ export class UserService {
     }
   }
 
+  public async getAllUserCount() {
+    return await this.UserModel.count();
+  }
+
   private async findUserByEmail(email: string) {
     return await this.UserModel.findOne({ email }).select('_id').lean();
   }

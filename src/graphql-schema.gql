@@ -33,11 +33,6 @@ type PaginatorInfo {
   total: Float
 }
 
-type Coordinate {
-  lat: Float!
-  long: Float!
-}
-
 type UserResponse {
   paginatorInfo: PaginatorInfo
   success: Float
@@ -231,6 +226,16 @@ type JourneyResponseData {
   data: [Journey!]!
 }
 
+type DashboardType {
+  totalUser: Float!
+  totalJourney: Float!
+  ongoingJourney: Float!
+}
+
+type DashboardResponse {
+  data: DashboardType!
+}
+
 type Query {
   createUser(input: CreateUserInput!): UserResponse!
 }
@@ -274,6 +279,7 @@ type Mutation {
   fetchJourney(input: JourneyInput!): JourneyResponseData!
   updateJourney(input: UpdateJourneyInput!): JourneyResponseData!
   searchJourneys(input: SearchJourneysInput!): JourneyResponseData!
+  fetchDashboardDetail: DashboardResponse!
 }
 
 input ChangePasswordInput {
@@ -437,10 +443,6 @@ input UpdateJourneyInput {
   totalDistance: Float
   totalDuration: Float
   _id: String!
-}
-
-type Subscription {
-  coordinatesUpdated(topic: String!): [Coordinate!]!
 }
 
 input SearchJourneysInput {

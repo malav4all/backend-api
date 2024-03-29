@@ -11,6 +11,7 @@ import { JourneyModule } from './journey/journey.module';
 import { InfluxService } from './helper/comman/influx-db/influx-db.connection';
 import { MqttService } from './helper/comman/mqtt/mqtt-service.connection';
 import { MqttResolver } from './helper/comman/mqtt/mqtt.resolver';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -40,8 +41,9 @@ import { MqttResolver } from './helper/comman/mqtt/mqtt.resolver';
     GeozoneModule,
     LocationTypeModule,
     JourneyModule,
+    DashboardModule,
   ],
-  providers: [InfluxService, MqttService, MqttResolver],
+  providers: [InfluxService],
   exports: [InfluxService],
 })
 export class AppModule {}
