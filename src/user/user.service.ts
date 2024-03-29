@@ -189,7 +189,7 @@ export class UserService {
         email: user.email,
         _id: user._id,
         // exp: Math.floor(Date.now() / 1000) + 10,
-        exp: Math.floor(Date.now() / 1000) + 1 * 60 * 60, // 1-hour Token Expiry By default
+        exp: Math.floor(Date.now() / 1000) + 12 * 60 * 60, // 1-hour Token Expiry By default
       },
       process.env.JWT_TOKEN_KEY
     );
