@@ -58,6 +58,12 @@ export class User {
   @Column()
   updatedAt: Date;
 
+  @Field()
+  @Column()
+  @Prop()
+  @IsOptional()
+  otp?: string;
+
   @Field({ nullable: true })
   @Prop()
   @Column()
