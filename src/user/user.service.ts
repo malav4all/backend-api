@@ -296,7 +296,7 @@ export class UserService {
   async sendOtp(payload: OtpInput) {
     try {
       const { mobileNumber } = payload;
-      const { otp } = generateOtp();
+      const otp = generateOtp();
       const response = await axios.get(process.env.URL, {
         params: {
           method: 'SendMessage',
