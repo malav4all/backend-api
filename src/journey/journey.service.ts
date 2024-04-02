@@ -81,8 +81,8 @@ export class JourneyService {
 
   async searchJourneys(input: SearchJourneysInput) {
     try {
-      const page = Number(1);
-      const limit = Number(10);
+      const page = Number(input.page);
+      const limit = Number(input.limit);
       const skip = page === -1 ? 0 : (page - 1) * limit;
 
       const record = await this.JourneyModel.find({
