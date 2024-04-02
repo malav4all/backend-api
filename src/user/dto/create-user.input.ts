@@ -67,3 +67,18 @@ export class SearchUsersInput {
   @Field(() => Int, { nullable: true })
   limit: typeof Int;
 }
+
+@InputType()
+export class OtpInput {
+  @Field({ nullable: true })
+  mobileNumber: number;
+}
+
+@InputType()
+export class VerifyOtpInput {
+  @Field()
+  mobileNumber: number;
+
+  @Field({ nullable: true })
+  otp: string;
+}

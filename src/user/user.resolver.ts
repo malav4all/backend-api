@@ -6,6 +6,8 @@ import {
   ChangePasswordInput,
   UserInput,
   SearchUsersInput,
+  OtpInput,
+  VerifyOtpInput,
 } from './dto/create-user.input';
 import { UserResponse } from './dto/response';
 import { LoginResponse } from './dto/login.response';
@@ -17,6 +19,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from './guard';
+import { MobileNumberExists, OtpSendResponse } from './dto/otpsend.response';
+import { OtpLoginResponse, OtpResponse } from './dto/otp.response';
 
 @Resolver(() => UserResponse)
 export class UserResolver {
@@ -53,7 +57,6 @@ export class UserResolver {
       throw new InternalServerErrorException(error.message);
     }
   }
-
   @Mutation(() => UserResponse)
   async forgetPassword(@Args('input') input: ChangePasswordInput) {
     try {
@@ -68,7 +71,6 @@ export class UserResolver {
       throw new InternalServerErrorException(error.message);
     }
   }
-
   // @UseGuards(new AuthGuard())
   @Mutation(() => UserResponse)
   async changePassword(@Args('input') input: ChangePasswordInput) {
@@ -182,6 +184,66 @@ export class UserResolver {
       const token = auth.split(' ')[1];
       const res = await this.userService.refreshToken(token);
       return res.accessToken;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Mutation(() => MobileNumberExists)
+  async mobileNumberExists(
+    @Args('input') input: OtpInput
+  ): Promise<MobileNumberExists> {
+    try {
+      const exists = await this.userService.mobileNumberExists(input);
+      return {
+        success: exists ? 1 : 0,
+        message: exists
+          ? 'Mobile number exists.'
+          : 'Mobile number does not exist.',
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Mutation(() => OtpResponse)
+  async verifyOtp(@Args('input') input: VerifyOtpInput): Promise<OtpResponse> {
+    try {
+      const { email, isOtpValid } = await this.userService.verifyOtp(input);
+      return {
+        success: isOtpValid ? 1 : 0,
+        message: isOtpValid ? 'Otp Valid.' : 'Otp not Valid.',
+        email: isOtpValid ? email : '',
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Mutation(() => OtpSendResponse)
+  async sendOtp(@Args('input') input: OtpInput) {
+    try {
+      const success = await this.userService.sendOtp(input);
+      return {
+        success: success ? 1 : 0,
+        message: success
+          ? 'Otp sent successfully.'
+          : 'Technical issue please try again.',
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Mutation(() => OtpLoginResponse)
+  async verifyOtpLogin(@Args('input') input: VerifyOtpInput) {
+    try {
+      const { isOtpValid, data } = await this.userService.verifyOtpLogin(input);
+      return {
+        success: isOtpValid ? 1 : 0,
+        message: isOtpValid ? 'Otp verify Successful' : 'Otp is incorrect',
+        data,
+      };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }

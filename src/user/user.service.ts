@@ -6,6 +6,8 @@ import {
   ChangePasswordInput,
   UserInput,
   SearchUsersInput,
+  OtpInput,
+  VerifyOtpInput,
 } from './dto/create-user.input';
 import axios from 'axios';
 import { UpdateUserInput } from './dto/update-user.input';
@@ -16,6 +18,7 @@ import { EncodeDecode } from '@imz/helper';
 import * as jwt from 'jsonwebtoken';
 import { UAParser } from 'ua-parser-js';
 import { REQUEST } from '@nestjs/core';
+import { generateOtp } from '@imz/helper/generateotp';
 
 @Injectable()
 export class UserService {
@@ -24,7 +27,7 @@ export class UserService {
     @InjectModel(User.name)
     private UserModel: Model<UserDocument>
   ) {}
-
+  otpStorage: Record<string, { otp: string; timestamp: number }> = {};
   logger = new Logger('UserService');
 
   async findAll(input: UserInput) {
@@ -73,7 +76,6 @@ export class UserService {
   async change(payload: ChangePasswordInput) {
     try {
       const existingUser = await this.findUserByEmail(payload.email);
-
       if (!existingUser) {
         throw new Error('User not found');
       }
@@ -114,7 +116,6 @@ export class UserService {
       })
         .lean()
         .exec();
-
       if (user) {
         const isPasswordValid = await this.verifyPassword(
           user,
@@ -277,6 +278,124 @@ export class UserService {
     try {
       const user = await this.UserModel.find({ accountId }).exec();
       return user;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async mobileNumberExists(payload: OtpInput): Promise<any> {
+    try {
+      const { mobileNumber } = payload;
+      const user = await this.UserModel.find({ mobileNumber }).lean().exec();
+      return user;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async sendOtp(payload: OtpInput) {
+    try {
+      const { mobileNumber } = payload;
+      const otp = generateOtp();
+      const response = await axios.get(process.env.URL, {
+        params: {
+          method: 'SendMessage',
+          v: '1.1',
+          auth_scheme: process.env.AUTH_SCHEME,
+          msg_type: process.env.MSG_TYPE,
+          format: process.env.FORMAT,
+          msg: `IMZ - ${Number(
+            otp
+          )} is the One-Time Password (OTP) for login with IMZ`,
+          send_to: Number(mobileNumber),
+          userid: process.env.USERID,
+          password: process.env.PASSWORD,
+        },
+        timeout: 120000,
+      });
+
+      await this.UserModel.updateOne(
+        { mobileNumber },
+        { $set: { otp } }
+      ).exec();
+
+      return {
+        success: response.status >= 400 ? 0 : 1,
+        message:
+          response.status >= 400
+            ? 'Failed to send OTP'
+            : 'OTP sent successfully',
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async verifyOtp(
+    payload: VerifyOtpInput
+  ): Promise<{ isOtpValid: boolean; email: string }> {
+    try {
+      const { mobileNumber, otp } = payload;
+      const user: any = await this.UserModel.findOne({ mobileNumber }).exec();
+      if (user && user?.otp) {
+        const storedOtp = user.otp;
+        const isOtpValid = otp === storedOtp;
+        if (isOtpValid) {
+          await this.UserModel.updateOne(
+            { mobileNumber },
+            { $unset: { otp: 1 } }
+          ).exec();
+        }
+        return { isOtpValid, email: user.email };
+      }
+      return { isOtpValid: false, email: '' };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async verifyOtpLogin(
+    payload: VerifyOtpInput
+  ): Promise<{ isOtpValid: boolean; data: any }> {
+    try {
+      const { mobileNumber, otp } = payload;
+      // eslint-disable-next-line prefer-const
+      let user: any = await this.UserModel.findOne({
+        mobileNumber,
+      })
+        .populate([{ path: 'accountId' }, { path: 'roleId' }])
+        .lean()
+        .exec();
+
+      if (user && user.otp) {
+        const isOtpValid = otp === user.otp;
+
+        if (isOtpValid) {
+          const request: any = this.request;
+          const ipInfo = request.req.ipInfo;
+          const workstation = UAParser(request.req.headers['user-agent']);
+
+          const accessToken = await this.generateAccessToken(user);
+          const systemInfo = { ipInfo, workstation } as any;
+          user = {
+            _id: user._id,
+            accessToken,
+            name: user.firstName,
+            email: user.email,
+            account: user.accountId,
+            roleId: user.roleId,
+          };
+          await this.UserModel.updateOne(
+            { mobileNumber },
+            { $unset: { otp: 1 } }
+          ).exec();
+
+          this.logger.verbose(`User Login Successfully:::${user.name}`);
+          return { isOtpValid, data: user };
+        }
+      }
+
+      return { isOtpValid: false, data: '' };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
