@@ -204,7 +204,6 @@ export class UserResolver {
           : 'Mobile number does not exist.',
       };
     } catch (error) {
-      console.log(error);
       throw new InternalServerErrorException(
         mobileNumberExists ? 'Mobile number does not exists' : error.message
       );
