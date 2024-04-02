@@ -45,6 +45,7 @@ export class JourneyService {
       const skip = page === -1 ? 0 : (page - 1) * limit;
 
       const records = await this.JourneyModel.find({})
+        .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .populate({ path: 'journeyData' })
