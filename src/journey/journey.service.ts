@@ -13,12 +13,18 @@ import {
   SearchJourneysInput,
 } from './dto/create-journey.input';
 import { UpdateJourneyInput } from './dto/update-journey.input';
+import {
+  AssertAssingmentModuleDocument,
+  AssertAssingmentModuleEntity,
+} from '@imz/assert-asingment/entities/assert-asingment.enitiy';
 
 @Injectable()
 export class JourneyService {
   constructor(
     @InjectModel(Journey.name)
-    private JourneyModel: Model<JourneyDocument>
+    private JourneyModel: Model<JourneyDocument>,
+    @InjectModel(AssertAssingmentModuleEntity.name)
+    private AssertAssingmentModuleModule: Model<AssertAssingmentModuleDocument>
   ) {}
 
   async create(payload: CreateJourneyInput) {
@@ -123,5 +129,46 @@ export class JourneyService {
     return await this.JourneyModel.countDocuments({
       endDate: { $gte: currentDate },
     });
+  }
+
+  async findImeiWithJourneyDetails() {
+    try {
+      const result = await this.AssertAssingmentModuleModule.aggregate([
+        {
+          $addFields: {
+            convertedJourneyId: { $toObjectId: '$journey' },
+          },
+        },
+        {
+          $lookup: {
+            from: 'journeys',
+            localField: 'convertedJourneyId',
+            foreignField: '_id',
+            as: 'journeyDetails',
+          },
+        },
+        {
+          $unwind: '$journeyDetails',
+        },
+        {
+          $project: {
+            imei: 1,
+            journeyName: '$journeyDetails.journeyName',
+            totalDuration: '$journeyDetails.totalDuration',
+            totalDistance: '$journeyDetails.totalDistance',
+            startDate: '$journeyDetails.startDate',
+            endDate: '$journeyDetails.endDate',
+            createdBy: '$journeyDetails.createdBy',
+            journeyData: '$journeyDetails.journeyData',
+            createdAt: '$journeyDetails.createdAt',
+            updatedAt: '$journeyDetails.updatedAt',
+          },
+        },
+      ]).exec();
+
+      return result;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
   }
 }

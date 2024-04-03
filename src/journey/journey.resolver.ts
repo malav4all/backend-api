@@ -82,4 +82,18 @@ export class JourneyResolver {
       throw new InternalServerErrorException(error.message);
     }
   }
+
+  @Mutation(() => JourneyResponseData)
+  async findImei() {
+    try {
+      const result = await this.journeyService.findImeiWithJourneyDetails();
+      return {
+        success: 1,
+        message: 'Journey list available.',
+        data: result,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
 }
