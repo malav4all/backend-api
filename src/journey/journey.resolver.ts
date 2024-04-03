@@ -88,7 +88,7 @@ export class JourneyResolver {
     try {
       const result = await this.journeyService.findImeiWithJourneyDetails();
       return {
-        success: 1,
+        success: result ? 1 : 0,
         message: 'Journey list available.',
         data: result,
       };
