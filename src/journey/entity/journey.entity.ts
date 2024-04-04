@@ -10,7 +10,7 @@ export class Journey {
   _id: string;
 
   @Field()
-  @Prop()
+  @Prop({ text: true })
   journeyName: string;
 
   @Field(() => [JourneyResponse])

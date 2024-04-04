@@ -13,7 +13,6 @@ export class AssertAssingmentModuleEntity {
 
   @Field()
   @Prop({ text: true })
-  @Index({ unique: true })
   imei: number;
 
   @Field()
@@ -21,9 +20,8 @@ export class AssertAssingmentModuleEntity {
   labelName: string;
 
   @Field(() => JourneyResponseType)
-  @Prop({ type: Types.ObjectId, ref: 'Journey' })
-  @Column()
-  journey: Types.ObjectId;
+  @Prop()
+  journey: JourneyResponseType;
 
   @Field()
   @Prop({ text: true })
