@@ -49,15 +49,61 @@ export class JourneyService {
       const page = Number(input.page);
       const limit = Number(input.limit);
       const skip = page === -1 ? 0 : (page - 1) * limit;
+      const [records, count] = await Promise.all([
+        this.AssertAssingmentModuleModule.aggregate([
+          {
+            $addFields: {
+              convertedJourneyId: { $toObjectId: '$journey' },
+            },
+          },
+          {
+            $lookup: {
+              from: 'journeys',
+              localField: 'convertedJourneyId',
+              foreignField: '_id',
+              as: 'journeyDetails',
+            },
+          },
+          {
+            $unwind: '$journeyDetails',
+          },
+          {
+            $lookup: {
+              from: 'geozones',
+              localField: 'journeyDetails.journeyData',
+              foreignField: '_id',
+              as: 'journeyDetails.journeyData',
+            },
+          },
+          {
+            $project: {
+              imei: 1,
+              journeyName: '$journeyDetails.journeyName',
+              totalDuration: '$journeyDetails.totalDuration',
+              totalDistance: '$journeyDetails.totalDistance',
+              startDate: '$journeyDetails.startDate',
+              endDate: '$journeyDetails.endDate',
+              createdBy: '$journeyDetails.createdBy',
+              journeyData: '$journeyDetails.journeyData',
+              createdAt: '$journeyDetails.createdAt',
+              updatedAt: '$journeyDetails.updatedAt',
+            },
+          },
+          {
+            $skip: skip,
+          },
+          {
+            $limit: limit,
+          },
+        ]).exec(),
+        this.AssertAssingmentModuleModule.aggregate([
+          {
+            $count: 'count',
+          },
+        ]).exec(),
+      ]);
 
-      const records = await this.JourneyModel.find({})
-        .skip(skip)
-        .limit(limit)
-        .populate({ path: 'journeyData' })
-        .exec();
-      const count = await this.JourneyModel.countDocuments().exec();
-
-      return { records, count };
+      return { records, count: count.length > 0 ? count[0].count : 0 };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
@@ -131,42 +177,65 @@ export class JourneyService {
     });
   }
 
-  async findImeiWithJourneyDetails() {
+  async findImeiWithJourneyDetails(page: number, limit: number) {
     try {
-      const result = await this.AssertAssingmentModuleModule.aggregate([
-        {
-          $addFields: {
-            convertedJourneyId: { $toObjectId: '$journey' },
-          },
-        },
-        {
-          $lookup: {
-            from: 'journeys',
-            localField: 'convertedJourneyId',
-            foreignField: '_id',
-            as: 'journeyDetails',
-          },
-        },
-        {
-          $unwind: '$journeyDetails',
-        },
-        {
-          $project: {
-            imei: 1,
-            journeyName: '$journeyDetails.journeyName',
-            totalDuration: '$journeyDetails.totalDuration',
-            totalDistance: '$journeyDetails.totalDistance',
-            startDate: '$journeyDetails.startDate',
-            endDate: '$journeyDetails.endDate',
-            createdBy: '$journeyDetails.createdBy',
-            journeyData: '$journeyDetails.journeyData',
-            createdAt: '$journeyDetails.createdAt',
-            updatedAt: '$journeyDetails.updatedAt',
-          },
-        },
-      ]).exec();
+      const skip = page === -1 ? 0 : (page - 1) * limit;
 
-      return result;
+      const [result, count] = await Promise.all([
+        this.AssertAssingmentModuleModule.aggregate([
+          {
+            $addFields: {
+              convertedJourneyId: { $toObjectId: '$journey' },
+            },
+          },
+          {
+            $lookup: {
+              from: 'journeys',
+              localField: 'convertedJourneyId',
+              foreignField: '_id',
+              as: 'journeyDetails',
+            },
+          },
+          {
+            $unwind: '$journeyDetails',
+          },
+          {
+            $lookup: {
+              from: 'geozones',
+              localField: 'journeyDetails.journeyData',
+              foreignField: '_id',
+              as: 'journeyDetails.journeyData',
+            },
+          },
+          {
+            $project: {
+              imei: 1,
+              journeyName: '$journeyDetails.journeyName',
+              totalDuration: '$journeyDetails.totalDuration',
+              totalDistance: '$journeyDetails.totalDistance',
+              startDate: '$journeyDetails.startDate',
+              endDate: '$journeyDetails.endDate',
+              createdBy: '$journeyDetails.createdBy',
+              journeyData: '$journeyDetails.journeyData',
+              createdAt: '$journeyDetails.createdAt',
+              updatedAt: '$journeyDetails.updatedAt',
+            },
+          },
+          {
+            $skip: skip,
+          },
+          {
+            $limit: limit,
+          },
+        ]).exec(),
+        this.AssertAssingmentModuleModule.aggregate([
+          {
+            $count: 'count',
+          },
+        ]).exec(),
+      ]);
+
+      return { result, count: count.length > 0 ? count[0].count : 0 };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }

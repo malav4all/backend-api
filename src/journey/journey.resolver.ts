@@ -30,7 +30,7 @@ export class JourneyResolver {
     }
   }
 
-  @UseGuards(new AuthGuard())
+  // @UseGuards(new AuthGuard())
   @Mutation(() => JourneyResponseData)
   async fetchJourney(@Args('input') input: JourneyInput) {
     try {
@@ -77,20 +77,6 @@ export class JourneyResolver {
         success: 1,
         message: 'Journey list available.',
         data: records,
-      };
-    } catch (error) {
-      throw new InternalServerErrorException(error.message);
-    }
-  }
-
-  @Mutation(() => JourneyResponseData)
-  async findImei() {
-    try {
-      const result = await this.journeyService.findImeiWithJourneyDetails();
-      return {
-        success: result ? 1 : 0,
-        message: 'Imei list available.',
-        data: result,
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);

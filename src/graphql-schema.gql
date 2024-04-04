@@ -309,7 +309,6 @@ type Mutation {
   fetchJourney(input: JourneyInput!): JourneyResponseData!
   updateJourney(input: UpdateJourneyInput!): JourneyResponseData!
   searchJourneys(input: SearchJourneysInput!): JourneyResponseData!
-  findImei: JourneyResponseData!
   fetchDashboardDetail: DashboardResponse!
 }
 
