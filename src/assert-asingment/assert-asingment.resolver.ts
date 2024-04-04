@@ -77,7 +77,7 @@ export class AssertAssingmentResolver {
     @Args('input') input: SearchAssertAssingmentModuleInput
   ) {
     try {
-      const { result, count } =
+      const { records, count } =
         await this.assertAssingmentModuleService.searchAssertAssingmentModel(
           input
         );
@@ -87,7 +87,7 @@ export class AssertAssingmentResolver {
         },
         success: 1,
         message: 'Assert Module list available.',
-        data: result,
+        data: records,
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
