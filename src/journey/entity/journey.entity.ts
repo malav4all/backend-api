@@ -1,7 +1,8 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Document, Types, now } from 'mongoose';
 import { JourneyResponse } from '../dto/geozone.response';
+import { Column } from 'typeorm';
 
 @Schema({ timestamps: true })
 @ObjectType()
@@ -36,6 +37,20 @@ export class Journey {
   @Field()
   @Prop()
   totalDuration: number;
+
+  @Field()
+  @Prop()
+  imei: number;
+
+  @Field({ nullable: true })
+  @Prop({ default: now() })
+  @Column()
+  createdAt: Date;
+
+  @Field({ nullable: true })
+  @Prop({ default: now() })
+  @Column()
+  updatedAt: Date;
 }
 
 export type JourneyDocument = Journey & Document;
