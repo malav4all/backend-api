@@ -121,8 +121,8 @@ type GeozoneAsset {
 
 type JourneyResponseType {
   _id: String!
-  journeyName: String!
-  journeyData: [GeozoneAsset!]!
+  journeyName: String
+  journeyData: [GeozoneAsset!]
   createdBy: String!
   startDate: DateTime!
   endDate: DateTime!
@@ -230,27 +230,27 @@ type AddressEntityTypeResponse {
 }
 
 type JourneyResponse {
-  _id: String!
-  name: String!
-  description: String!
-  locationType: String!
-  mobileNumber: String!
-  address: AddressEntityTypeResponse!
-  geoCodeData: GeoJsonEntityResponse!
-  finalAddress: String!
-  createdBy: String!
+  _id: String
+  name: String
+  description: String
+  locationType: String
+  mobileNumber: String
+  address: AddressEntityTypeResponse
+  geoCodeData: GeoJsonEntityResponse
+  finalAddress: String
+  createdBy: String
 }
 
 type Journey {
-  _id: String!
-  journeyName: String!
-  journeyData: [JourneyResponse!]!
-  createdBy: String!
-  startDate: DateTime!
-  endDate: DateTime!
-  totalDistance: Float!
-  totalDuration: Float!
-  imei: Float!
+  _id: String
+  journeyName: String
+  journeyData: [JourneyResponse!]
+  createdBy: String
+  startDate: DateTime
+  endDate: DateTime
+  totalDistance: Float
+  totalDuration: Float
+  imei: Float
   createdAt: DateTime
   updatedAt: DateTime
 }

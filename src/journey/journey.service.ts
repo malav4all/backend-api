@@ -132,34 +132,92 @@ export class JourneyService {
 
   async searchJourneys(input: SearchJourneysInput) {
     try {
-      const page = Number(1);
-      const limit = Number(10);
-      const skip = page === -1 ? 0 : (page - 1) * limit;
+      const page = Number(input.page) || 1;
+      const limit = Number(input.limit) || 10;
+      const skip = (page - 1) * limit;
 
-      const record = await this.JourneyModel.find({
-        $or: [
-          { journeyName: { $regex: input.search, $options: 'i' } },
-          { createdBy: { $regex: input.search, $options: 'i' } },
-        ],
-      })
-        .skip(skip)
-        .limit(limit)
-        .populate({ path: 'journeyData' })
-        .lean()
-        .exec();
-      const records = record.map((record) => ({
-        ...record,
-        journeyData: record.journeyData.filter(
-          (journey) => journey.name != null
-        ),
-      }));
+      const searchNumber = !isNaN(Number(input.search))
+        ? Number(input.search)
+        : undefined;
 
-      const count = await this.JourneyModel.countDocuments({
-        $or: [
-          { journeyName: { $regex: input.search, $options: 'i' } },
-          { createdBy: { $regex: input.search, $options: 'i' } },
-        ],
-      });
+      const matchStage = {
+        $match: {
+          $or: [
+            searchNumber !== undefined ? { imei: searchNumber } : {},
+            {
+              'journeyDetails.journeyName': {
+                $regex: input.search,
+                $options: 'i',
+              },
+            },
+            {
+              'journeyDetails.createdBy': {
+                $regex: input.search,
+                $options: 'i',
+              },
+            },
+          ].filter((condition) => Object.keys(condition).length > 0),
+        },
+      };
+
+      const pipeline = [
+        {
+          $addFields: {
+            convertedJourneyId: { $toObjectId: '$journey' },
+          },
+        },
+        {
+          $lookup: {
+            from: 'journeys',
+            localField: 'convertedJourneyId',
+            foreignField: '_id',
+            as: 'journeyDetails',
+          },
+        },
+        {
+          $unwind: '$journeyDetails',
+        },
+        {
+          $lookup: {
+            from: 'geozones',
+            localField: 'journeyDetails.journeyData',
+            foreignField: '_id',
+            as: 'journeyDetails.journeyData',
+          },
+        },
+        matchStage,
+        {
+          $facet: {
+            records: [
+              { $skip: skip },
+              { $limit: limit },
+              {
+                $project: {
+                  imei: 1,
+                  journeyName: '$journeyDetails.journeyName',
+                  totalDuration: '$journeyDetails.totalDuration',
+                  totalDistance: '$journeyDetails.totalDistance',
+                  journeyData: '$journeyDetails.journeyData',
+                  startDate: '$journeyDetails.startDate',
+                  endDate: '$journeyDetails.endDate',
+                  createdBy: '$journeyDetails.createdBy',
+                  createdAt: '$journeyDetails.createdAt',
+                  updatedAt: '$journeyDetails.updatedAt',
+                },
+              },
+            ],
+            totalCount: [{ $count: 'total' }],
+          },
+        },
+      ];
+
+      const result = await this.AssertAssingmentModuleModule.aggregate(
+        pipeline
+      ).exec();
+
+      const records = result[0].records;
+      const count =
+        result[0].totalCount.length > 0 ? result[0].totalCount[0].total : 0;
       return { records, count };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
