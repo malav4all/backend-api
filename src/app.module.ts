@@ -43,7 +43,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     JourneyModule,
     DashboardModule,
   ],
-  providers: [InfluxService],
+  providers: [InfluxService, MqttService, MqttResolver],
   exports: [InfluxService],
 })
 export class AppModule {}

@@ -6,7 +6,7 @@ import { Coordinate } from '@imz/helper/dto/response';
 export class MqttResolver {
   constructor(private readonly mqttService: MqttService) {}
 
-  @Subscription(() => [Coordinate])
+  @Subscription(() => Coordinate)
   coordinatesUpdated(@Args('topic') topic: string) {
     return this.mqttService.coordinatesUpdated(topic);
   }
