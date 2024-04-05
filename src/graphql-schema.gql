@@ -120,7 +120,7 @@ type GeozoneAsset {
 }
 
 type JourneyResponseType {
-  _id: String!
+  _id: String
   journeyName: String
   journeyData: [GeozoneAsset!]
   createdBy: String!
@@ -131,7 +131,7 @@ type JourneyResponseType {
 }
 
 type AssertAssingmentModuleEntity {
-  _id: String!
+  _id: String
   imei: Float!
   labelName: String!
   journey: JourneyResponseType!
