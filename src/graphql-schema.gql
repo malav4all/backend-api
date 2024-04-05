@@ -34,16 +34,6 @@ type PaginatorInfo {
   total: Float
 }
 
-type Coordinate {
-  label: String!
-  speed: Float!
-  satellites: Float!
-  gps: String!
-  direction: Float!
-  lat: Float!
-  lng: Float!
-}
-
 type UserResponse {
   paginatorInfo: PaginatorInfo
   success: Float
@@ -272,6 +262,15 @@ type DashboardResponse {
   data: DashboardType!
 }
 
+type TrackPlayResponse {
+  stopTime: String!
+  currentTime: String!
+  measurement: String!
+  label: String!
+  lat: String!
+  lng: String!
+}
+
 type Query {
   createUser(input: CreateUserInput!): UserResponse!
 }
@@ -289,6 +288,7 @@ input CreateUserInput {
 }
 
 type Mutation {
+  getRowData: [TrackPlayResponse!]!
   addUser(input: CreateUserInput!): UserResponse!
   forgetPassword(input: ChangePasswordInput!): UserResponse!
   changePassword(input: ChangePasswordInput!): UserResponse!
@@ -498,8 +498,4 @@ input SearchJourneysInput {
   search: String!
   page: Int
   limit: Int
-}
-
-type Subscription {
-  coordinatesUpdated(topic: String!): Coordinate!
 }
