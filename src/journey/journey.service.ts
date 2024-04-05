@@ -49,61 +49,67 @@ export class JourneyService {
       const page = Number(input.page);
       const limit = Number(input.limit);
       const skip = page === -1 ? 0 : (page - 1) * limit;
-      const [records, count] = await Promise.all([
-        this.AssertAssingmentModuleModule.aggregate([
-          {
-            $addFields: {
-              convertedJourneyId: { $toObjectId: '$journey' },
-            },
+      const pipeline: any[] = [
+        {
+          $addFields: {
+            convertedJourneyId: { $toObjectId: '$journey' },
           },
-          {
-            $lookup: {
-              from: 'journeys',
-              localField: 'convertedJourneyId',
-              foreignField: '_id',
-              as: 'journeyDetails',
-            },
+        },
+        {
+          $lookup: {
+            from: 'journeys',
+            localField: 'convertedJourneyId',
+            foreignField: '_id',
+            as: 'journeyDetails',
           },
-          {
-            $unwind: '$journeyDetails',
+        },
+        {
+          $unwind: {
+            path: '$journeyDetails',
+            preserveNullAndEmptyArrays: true,
           },
-          {
-            $lookup: {
-              from: 'geozones',
-              localField: 'journeyDetails.journeyData',
-              foreignField: '_id',
-              as: 'journeyDetails.journeyData',
-            },
+        },
+        {
+          $lookup: {
+            from: 'geozones',
+            localField: 'journeyDetails.journeyData',
+            foreignField: '_id',
+            as: 'journeyDetails.journeyData',
           },
-          {
-            $project: {
-              imei: 1,
-              journeyName: '$journeyDetails.journeyName',
-              totalDuration: '$journeyDetails.totalDuration',
-              totalDistance: '$journeyDetails.totalDistance',
-              startDate: '$journeyDetails.startDate',
-              endDate: '$journeyDetails.endDate',
-              createdBy: '$journeyDetails.createdBy',
-              journeyData: '$journeyDetails.journeyData',
-              createdAt: '$journeyDetails.createdAt',
-              updatedAt: '$journeyDetails.updatedAt',
-            },
+        },
+        {
+          $facet: {
+            records: [
+              { $skip: skip },
+              { $limit: limit },
+              {
+                $project: {
+                  imei: 1,
+                  journeyName: '$journeyDetails.journeyName',
+                  totalDuration: '$journeyDetails.totalDuration',
+                  totalDistance: '$journeyDetails.totalDistance',
+                  startDate: '$journeyDetails.startDate',
+                  endDate: '$journeyDetails.endDate',
+                  createdBy: '$journeyDetails.createdBy',
+                  journeyData: '$journeyDetails.journeyData',
+                  createdAt: '$journeyDetails.createdAt',
+                  updatedAt: '$journeyDetails.updatedAt',
+                },
+              },
+            ],
+            totalCount: [{ $count: 'total' }],
           },
-          {
-            $skip: skip,
-          },
-          {
-            $limit: limit,
-          },
-        ]).exec(),
-        this.AssertAssingmentModuleModule.aggregate([
-          {
-            $count: 'count',
-          },
-        ]).exec(),
-      ]);
+        },
+      ];
 
-      return { records, count: count.length > 0 ? count[0].count : 0 };
+      const result = await this.AssertAssingmentModuleModule.aggregate(
+        pipeline
+      ).exec();
+
+      const records = result[0].records;
+      const count =
+        result[0]?.totalCount?.length > 0 ? result[0].totalCount[0].total : 0;
+      return { records, count };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
@@ -175,7 +181,10 @@ export class JourneyService {
           },
         },
         {
-          $unwind: '$journeyDetails',
+          $unwind: {
+            path: '$journeyDetails',
+            preserveNullAndEmptyArrays: true,
+          },
         },
         {
           $lookup: {

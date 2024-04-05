@@ -31,56 +31,60 @@ export class AssertAssingmentModuleService {
       const limit = Number(input.limit);
 
       const skip = page === -1 ? 0 : (page - 1) * limit;
-      const [result, count] = await Promise.all([
-        await this.AssertAssingmentModuleModule.aggregate([
-          {
-            $addFields: {
-              convertedJourneyId: { $toObjectId: '$journey' },
-            },
-          },
-          {
-            $lookup: {
-              from: 'journeys',
-              localField: 'convertedJourneyId',
-              foreignField: '_id',
-              as: 'journeyDetails',
-            },
-          },
-          {
-            $unwind: '$journeyDetails',
-          },
-          {
-            $lookup: {
-              from: 'geozones',
-              localField: 'journeyDetails.journeyData',
-              foreignField: '_id',
-              as: 'journeyDetails.journeyData',
-            },
-          },
-          {
-            $project: {
-              imei: 1,
-              boxSet: 1,
-              labelName: 1,
-              createdBy: 1,
-              journey: '$journeyDetails',
-            },
-          },
-          {
-            $skip: skip,
-          },
-          {
-            $limit: limit,
-          },
-        ]).exec(),
 
-        await this.AssertAssingmentModuleModule.aggregate([
-          {
-            $count: 'count',
+      const aggregationPipeline: any[] = [
+        {
+          $addFields: {
+            convertedJourneyId: { $toObjectId: '$journey' },
           },
-        ]).exec(),
+        },
+        {
+          $lookup: {
+            from: 'journeys',
+            localField: 'convertedJourneyId',
+            foreignField: '_id',
+            as: 'journeyDetails',
+          },
+        },
+        {
+          $unwind: {
+            path: '$journeyDetails',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: 'geozones',
+            localField: 'journeyDetails.journeyData',
+            foreignField: '_id',
+            as: 'journeyDetails.journeyData',
+          },
+        },
+        {
+          $project: {
+            imei: 1,
+            boxSet: 1,
+            labelName: 1,
+            createdBy: 1,
+            journey: '$journeyDetails',
+          },
+        },
+      ];
+      const countPipeline: any[] = [...aggregationPipeline];
+      aggregationPipeline.push({ $skip: skip }, { $limit: limit });
+      countPipeline.push({
+        $count: 'total',
+      });
+
+      const [result, [totalCount]] = await Promise.all([
+        this.AssertAssingmentModuleModule.aggregate(aggregationPipeline).exec(),
+        this.AssertAssingmentModuleModule.aggregate(countPipeline).exec(),
       ]);
-      return { result, count: count.length > 0 ? count[0].count : 0 };
+
+      return {
+        result,
+        count: totalCount ? totalCount.total : 0,
+      };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
@@ -154,7 +158,10 @@ export class AssertAssingmentModuleService {
           },
         },
         {
-          $unwind: '$journeyDetails',
+          $unwind: {
+            path: '$journeyDetails',
+            preserveNullAndEmptyArrays: true,
+          },
         },
         {
           $lookup: {
