@@ -30,17 +30,18 @@ export class JourneyResolver {
     }
   }
 
-  @UseGuards(new AuthGuard())
+  // @UseGuards(new AuthGuard())
   @Mutation(() => JourneyResponseData)
   async fetchJourney(@Args('input') input: JourneyInput) {
     try {
       const { count, records } = await this.journeyService.findAll(input);
+      const success = records.length > 0 ? 1 : 0;
       return {
         paginatorInfo: {
           count,
         },
-        success: 1,
-        message: 'list available.',
+        success: success,
+        message: success ? 'list available.' : 'No data found.',
         data: records,
       };
     } catch (error) {
@@ -70,12 +71,13 @@ export class JourneyResolver {
       const { records, count } = await this.journeyService.searchJourneys(
         input
       );
+      const success = records.length > 0 ? 1 : 0;
       return {
         paginatorInfo: {
           count,
         },
-        success: 1,
-        message: 'Journey list available.',
+        success: success,
+        message: success ? 'Journey list available.' : 'No journey found.',
         data: records,
       };
     } catch (error) {

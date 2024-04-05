@@ -8,12 +8,12 @@ export class JourneyResponseType {
   @Field()
   _id: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop()
   @Index({ unique: true })
   journeyName: string;
 
-  @Field(() => [GeozoneAsset])
+  @Field(() => [GeozoneAsset], { nullable: true })
   @Prop()
   journeyData: GeozoneAsset[];
 

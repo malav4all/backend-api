@@ -31,14 +31,56 @@ export class AssertAssingmentModuleService {
       const limit = Number(input.limit);
 
       const skip = page === -1 ? 0 : (page - 1) * limit;
-      const records = await this.AssertAssingmentModuleModule.find()
-        .sort({ createdAt: -1 })
-        .populate('journey')
-        .skip(skip)
-        .limit(limit)
-        .lean()
-        .exec();
-      return records;
+      const [result, count] = await Promise.all([
+        await this.AssertAssingmentModuleModule.aggregate([
+          {
+            $addFields: {
+              convertedJourneyId: { $toObjectId: '$journey' },
+            },
+          },
+          {
+            $lookup: {
+              from: 'journeys',
+              localField: 'convertedJourneyId',
+              foreignField: '_id',
+              as: 'journeyDetails',
+            },
+          },
+          {
+            $unwind: '$journeyDetails',
+          },
+          {
+            $lookup: {
+              from: 'geozones',
+              localField: 'journeyDetails.journeyData',
+              foreignField: '_id',
+              as: 'journeyDetails.journeyData',
+            },
+          },
+          {
+            $project: {
+              imei: 1,
+              boxSet: 1,
+              labelName: 1,
+              createdBy: 1,
+              journey: '$journeyDetails',
+            },
+          },
+          {
+            $skip: skip,
+          },
+          {
+            $limit: limit,
+          },
+        ]).exec(),
+
+        await this.AssertAssingmentModuleModule.aggregate([
+          {
+            $count: 'count',
+          },
+        ]).exec(),
+      ]);
+      return { result, count: count.length > 0 ? count[0].count : 0 };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
@@ -97,31 +139,76 @@ export class AssertAssingmentModuleService {
       const page = Number(input.page);
       const limit = Number(input.limit);
       const skip = page === -1 ? 0 : (page - 1) * limit;
-
-      const query = {
-        $or: [
-          {
-            imei: isNaN(Number(input.search))
-              ? undefined
-              : Number(input.search),
+      const pipeline = [
+        {
+          $addFields: {
+            convertedJourneyId: { $toObjectId: '$journey' },
           },
-          { labelName: { $regex: input.search, $options: 'i' } },
-          { boxSet: { $regex: input.search, $options: 'i' } },
-          {
-            journey: { $regex: input.search, $options: 'i' },
+        },
+        {
+          $lookup: {
+            from: 'journeys',
+            localField: 'convertedJourneyId',
+            foreignField: '_id',
+            as: 'journeyDetails',
           },
-        ],
-      };
-
-      const records = await this.AssertAssingmentModuleModule.find(query)
-        .populate('journey')
-        .skip(skip)
-        .limit(limit)
-        .lean()
-        .exec();
-
-      const count = await this.AssertAssingmentModuleModule.count(query);
-
+        },
+        {
+          $unwind: '$journeyDetails',
+        },
+        {
+          $lookup: {
+            from: 'geozones',
+            localField: 'journeyDetails.journeyData',
+            foreignField: '_id',
+            as: 'journeyDetails.journeyData',
+          },
+        },
+        {
+          $match: {
+            $or: [
+              {
+                imei: isNaN(Number(input.search))
+                  ? undefined
+                  : Number(input.search),
+              },
+              { labelName: { $regex: input.search, $options: 'i' } },
+              { boxSet: { $regex: input.search, $options: 'i' } },
+              { createdBy: { $regex: input.search, $options: 'i' } },
+              {
+                'journeyDetails.journeyName': {
+                  $regex: input.search,
+                  $options: 'i',
+                },
+              },
+            ],
+          },
+        },
+        {
+          $facet: {
+            records: [
+              { $skip: skip },
+              { $limit: limit },
+              {
+                $project: {
+                  imei: 1,
+                  boxSet: 1,
+                  labelName: 1,
+                  createdBy: 1,
+                  journey: '$journeyDetails',
+                },
+              },
+            ],
+            totalCount: [{ $count: 'total' }],
+          },
+        },
+      ];
+      const result = await this.AssertAssingmentModuleModule.aggregate(
+        pipeline
+      ).exec();
+      const records = result[0].records;
+      const count =
+        result[0]?.totalCount?.length > 0 ? result[0]?.totalCount[0]?.total : 0;
       return { records, count };
     } catch (error) {
       throw new InternalServerErrorException(error.message);

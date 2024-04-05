@@ -59,46 +59,46 @@ class AddressEntityTypeResponse {
 
 @ObjectType()
 export class JourneyResponse {
-  @Field()
+  @Field({ nullable: true })
   @ObjectIdColumn()
   _id: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
   name: string;
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   @Prop({ text: true })
   @Column()
   description: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop()
   @Column()
   locationType: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
   mobileNumber: string;
 
-  @Field(() => AddressEntityTypeResponse)
+  @Field(() => AddressEntityTypeResponse, { nullable: true })
   @Prop()
   @Column()
   address: AddressEntityTypeResponse;
 
-  @Field(() => GeoJsonEntityResponse)
+  @Field(() => GeoJsonEntityResponse, { nullable: true })
   @Prop()
   @Column()
   geoCodeData: GeoJsonEntityResponse;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop()
   @Column()
   finalAddress: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop()
   @Column()
   createdBy: string;

@@ -118,15 +118,15 @@ export class AssertAssingmentResolver {
     @Args('input') input: AssertAssingmentModuleInput
   ) {
     try {
-      const res = await this.assertAssingmentModuleService.findAll(input);
-      const count = await this.assertAssingmentModuleService.count();
+      const { result, count } =
+        await this.assertAssingmentModuleService.findAll(input);
       return {
         paginatorInfo: {
           count,
         },
         success: 1,
         message: 'Assert  list available.',
-        data: res,
+        data: result,
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);

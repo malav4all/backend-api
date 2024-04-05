@@ -21,9 +21,24 @@ export class PaginatorInfo {
 
 @ObjectType()
 export class Coordinate {
+  @Field(() => String)
+  label: string;
+
+  @Field(() => Float)
+  speed: number;
+
+  @Field(() => Float)
+  satellites: number;
+
+  @Field(() => String)
+  gps: string;
+
+  @Field(() => Float)
+  direction: number;
+
   @Field(() => Float)
   lat: number;
 
   @Field(() => Float)
-  long: number;
+  lng: number;
 }

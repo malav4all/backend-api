@@ -34,6 +34,16 @@ type PaginatorInfo {
   total: Float
 }
 
+type Coordinate {
+  label: String!
+  speed: Float!
+  satellites: Float!
+  gps: String!
+  direction: Float!
+  lat: Float!
+  lng: Float!
+}
+
 type UserResponse {
   paginatorInfo: PaginatorInfo
   success: Float
@@ -111,8 +121,8 @@ type GeozoneAsset {
 
 type JourneyResponseType {
   _id: String!
-  journeyName: String!
-  journeyData: [GeozoneAsset!]!
+  journeyName: String
+  journeyData: [GeozoneAsset!]
   createdBy: String!
   startDate: DateTime!
   endDate: DateTime!
@@ -220,26 +230,29 @@ type AddressEntityTypeResponse {
 }
 
 type JourneyResponse {
-  _id: String!
-  name: String!
-  description: String!
-  locationType: String!
-  mobileNumber: String!
-  address: AddressEntityTypeResponse!
-  geoCodeData: GeoJsonEntityResponse!
-  finalAddress: String!
-  createdBy: String!
+  _id: String
+  name: String
+  description: String
+  locationType: String
+  mobileNumber: String
+  address: AddressEntityTypeResponse
+  geoCodeData: GeoJsonEntityResponse
+  finalAddress: String
+  createdBy: String
 }
 
 type Journey {
-  _id: String!
-  journeyName: String!
-  journeyData: [JourneyResponse!]!
-  createdBy: String!
-  startDate: DateTime!
-  endDate: DateTime!
-  totalDistance: Float!
-  totalDuration: Float!
+  _id: String
+  journeyName: String
+  journeyData: [JourneyResponse!]
+  createdBy: String
+  startDate: DateTime
+  endDate: DateTime
+  totalDistance: Float
+  totalDuration: Float
+  imei: Float
+  createdAt: DateTime
+  updatedAt: DateTime
 }
 
 type JourneyResponseData {
@@ -485,4 +498,8 @@ input SearchJourneysInput {
   search: String!
   page: Int
   limit: Int
+}
+
+type Subscription {
+  coordinatesUpdated(topic: String!): Coordinate!
 }
