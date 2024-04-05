@@ -21,7 +21,7 @@ import {
 import { AuthGuard } from './guard';
 import { MobileNumberExists, OtpSendResponse } from './dto/otpsend.response';
 import { OtpLoginResponse, OtpResponse } from './dto/otp.response';
-
+import _ from 'lodash';
 @Resolver(() => UserResponse)
 export class UserResolver {
   constructor(private readonly userService: UserService) {}
@@ -193,16 +193,20 @@ export class UserResolver {
   async mobileNumberExists(
     @Args('input') input: OtpInput
   ): Promise<MobileNumberExists> {
+    let mobileNumberExists;
     try {
       const exists = await this.userService.mobileNumberExists(input);
+      mobileNumberExists = exists.length > 0 && exists[0].mobileNumber;
       return {
-        success: exists ? 1 : 0,
-        message: exists
+        success: mobileNumberExists ? 1 : 0,
+        message: mobileNumberExists
           ? 'Mobile number exists.'
           : 'Mobile number does not exist.',
       };
     } catch (error) {
-      throw new InternalServerErrorException(error.message);
+      throw new InternalServerErrorException(
+        mobileNumberExists ? 'Mobile number does not exists' : error.message
+      );
     }
   }
 
