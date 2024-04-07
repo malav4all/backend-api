@@ -15,16 +15,24 @@ export class MqttService {
       username: 'malav',
       password: 'Admin@123',
     });
+
     this.client.on('connect', () => {
       this.logger.log('Connected MQTT Server');
     });
 
     this.client.on('message', (topic, message) => {
+      const [first, second] = topic.split('/');
       const messageString = Buffer.from(message).toString('utf8');
       const messageObject = JSON.parse(messageString);
-      this.pubSub.publish('coordinatesUpdated', {
-        coordinatesUpdated: messageObject,
-      });
+      if (first === 'alert') {
+        this.pubSub.publish('alertUpdates', {
+          alertUpdates: messageObject,
+        });
+      } else {
+        this.pubSub.publish('coordinatesUpdated', {
+          coordinatesUpdated: messageObject,
+        });
+      }
     });
 
     this.client.on('error', (err) => {
@@ -43,5 +51,18 @@ export class MqttService {
     });
 
     return this.pubSub.asyncIterator('coordinatesUpdated');
+  }
+
+  alertUpdates(topic: string) {
+    this.client.subscribe(topic, (err) => {
+      if (err) {
+        this.logger.error('Error subscribing to topic:', err);
+      } else {
+        this.logger.log('Subscribed to Alert topic:', topic);
+        this.currentTopic = topic;
+      }
+    });
+
+    return this.pubSub.asyncIterator('alertUpdates');
   }
 }
