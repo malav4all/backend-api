@@ -15,13 +15,13 @@ export class InfluxService {
   }
 
   async executeQuery() {
-    const startTime = '2024-04-04T10:13:26Z';
-    const endTime = '2024-04-04T13:00:00Z';
+    const startTime = '2024-04-03T18:30:00Z';
+    const endTime = '2024-04-04T09:00:00Z';
     const fluxQuery = `
     from(bucket: "tracking-v2")
       |> range(start: ${startTime}, stop: ${endTime})
       |> filter(fn: (r) => r["_measurement"] == "track")
-      |> filter(fn: (r) => r["_field"] == "lat" or r["_field"] == "lng")
+      |> filter(fn: (r) => r["_field"] == "lat" or r["_field"] == "lng" or r["_field"] == "direction")
       |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
       |> filter(fn: (r) => r["imei"] == "864180068905939")
       |> filter(fn: (r) => r["label"] == "864180068905939")`;
@@ -29,7 +29,7 @@ export class InfluxService {
     const data = [];
 
     for await (const { values } of this.queryApi.iterateRows(fluxQuery)) {
-      const [t1, t2, t3, t4, t5, t6, t7, t8, t9, t10] = values;
+      const [t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11] = values;
       data.push({
         startTime: t3,
         stopTime: t4,
@@ -37,8 +37,9 @@ export class InfluxService {
         measurement: t6,
         imei: t7,
         label: t8,
-        lat: t9,
-        lng: t10,
+        direction: t9,
+        lat: t10,
+        lng: t11,
       });
     }
     return data;

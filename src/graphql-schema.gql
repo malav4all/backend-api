@@ -267,6 +267,7 @@ type TrackPlayResponse {
   currentTime: String!
   measurement: String!
   label: String!
+  direction: String!
   lat: String!
   lng: String!
 }

@@ -15,6 +15,9 @@ export class TrackPlayResponse {
   label: string;
 
   @Field(() => String)
+  direction: string;
+
+  @Field(() => String)
   lat: string;
 
   @Field(() => String)
