@@ -8,7 +8,7 @@ import { Column, Index } from 'typeorm';
 @Schema({ timestamps: true })
 @ObjectType()
 export class AssertAssingmentModuleEntity {
-  @Field()
+  @Field({ nullable: true })
   _id: string;
 
   @Field()

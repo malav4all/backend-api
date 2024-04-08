@@ -5,7 +5,7 @@ import { Index } from 'typeorm';
 
 @ObjectType()
 export class JourneyResponseType {
-  @Field()
+  @Field({ nullable: true })
   _id: string;
 
   @Field({ nullable: true })

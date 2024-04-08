@@ -42,6 +42,7 @@ export class LocationTypeService {
       const skip = page === -1 ? 0 : (page - 1) * limit;
 
       const records = await this.LocationTypeModel.find({})
+        .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .exec();
