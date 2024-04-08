@@ -24,14 +24,16 @@ export class MqttService {
       const [first, second] = topic.split('/');
       const messageString = Buffer.from(message).toString('utf8');
       const messageObject = JSON.parse(messageString);
-      if (first === 'alert') {
+      console.log({ first, messageObject });
+      if (first === 'alerts') {
         this.pubSub.publish('alertUpdates', {
           alertUpdates: messageObject,
         });
-      } else {
+      } else if (first === 'track') {
         this.pubSub.publish('coordinatesUpdated', {
           coordinatesUpdated: messageObject,
         });
+      } else {
       }
     });
 
@@ -41,6 +43,7 @@ export class MqttService {
   }
 
   coordinatesUpdated(topic: string) {
+    console.log({ topic });
     this.client.subscribe(topic, (err) => {
       if (err) {
         this.logger.error('Error subscribing to topic:', err);

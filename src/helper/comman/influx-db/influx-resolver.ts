@@ -1,9 +1,9 @@
 import { Resolver, Mutation, Subscription } from '@nestjs/graphql';
 import { InfluxService } from './influx-db.connection';
-import { TrackPlayResponse } from './response';
+import { AlertResponseTableData, TrackPlayResponse } from './response';
 import { InternalServerErrorException } from '@nestjs/common';
 
-@Resolver(() => TrackPlayResponse)
+@Resolver()
 export class InfluxResolver {
   constructor(private readonly influxService: InfluxService) {}
 
@@ -17,7 +17,7 @@ export class InfluxResolver {
     }
   }
 
-  @Subscription(() => TrackPlayResponse)
+  @Subscription(() => [AlertResponseTableData])
   async getAlertData() {
     return await this.influxService.getExecuteAlertData();
   }

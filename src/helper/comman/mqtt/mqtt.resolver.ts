@@ -11,7 +11,7 @@ export class MqttResolver {
     return this.mqttService.coordinatesUpdated(topic);
   }
 
-  @Subscription(() => AlertResponse)
+  @Subscription(() => [AlertResponse])
   alertUpdated(@Args('topic') topic: string) {
     return this.mqttService.alertUpdates(topic);
   }

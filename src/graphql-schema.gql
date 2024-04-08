@@ -293,6 +293,14 @@ type TrackPlayResponse {
   lng: String!
 }
 
+type AlertResponseTableData {
+  event: String
+  lat: Float
+  lng: Float
+  mode: String
+  source: String
+}
+
 type Query {
   createUser(input: CreateUserInput!): UserResponse!
 }
@@ -523,7 +531,7 @@ input SearchJourneysInput {
 }
 
 type Subscription {
-  getAlertData: TrackPlayResponse!
+  getAlertData: [AlertResponseTableData!]!
   coordinatesUpdated(topic: String!): Coordinate!
-  alertUpdated(topic: String!): AlertResponse!
+  alertUpdated(topic: String!): [AlertResponse!]!
 }
