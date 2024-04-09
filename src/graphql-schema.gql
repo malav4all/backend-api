@@ -305,6 +305,15 @@ type AlertResponseTableData {
   source: String!
 }
 
+type DeviceStatus {
+  time: String!
+  imei: String!
+  label: String!
+  lat: String!
+  lng: String!
+  status: String!
+}
+
 type Query {
   createUser(input: CreateUserInput!): UserResponse!
 }
@@ -324,6 +333,7 @@ input CreateUserInput {
 type Mutation {
   getRowData: [TrackPlayResponse!]!
   getAlertData(input: AlertInputType!): [AlertResponseTableData!]!
+  getStatusDevice(input: AlertInputType!): [DeviceStatus!]!
   addUser(input: CreateUserInput!): UserResponse!
   forgetPassword(input: ChangePasswordInput!): UserResponse!
   changePassword(input: ChangePasswordInput!): UserResponse!

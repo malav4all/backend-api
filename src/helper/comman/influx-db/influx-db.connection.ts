@@ -72,4 +72,33 @@ export class InfluxService {
 
     return rowData;
   }
+
+  async fetchDataDeviceStatus(payload: AlertInputType) {
+    const query = `
+    from(bucket: "tracking-v2")
+    |> range(start: ${payload.startDate}, stop: ${payload.endDate})
+    |> filter(fn: (r) => r["_measurement"] == "track")
+    |> filter(fn: (r) => r["_field"] == "direction" or r["_field"] == "gps" or r["_field"] == "lat" or r["_field"] == "lng" or r["_field"] == "satellites" or r["_field"] == "speed")
+    |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+     |> map(fn: (r) => ({
+        r with
+     status: if (uint(v:now()) - uint(v:r["_time"])) / uint(v:60000000000) < uint(v:30) then "online" else "offline"
+      }))
+    `;
+    const rowData = [];
+    for await (const { values } of this.queryApi.iterateRows(query)) {
+      const [t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15] =
+        values;
+      rowData.push({
+        time: t4,
+        label: t9,
+        imei: t10,
+        lat: t11,
+        lng: t12,
+        status: t15,
+      });
+    }
+
+    return rowData;
+  }
 }

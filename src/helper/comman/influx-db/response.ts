@@ -62,3 +62,24 @@ export class AlertInputType {
   @Field(() => String)
   endDate: string;
 }
+
+@ObjectType()
+export class DeviceStatus {
+  @Field(() => String)
+  time: string;
+
+  @Field(() => String)
+  imei: string;
+
+  @Field(() => String)
+  label: string;
+
+  @Field(() => String)
+  lat: string;
+
+  @Field(() => String)
+  lng: string;
+
+  @Field(() => String)
+  status: string;
+}
