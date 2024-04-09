@@ -45,6 +45,6 @@ import { InfluxResolver } from './helper/comman/influx-db/influx-resolver';
     DashboardModule,
   ],
   providers: [InfluxService, InfluxResolver, MqttResolver, MqttService],
-  exports: [InfluxService],
+  exports: [InfluxService, MqttService],
 })
 export class AppModule {}

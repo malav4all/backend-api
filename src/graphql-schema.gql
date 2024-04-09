@@ -45,14 +45,14 @@ type Coordinate {
 }
 
 type AlertResponse {
-  label: String!
-  event: String!
-  imei: String!
-  message: String!
-  lat: Float!
-  lng: Float!
-  mode: String!
-  source: String!
+  label: String
+  event: String
+  imei: String
+  message: String
+  lat: String
+  lng: String
+  mode: String
+  source: String
 }
 
 type UserResponse {
@@ -554,5 +554,5 @@ input SearchJourneysInput {
 
 type Subscription {
   coordinatesUpdated(topic: String!): Coordinate!
-  alertUpdated(topic: String!): [AlertResponse!]!
+  alertUpdated(topic: String!): AlertResponse!
 }

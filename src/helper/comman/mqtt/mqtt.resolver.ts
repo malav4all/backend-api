@@ -11,8 +11,9 @@ export class MqttResolver {
     return this.mqttService.coordinatesUpdated(topic);
   }
 
-  @Subscription(() => [AlertResponse])
-  alertUpdated(@Args('topic') topic: string) {
-    return this.mqttService.alertUpdates(topic);
+  @Subscription(() => AlertResponse)
+  async alertUpdated(@Args('topic') topic: string) {
+    const res = await this.mqttService.alertUpdated(topic);
+    return res;
   }
 }

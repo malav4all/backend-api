@@ -10,7 +10,7 @@ export class MqttService {
   private currentTopic: string;
 
   constructor() {
-    this.client = connect('mqtt://103.20.214.75:8083', {
+    this.client = connect('mqtt://103.20.214.75:1883', {
       clientId: 'malav_web_app1111',
       username: 'malav',
       password: 'malav@123',
@@ -24,16 +24,14 @@ export class MqttService {
       const [first, second] = topic.split('/');
       const messageString = Buffer.from(message).toString('utf8');
       const messageObject = JSON.parse(messageString);
-      console.log({ first, messageObject });
       if (first === 'alerts') {
-        this.pubSub.publish('alertUpdates', {
-          alertUpdates: messageObject,
+        this.pubSub.publish('alertUpdated', {
+          alertUpdated: messageObject,
         });
       } else if (first === 'track') {
         this.pubSub.publish('coordinatesUpdated', {
           coordinatesUpdated: messageObject,
         });
-      } else {
       }
     });
 
@@ -43,7 +41,6 @@ export class MqttService {
   }
 
   coordinatesUpdated(topic: string) {
-    console.log({ topic });
     this.client.subscribe(topic, (err) => {
       if (err) {
         this.logger.error('Error subscribing to topic:', err);
@@ -56,7 +53,7 @@ export class MqttService {
     return this.pubSub.asyncIterator('coordinatesUpdated');
   }
 
-  alertUpdates(topic: string) {
+  alertUpdated(topic: string) {
     this.client.subscribe(topic, (err) => {
       if (err) {
         this.logger.error('Error subscribing to topic:', err);
@@ -66,6 +63,6 @@ export class MqttService {
       }
     });
 
-    return this.pubSub.asyncIterator('alertUpdates');
+    return this.pubSub.asyncIterator('alertUpdated');
   }
 }
