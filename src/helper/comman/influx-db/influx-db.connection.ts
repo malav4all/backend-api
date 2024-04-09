@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InfluxDB } from '@influxdata/influxdb-client';
 import { PubSub } from 'graphql-subscriptions';
-
+import daysjs from 'dayjs';
 @Injectable()
 export class InfluxService {
   private readonly queryApi;

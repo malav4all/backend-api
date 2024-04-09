@@ -9,10 +9,16 @@ export class TrackPlayResponse {
   currentTime: string;
 
   @Field(() => String)
+  startTime: string;
+
+  @Field(() => String)
   measurement: string;
 
   @Field(() => String)
   label: string;
+
+  @Field(() => String)
+  imei: string;
 
   @Field(() => String)
   direction: string;

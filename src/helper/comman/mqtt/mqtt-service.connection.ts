@@ -10,10 +10,10 @@ export class MqttService {
   private currentTopic: string;
 
   constructor() {
-    this.client = connect('mqtt://103.20.214.75:1883/', {
-      clientId: 'malav_web_app',
+    this.client = connect('mqtt://103.20.214.75:8083', {
+      clientId: 'malav_web_app1111',
       username: 'malav',
-      password: 'Admin@123',
+      password: 'malav@123',
     });
 
     this.client.on('connect', () => {
