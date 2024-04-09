@@ -82,7 +82,7 @@ export class InfluxService {
     |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
      |> map(fn: (r) => ({
         r with
-     status: if (uint(v:now()) - uint(v:r["_time"])) / uint(v:60000000000) < uint(v:30) then "online" else "offline"
+        status: if (int(v:now()) - int(v:r["_time"]) < int(v:duration(v: "30m"))) then "online" else "offline"
       }))
     `;
     const rowData = [];
