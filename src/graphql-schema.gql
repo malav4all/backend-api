@@ -296,13 +296,15 @@ type TrackPlayResponse {
 }
 
 type AlertResponseTableData {
-  event: String!
-  lat: String!
-  imei: String!
-  label: String!
-  lng: String!
-  mode: String!
-  source: String!
+  event: String
+  lat: String
+  imei: String
+  label: String
+  lng: String
+  mode: String
+  source: String
+  message: String
+  time: String
 }
 
 type DeviceStatus {

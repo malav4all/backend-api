@@ -32,26 +32,32 @@ export class TrackPlayResponse {
 
 @ObjectType()
 export class AlertResponseTableData {
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   event: string;
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   lat: string;
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   imei: string;
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   label: string;
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   lng: string;
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   mode: string;
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   source: string;
+
+  @Field(() => String, { nullable: true })
+  message: string;
+
+  @Field(() => String, { nullable: true })
+  time: string;
 }
 
 @InputType()
