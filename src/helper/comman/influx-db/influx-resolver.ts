@@ -1,6 +1,10 @@
-import { Resolver, Mutation, Subscription } from '@nestjs/graphql';
+import { Resolver, Mutation, Subscription, Args } from '@nestjs/graphql';
 import { InfluxService } from './influx-db.connection';
-import { AlertResponseTableData, TrackPlayResponse } from './response';
+import {
+  AlertInputType,
+  AlertResponseTableData,
+  TrackPlayResponse,
+} from './response';
 import { InternalServerErrorException } from '@nestjs/common';
 
 @Resolver()
@@ -17,8 +21,9 @@ export class InfluxResolver {
     }
   }
 
-  @Subscription(() => [AlertResponseTableData])
-  async getAlertData() {
-    return await this.influxService.getExecuteAlertData();
+  @Mutation(() => [AlertResponseTableData])
+  async getAlertData(@Args('input') input: AlertInputType) {
+    const res = await this.influxService.fetchDataAndPublish(input);
+    return res;
   }
 }

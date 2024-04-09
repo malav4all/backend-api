@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InfluxDB } from '@influxdata/influxdb-client';
 import { PubSub } from 'graphql-subscriptions';
 import daysjs from 'dayjs';
+import { AlertInputType } from './response';
 @Injectable()
 export class InfluxService {
   private readonly queryApi;
@@ -47,44 +48,28 @@ export class InfluxService {
     return data;
   }
 
-  async getExecuteAlertData() {
+  async fetchDataAndPublish(payload: AlertInputType) {
     const query = `
       from(bucket: "tracking-alerts")
-        |> range(start: -1h)
+        |> range(start: ${payload.startDate}, stop: ${payload.endDate})
         |> filter(fn: (r) => r["_measurement"] == "alert")
         |> filter(fn: (r) => r["_field"] == "event" or r["_field"] == "lat" or r["_field"] == "lng" or r["_field"] == "mode" or r["_field"] == "source")
         |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
-        |> filter(fn: (r) => r["imei"] == "937066712051")
-        |> filter(fn: (r) => r["label"] == "937066712051")
     `;
-
-    // Define a function to fetch data and publish it to PubSub
-    const fetchDataAndPublish = async () => {
-      const rowData = [];
-      for await (const { values } of this.queryApi.iterateRows(query)) {
-        const [t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13] = values;
-        rowData.push({
-          event: t9,
-          lat: t10,
-          lng: t11,
-          mode: t12,
-          source: t13,
-        });
-      }
-      this.pubSub.publish('alertTableData', {
-        alertTableData: rowData,
+    const rowData = [];
+    for await (const { values } of this.queryApi.iterateRows(query)) {
+      const [t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13] = values;
+      rowData.push({
+        label: t7,
+        imei: t8,
+        event: t9,
+        lat: t10,
+        lng: t11,
+        mode: t12,
+        source: t13,
       });
-    };
+    }
 
-    // Fetch data initially
-    await fetchDataAndPublish();
-
-    // Set up interval to fetch data periodically
-    setInterval(async () => {
-      await fetchDataAndPublish();
-    }, 3000); // Fetch data every minute
-
-    // Return an async iterator for the subscription channel
-    return this.pubSub.asyncIterator('alertTableData');
+    return rowData;
   }
 }

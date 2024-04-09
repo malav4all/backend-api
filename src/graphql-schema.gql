@@ -296,11 +296,13 @@ type TrackPlayResponse {
 }
 
 type AlertResponseTableData {
-  event: String
-  lat: Float
-  lng: Float
-  mode: String
-  source: String
+  event: String!
+  lat: String!
+  imei: String!
+  label: String!
+  lng: String!
+  mode: String!
+  source: String!
 }
 
 type Query {
@@ -321,6 +323,7 @@ input CreateUserInput {
 
 type Mutation {
   getRowData: [TrackPlayResponse!]!
+  getAlertData(input: AlertInputType!): [AlertResponseTableData!]!
   addUser(input: CreateUserInput!): UserResponse!
   forgetPassword(input: ChangePasswordInput!): UserResponse!
   changePassword(input: ChangePasswordInput!): UserResponse!
@@ -352,6 +355,11 @@ type Mutation {
   updateJourney(input: UpdateJourneyInput!): JourneyResponseData!
   searchJourneys(input: SearchJourneysInput!): JourneyResponseData!
   fetchDashboardDetail: DashboardResponse!
+}
+
+input AlertInputType {
+  startDate: String!
+  endDate: String!
 }
 
 input ChangePasswordInput {
@@ -533,7 +541,6 @@ input SearchJourneysInput {
 }
 
 type Subscription {
-  getAlertData: [AlertResponseTableData!]!
   coordinatesUpdated(topic: String!): Coordinate!
   alertUpdated(topic: String!): [AlertResponse!]!
 }

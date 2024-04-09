@@ -1,4 +1,4 @@
-import { Field, Float, ObjectType } from '@nestjs/graphql';
+import { Field, Float, InputType, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
 export class TrackPlayResponse {
@@ -32,18 +32,33 @@ export class TrackPlayResponse {
 
 @ObjectType()
 export class AlertResponseTableData {
-  @Field(() => String, { nullable: true })
+  @Field(() => String)
   event: string;
 
-  @Field(() => Float, { nullable: true })
-  lat: number;
+  @Field(() => String)
+  lat: string;
 
-  @Field(() => Float, { nullable: true })
-  lng: number;
+  @Field(() => String)
+  imei: string;
 
-  @Field(() => String, { nullable: true })
+  @Field(() => String)
+  label: string;
+
+  @Field(() => String)
+  lng: string;
+
+  @Field(() => String)
   mode: string;
 
-  @Field(() => String, { nullable: true })
+  @Field(() => String)
   source: string;
+}
+
+@InputType()
+export class AlertInputType {
+  @Field(() => String)
+  startDate: string;
+
+  @Field(() => String)
+  endDate: string;
 }
