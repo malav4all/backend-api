@@ -42,3 +42,30 @@ export class Coordinate {
   @Field(() => Float)
   lng: number;
 }
+
+@ObjectType()
+export class AlertResponse {
+  @Field(() => String)
+  label: string;
+
+  @Field(() => String)
+  event: string;
+
+  @Field(() => String)
+  imei: string;
+
+  @Field(() => String)
+  message: string;
+
+  @Field(() => Float)
+  lat: number;
+
+  @Field(() => Float)
+  lng: number;
+
+  @Field(() => String)
+  mode: string;
+
+  @Field(() => String)
+  source: string;
+}

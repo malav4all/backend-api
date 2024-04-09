@@ -1,6 +1,6 @@
 import { Resolver, Subscription, Args } from '@nestjs/graphql';
 import { MqttService } from './mqtt-service.connection';
-import { Coordinate } from '@imz/helper/dto/response';
+import { AlertResponse, Coordinate } from '@imz/helper/dto/response';
 
 @Resolver()
 export class MqttResolver {
@@ -9,5 +9,10 @@ export class MqttResolver {
   @Subscription(() => Coordinate)
   coordinatesUpdated(@Args('topic') topic: string) {
     return this.mqttService.coordinatesUpdated(topic);
+  }
+
+  @Subscription(() => [AlertResponse])
+  alertUpdated(@Args('topic') topic: string) {
+    return this.mqttService.alertUpdates(topic);
   }
 }

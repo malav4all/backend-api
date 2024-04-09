@@ -36,7 +36,7 @@
     "class-transformer": "0.5.1",
     "class-validator": "^0.14.1",
     "crypto-js": "^4.2.0",
-    "dayjs": "1.10.7",
+    "dayjs": "^1.11.10",
     "dotenv": "10.0.0",
     "easygraphql-format-error": "0.0.3",
     "events": "^3.3.0",

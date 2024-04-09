@@ -44,6 +44,17 @@ type Coordinate {
   lng: Float!
 }
 
+type AlertResponse {
+  label: String!
+  event: String!
+  imei: String!
+  message: String!
+  lat: Float!
+  lng: Float!
+  mode: String!
+  source: String!
+}
+
 type UserResponse {
   paginatorInfo: PaginatorInfo
   success: Float
@@ -272,6 +283,37 @@ type DashboardResponse {
   data: DashboardType!
 }
 
+type TrackPlayResponse {
+  stopTime: String!
+  currentTime: String!
+  startTime: String!
+  measurement: String!
+  label: String!
+  imei: String!
+  direction: String!
+  lat: String!
+  lng: String!
+}
+
+type AlertResponseTableData {
+  event: String!
+  lat: String!
+  imei: String!
+  label: String!
+  lng: String!
+  mode: String!
+  source: String!
+}
+
+type DeviceStatus {
+  time: String!
+  imei: String!
+  label: String!
+  lat: String!
+  lng: String!
+  status: String!
+}
+
 type Query {
   createUser(input: CreateUserInput!): UserResponse!
 }
@@ -289,6 +331,9 @@ input CreateUserInput {
 }
 
 type Mutation {
+  getRowData: [TrackPlayResponse!]!
+  getAlertData(input: AlertInputType!): [AlertResponseTableData!]!
+  getStatusDevice(input: AlertInputType!): [DeviceStatus!]!
   addUser(input: CreateUserInput!): UserResponse!
   forgetPassword(input: ChangePasswordInput!): UserResponse!
   changePassword(input: ChangePasswordInput!): UserResponse!
@@ -320,6 +365,11 @@ type Mutation {
   updateJourney(input: UpdateJourneyInput!): JourneyResponseData!
   searchJourneys(input: SearchJourneysInput!): JourneyResponseData!
   fetchDashboardDetail: DashboardResponse!
+}
+
+input AlertInputType {
+  startDate: String!
+  endDate: String!
 }
 
 input ChangePasswordInput {
@@ -502,4 +552,5 @@ input SearchJourneysInput {
 
 type Subscription {
   coordinatesUpdated(topic: String!): Coordinate!
+  alertUpdated(topic: String!): [AlertResponse!]!
 }
