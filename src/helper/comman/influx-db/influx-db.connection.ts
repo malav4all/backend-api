@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InfluxDB } from '@influxdata/influxdb-client';
 import { PubSub } from 'graphql-subscriptions';
-import daysjs from 'dayjs';
+import moment from 'moment';
 import { AlertInputType } from './response';
 @Injectable()
 export class InfluxService {
@@ -54,6 +54,7 @@ export class InfluxService {
         |> range(start: ${payload.startDate}, stop: ${payload.endDate})
         |> filter(fn: (r) => r["_measurement"] == "alert")
         |> filter(fn: (r) => r["_field"] == "event" or r["_field"] == "lat" or r["_field"] == "lng" or r["_field"] == "message" or r["_field"] == "mode" or r["_field"] == "source")
+        |> sort(columns:["_time"], desc: true)
         |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
     `;
     const rowData = [];
@@ -61,7 +62,7 @@ export class InfluxService {
       const [t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14] =
         values;
       rowData.push({
-        time: t3,
+        time: t5,
         label: t7,
         imei: t8,
         event: t9,
@@ -82,6 +83,7 @@ export class InfluxService {
     |> range(start: ${payload.startDate}, stop: ${payload.endDate})
     |> filter(fn: (r) => r["_measurement"] == "track")
     |> filter(fn: (r) => r["_field"] == "direction" or r["_field"] == "gps" or r["_field"] == "lat" or r["_field"] == "lng" or r["_field"] == "satellites" or r["_field"] == "speed")
+    |> sort(columns:["_time"], desc: true)
     |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
      |> map(fn: (r) => ({
         r with
@@ -93,7 +95,7 @@ export class InfluxService {
       const [t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15] =
         values;
       rowData.push({
-        time: t4,
+        time: t6,
         label: t9,
         imei: t10,
         lat: t11,

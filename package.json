@@ -58,6 +58,7 @@
     "jsonwebtoken": "8.5.1",
     "lodash": "4.17.21",
     "lodasync": "1.0.7",
+    "moment": "^2.30.1",
     "mongoose": "^6.8.0",
     "mongoose-autopopulate": "0.16.0",
     "mongoose-sequence": "5.3.1",
