@@ -89,3 +89,24 @@ export class DeviceStatus {
   @Field(() => String)
   status: string;
 }
+
+@ObjectType()
+class CoordinatesTypeResponse {
+  @Field(() => String, { nullable: true })
+  latitude: string;
+
+  @Field(() => String, { nullable: true })
+  longitude: string;
+
+  @Field(() => String, { nullable: true })
+  time: string;
+}
+
+@ObjectType()
+export class DistanceReportResponse {
+  @Field(() => String, { nullable: true })
+  imei: string;
+
+  @Field(() => [CoordinatesTypeResponse], { nullable: true })
+  coordinates: [CoordinatesTypeResponse];
+}

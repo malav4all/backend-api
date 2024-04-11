@@ -106,4 +106,28 @@ export class InfluxService {
 
     return rowData;
   }
+
+  async distanceReportQuery(payload: AlertInputType) {
+    const fluxQuery = `
+    from(bucket: "tracking-v2")
+      |> range(start: ${payload.startDate}, stop: ${payload.endDate})
+      |> filter(fn: (r) => r["_measurement"] == "track")
+      |> filter(fn: (r) => r["_field"] == "lat" or r["_field"] == "lng" or r["_field"] == "direction")
+      |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+     `;
+
+    const data = {};
+
+    for await (const { values } of this.queryApi.iterateRows(fluxQuery)) {
+      const [t1, t2, t3, t4, t5, t6, imei, t8, t9, t10, t11] = values;
+
+      if (!data[imei]) {
+        data[imei] = { imei, coordinates: [] };
+      }
+
+      data[imei].coordinates.push({ latitude: t10, longitude: t11, time: t5 });
+    }
+
+    return Object.values(data);
+  }
 }

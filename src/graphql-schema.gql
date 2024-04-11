@@ -316,6 +316,17 @@ type DeviceStatus {
   status: String!
 }
 
+type CoordinatesTypeResponse {
+  latitude: String
+  longitude: String
+  time: String
+}
+
+type DistanceReportResponse {
+  imei: String
+  coordinates: [CoordinatesTypeResponse!]
+}
+
 type Query {
   createUser(input: CreateUserInput!): UserResponse!
 }
@@ -336,6 +347,7 @@ type Mutation {
   getRowData: [TrackPlayResponse!]!
   getAlertData(input: AlertInputType!): [AlertResponseTableData!]!
   getStatusDevice(input: AlertInputType!): [DeviceStatus!]!
+  fetchDistanceReport(input: AlertInputType!): [DistanceReportResponse!]!
   addUser(input: CreateUserInput!): UserResponse!
   forgetPassword(input: ChangePasswordInput!): UserResponse!
   changePassword(input: ChangePasswordInput!): UserResponse!

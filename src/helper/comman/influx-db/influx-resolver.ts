@@ -4,6 +4,7 @@ import {
   AlertInputType,
   AlertResponseTableData,
   DeviceStatus,
+  DistanceReportResponse,
   TrackPlayResponse,
 } from './response';
 import { InternalServerErrorException } from '@nestjs/common';
@@ -31,6 +32,12 @@ export class InfluxResolver {
   @Mutation(() => [DeviceStatus])
   async getStatusDevice(@Args('input') input: AlertInputType) {
     const res = await this.influxService.fetchDataDeviceStatus(input);
+    return res;
+  }
+
+  @Mutation(() => [DistanceReportResponse])
+  async fetchDistanceReport(@Args('input') input: AlertInputType) {
+    const res = await this.influxService.distanceReportQuery(input);
     return res;
   }
 }
