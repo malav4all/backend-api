@@ -379,6 +379,8 @@ type Mutation {
   fetchJourney(input: JourneyInput!): JourneyResponseData!
   updateJourney(input: UpdateJourneyInput!): JourneyResponseData!
   searchJourneys(input: SearchJourneysInput!): JourneyResponseData!
+  archiveJourney: JourneyResponseData!
+  upComingJourney: JourneyResponseData!
   fetchDashboardDetail: DashboardResponse!
 }
 

@@ -130,6 +130,20 @@ export class JourneyService {
     });
   }
 
+  public async archiveJourney() {
+    const currentDate = new Date();
+    return await this.JourneyModel.find({
+      endDate: { $lt: currentDate },
+    });
+  }
+
+  public async upComingJourney() {
+    const currentDate = new Date();
+    return await this.JourneyModel.find({
+      startDate: { $gte: currentDate },
+    });
+  }
+
   async findImeiWithJourneyDetails(page: number, limit: number) {
     try {
       const skip = page === -1 ? 0 : (page - 1) * limit;
