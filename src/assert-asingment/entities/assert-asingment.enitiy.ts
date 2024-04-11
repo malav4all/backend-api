@@ -19,9 +19,9 @@ export class AssertAssingmentModuleEntity {
   @Prop({ text: true })
   labelName: string;
 
-  @Field(() => JourneyResponseType)
-  @Prop()
-  journey: JourneyResponseType;
+  @Field(() => JourneyResponseType, { nullable: true })
+  @Prop({ required: false })
+  journey?: JourneyResponseType;
 
   @Field()
   @Prop({ text: true })

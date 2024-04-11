@@ -35,7 +35,13 @@ export class AssertAssingmentModuleService {
       const aggregationPipeline: any[] = [
         {
           $addFields: {
-            convertedJourneyId: { $toObjectId: '$journey' },
+            convertedJourneyId: {
+              $cond: {
+                if: { $ne: ['$journey', ''] }, // Check if journey is not empty
+                then: { $toObjectId: '$journey' },
+                else: null, // Set to null if journey is empty
+              },
+            },
           },
         },
         {
@@ -245,6 +251,15 @@ export class AssertAssingmentModuleService {
       const record = await this.AssertAssingmentModuleModule.insertMany(
         payload
       );
+      return record;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async findAllDevice() {
+    try {
+      const record = await this.AssertAssingmentModuleModule.find({});
       return record;
     } catch (error) {
       throw new InternalServerErrorException(error.message);

@@ -145,7 +145,7 @@ type AssertAssingmentModuleEntity {
   _id: String
   imei: Float!
   labelName: String!
-  journey: JourneyResponseType!
+  journey: JourneyResponseType
   boxSet: String!
   createdBy: String
   updatedBy: String
@@ -356,6 +356,7 @@ type Mutation {
   checkAssertAssingmentModuleExistsRecord(input: CheckAssertAssingmentModuleInput!): AssertAssingmentModuleResponse!
   fetchAssertAssingmentModule(input: AssertAssingmentModuleInput!): AssertAssingmentModuleResponse!
   bulkJourneyUpload(input: [CreateAssertAssingmentModuleInput!]!): AssertAssingmentModuleResponse!
+  getAllDeviceList: [AssertAssingmentModuleEntity!]!
   addGeozone(input: CreateGeoZoneInput!): GeozoneResponse!
   listGeozone(input: GeozoneInput!): GeozoneResponse!
   updateGeozone(input: UpdateGeozoneInput!): GeozoneResponse!
@@ -420,7 +421,7 @@ input VerifyOtpInput {
 input CreateAssertAssingmentModuleInput {
   imei: Float!
   labelName: String!
-  journey: String!
+  journey: String
   boxSet: String
   createdBy: String
   updatedBy: String

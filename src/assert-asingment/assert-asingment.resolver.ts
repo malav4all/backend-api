@@ -10,6 +10,7 @@ import {
   SearchAssertAssingmentModuleInput,
 } from './dto/create-assert-asingment.input';
 import { UpdateAssertAssingmentModuleInput } from './dto/update.assert-asingment';
+import { AssertAssingmentModuleEntity } from './entities/assert-asingment.enitiy';
 
 @Resolver(() => AssertAssingmentModuleResponse)
 export class AssertAssingmentResolver {
@@ -149,6 +150,17 @@ export class AssertAssingmentResolver {
           ? 'Assert Record uploaded.'
           : 'Assert Record not uploaded. Please try again.',
       };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @UseGuards(new AuthGuard())
+  @Mutation(() => [AssertAssingmentModuleEntity])
+  async getAllDeviceList() {
+    try {
+      const record = await this.assertAssingmentModuleService.findAllDevice();
+      return record;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
