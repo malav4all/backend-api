@@ -92,6 +92,7 @@ export class JourneyResolver {
       const record = await this.journeyService.archiveJourney();
       return {
         success: record ? 1 : 0,
+        data: record,
         message: record
           ? 'Records update successfully.'
           : 'Technical issue please try again.',
@@ -108,6 +109,7 @@ export class JourneyResolver {
       const record = await this.journeyService.upComingJourney();
       return {
         success: record ? 1 : 0,
+        data: record,
         message: record
           ? 'Records update successfully.'
           : 'Technical issue please try again.',

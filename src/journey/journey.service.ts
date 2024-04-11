@@ -133,7 +133,7 @@ export class JourneyService {
   public async archiveJourney() {
     const currentDate = new Date();
     return await this.JourneyModel.find({
-      endDate: { $lt: currentDate },
+      endDate: { $lte: currentDate },
     });
   }
 
