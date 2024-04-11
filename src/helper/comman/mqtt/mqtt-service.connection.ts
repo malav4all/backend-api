@@ -11,7 +11,7 @@ export class MqttService {
 
   constructor() {
     this.client = connect('mqtt://103.20.214.75:1883', {
-      clientId: 'malav_web_app1111',
+      clientId: 'malav_web_app',
       username: 'malav',
       password: 'malav@123',
     });
