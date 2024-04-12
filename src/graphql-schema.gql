@@ -348,6 +348,7 @@ type Mutation {
   getAlertData(input: AlertInputType!): [AlertResponseTableData!]!
   getStatusDevice(input: AlertInputType!): [DeviceStatus!]!
   fetchDistanceReport(input: AlertInputType!): [DistanceReportResponse!]!
+  getAllStatusDevice: [DeviceStatus!]!
   addUser(input: CreateUserInput!): UserResponse!
   forgetPassword(input: ChangePasswordInput!): UserResponse!
   changePassword(input: ChangePasswordInput!): UserResponse!

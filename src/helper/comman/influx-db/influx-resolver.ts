@@ -40,4 +40,10 @@ export class InfluxResolver {
     const res = await this.influxService.distanceReportQuery(input);
     return res;
   }
+
+  @Mutation(() => [DeviceStatus])
+  async getAllStatusDevice() {
+    const res = await this.influxService.fetchAllDeviceStatus();
+    return res;
+  }
 }

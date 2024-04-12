@@ -24,6 +24,7 @@ export class MqttService {
       const [first, second] = topic.split('/');
       const messageString = Buffer.from(message).toString('utf8');
       const messageObject = JSON.parse(messageString);
+      console.log(messageObject);
       if (first === 'alerts') {
         this.pubSub.publish('alertUpdated', {
           alertUpdated: messageObject,
