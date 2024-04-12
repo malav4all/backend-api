@@ -75,6 +75,11 @@ export class AssertAssingmentModuleService {
             journey: '$journeyDetails',
           },
         },
+        {
+          $sort: {
+            _id: -1,
+          },
+        },
       ];
       const countPipeline: any[] = [...aggregationPipeline];
       aggregationPipeline.push({ $skip: skip }, { $limit: limit });
@@ -154,9 +159,9 @@ export class AssertAssingmentModuleService {
           $addFields: {
             convertedJourneyId: {
               $cond: {
-                if: { $ne: ['$journey', ''] }, 
+                if: { $ne: ['$journey', ''] },
                 then: { $toObjectId: '$journey' },
-                else: null, 
+                else: null,
               },
             },
           },

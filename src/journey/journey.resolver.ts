@@ -30,7 +30,7 @@ export class JourneyResolver {
     }
   }
 
-  // @UseGuards(new AuthGuard())
+  @UseGuards(new AuthGuard())
   @Mutation(() => JourneyResponseData)
   async fetchJourney(@Args('input') input: JourneyInput) {
     try {
@@ -65,6 +65,7 @@ export class JourneyResolver {
     }
   }
 
+  @UseGuards(new AuthGuard())
   @Mutation(() => JourneyResponseData)
   async searchJourneys(@Args('input') input: SearchJourneysInput) {
     try {
@@ -85,7 +86,7 @@ export class JourneyResolver {
     }
   }
 
-  // @UseGuards(new AuthGuard())
+  @UseGuards(new AuthGuard())
   @Mutation(() => JourneyResponseData)
   async archiveJourney() {
     try {
