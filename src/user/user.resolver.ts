@@ -26,7 +26,7 @@ import _ from 'lodash';
 export class UserResolver {
   constructor(private readonly userService: UserService) {}
 
-  // @UseGuards(new AuthGuard())
+  @UseGuards(new AuthGuard())
   @Query(() => UserResponse)
   async createUser(@Args('input') input: CreateUserInput) {
     try {
@@ -57,6 +57,7 @@ export class UserResolver {
       throw new InternalServerErrorException(error.message);
     }
   }
+
   @Mutation(() => UserResponse)
   async forgetPassword(@Args('input') input: ChangePasswordInput) {
     try {
@@ -71,7 +72,7 @@ export class UserResolver {
       throw new InternalServerErrorException(error.message);
     }
   }
-  // @UseGuards(new AuthGuard())
+
   @Mutation(() => UserResponse)
   async changePassword(@Args('input') input: ChangePasswordInput) {
     try {
@@ -156,7 +157,7 @@ export class UserResolver {
     }
   }
 
-  // @UseGuards(new AuthGuard())
+  @UseGuards(new AuthGuard())
   @Mutation(() => UserResponse)
   async searchUsers(@Args('input') input: SearchUsersInput) {
     try {
