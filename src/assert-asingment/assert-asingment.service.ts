@@ -152,7 +152,13 @@ export class AssertAssingmentModuleService {
       const pipeline = [
         {
           $addFields: {
-            convertedJourneyId: { $toObjectId: '$journey' },
+            convertedJourneyId: {
+              $cond: {
+                if: { $ne: ['$journey', ''] }, 
+                then: { $toObjectId: '$journey' },
+                else: null, 
+              },
+            },
           },
         },
         {

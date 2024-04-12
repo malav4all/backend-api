@@ -85,7 +85,7 @@ export class JourneyResolver {
     }
   }
 
-  @UseGuards(new AuthGuard())
+  // @UseGuards(new AuthGuard())
   @Mutation(() => JourneyResponseData)
   async archiveJourney() {
     try {
