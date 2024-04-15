@@ -1,4 +1,6 @@
-import { Field, Float, InputType, ObjectType } from '@nestjs/graphql';
+import { PaginatorInfo } from '@imz/helper/dto/response';
+import { Field, Float, InputType, Int, ObjectType } from '@nestjs/graphql';
+import { IsOptional } from 'class-validator';
 
 @ObjectType()
 export class TrackPlayResponse {
@@ -31,7 +33,7 @@ export class TrackPlayResponse {
 }
 
 @ObjectType()
-export class AlertResponseTableData {
+export class AlertResponseType {
   @Field(() => String, { nullable: true })
   event: string;
 
@@ -60,8 +62,24 @@ export class AlertResponseTableData {
   time: string;
 }
 
+@ObjectType()
+export class AlertResponseTableData {
+  @IsOptional()
+  @Field(() => PaginatorInfo, { nullable: true })
+  paginatorInfo?: PaginatorInfo;
+
+  @Field(() => [AlertResponseType])
+  data: [AlertResponseType];
+}
+
 @InputType()
 export class AlertInputType {
+  @Field(() => Int, { nullable: true })
+  page: typeof Int;
+
+  @Field(() => Int, { nullable: true })
+  limit: typeof Int;
+
   @Field(() => String)
   startDate: string;
 
@@ -70,7 +88,7 @@ export class AlertInputType {
 }
 
 @ObjectType()
-export class DeviceStatus {
+export class DeviceStatusResponse {
   @Field(() => String)
   time: string;
 
@@ -88,6 +106,16 @@ export class DeviceStatus {
 
   @Field(() => String)
   status: string;
+}
+
+@ObjectType()
+export class DeviceStatus {
+  @IsOptional()
+  @Field(() => PaginatorInfo, { nullable: true })
+  paginatorInfo?: PaginatorInfo;
+
+  @Field(() => [DeviceStatusResponse])
+  data: [DeviceStatusResponse];
 }
 
 @ObjectType()

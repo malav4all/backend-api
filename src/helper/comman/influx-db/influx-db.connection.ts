@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InfluxDB } from '@influxdata/influxdb-client';
 import { PubSub } from 'graphql-subscriptions';
-import moment from 'moment';
 import { AlertInputType } from './response';
 @Injectable()
 export class InfluxService {
@@ -49,6 +48,19 @@ export class InfluxService {
   }
 
   async fetchDataAndPublish(payload: AlertInputType) {
+    const page = Number(payload.page);
+    const limit = Number(payload.limit);
+    const skip = page === -1 ? 0 : (page - 1) * limit;
+
+    const countQuery = `
+    from(bucket: "tracking-alerts")
+      |> range(start: ${payload.startDate}, stop: ${payload.endDate})
+      |> filter(fn: (r) => r["_measurement"] == "alert")
+      |> count()
+  `;
+    const countResponse = await this.queryApi.collectRows(countQuery);
+    const totalCount = countResponse[0]?._value ?? 0;
+
     const query = `
       from(bucket: "tracking-alerts")
         |> range(start: ${payload.startDate}, stop: ${payload.endDate})
@@ -56,6 +68,7 @@ export class InfluxService {
         |> filter(fn: (r) => r["_field"] == "event" or r["_field"] == "lat" or r["_field"] == "lng" or r["_field"] == "message" or r["_field"] == "mode" or r["_field"] == "source")
         |> sort(columns:["_time"], desc: true)
         |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+        |> limit(n: ${payload.limit}, offset: ${skip})
     `;
     const rowData = [];
     for await (const { values } of this.queryApi.iterateRows(query)) {
@@ -74,21 +87,41 @@ export class InfluxService {
       });
     }
 
-    return rowData;
+    return { rowData, totalCount };
   }
 
   async fetchDataDeviceStatus(payload: AlertInputType) {
-    const query = `
+    const page = Number(payload.page);
+    const limit = Number(payload.limit);
+    const skip = page === -1 ? 0 : (page - 1) * limit;
+    const countQuery = `
     from(bucket: "tracking-v2")
     |> range(start: ${payload.startDate}, stop: ${payload.endDate})
     |> filter(fn: (r) => r["_measurement"] == "track")
     |> filter(fn: (r) => r["_field"] == "direction" or r["_field"] == "gps" or r["_field"] == "lat" or r["_field"] == "lng" or r["_field"] == "satellites" or r["_field"] == "speed")
     |> sort(columns:["_time"], desc: true)
-    |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
-     |> map(fn: (r) => ({
+    |> map(fn: (r) => ({
         r with
         status: if (int(v:now()) - int(v:r["_time"]) < int(v:duration(v: "30m"))) then "online" else "offline"
       }))
+    |> filter(fn: (r) => r.status == "offline")
+    |> count()
+    `;
+    const result = await this.queryApi.collectRows(countQuery);
+    const totalCount = result[1]?._value ?? 0;
+    const query = `
+        from(bucket: "tracking-v2")
+        |> range(start: ${payload.startDate}, stop: ${payload.endDate})
+        |> filter(fn: (r) => r["_measurement"] == "track")
+        |> filter(fn: (r) => r["_field"] == "direction" or r["_field"] == "gps" or r["_field"] == "lat" or r["_field"] == "lng" or r["_field"] == "satellites" or r["_field"] == "speed")
+        |> sort(columns:["_time"], desc: true)
+        |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+        |> map(fn: (r) => ({
+            r with
+            status: if (int(v:now()) - int(v:r["_time"]) < int(v:duration(v: "30m"))) then "online" else "offline"
+          }))
+        |> filter(fn: (r) => r.status == "offline")
+        |> limit(n: ${payload.limit}, offset: ${skip})
     `;
     const rowData = [];
     for await (const { values } of this.queryApi.iterateRows(query)) {
@@ -104,7 +137,7 @@ export class InfluxService {
       });
     }
 
-    return rowData;
+    return { rowData, totalCount };
   }
 
   async distanceReportQuery(payload: AlertInputType) {
@@ -134,7 +167,7 @@ export class InfluxService {
   async fetchAllDeviceStatus() {
     const query = `
     from(bucket: "tracking-v2")
-    |> range(start: 0)
+    |> range(start: -35m)
     |> filter(fn: (r) => r["_measurement"] == "track")
     |> filter(fn: (r) => r["_field"] == "direction" or r["_field"] == "gps" or r["_field"] == "lat" or r["_field"] == "lng" or r["_field"] == "satellites" or r["_field"] == "speed")
     |> sort(columns:["_time"], desc: true)

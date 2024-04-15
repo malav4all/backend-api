@@ -26,17 +26,29 @@ export class InfluxResolver {
   }
 
   @UseGuards(new AuthGuard())
-  @Mutation(() => [AlertResponseTableData])
+  @Mutation(() => AlertResponseTableData)
   async getAlertData(@Args('input') input: AlertInputType) {
-    const res = await this.influxService.fetchDataAndPublish(input);
-    return res;
+    const { rowData, totalCount } =
+      await this.influxService.fetchDataAndPublish(input);
+    return {
+      paginatorInfo: {
+        count: totalCount,
+      },
+      data: rowData,
+    };
   }
 
   @UseGuards(new AuthGuard())
-  @Mutation(() => [DeviceStatus])
+  @Mutation(() => DeviceStatus)
   async getStatusDevice(@Args('input') input: AlertInputType) {
-    const res = await this.influxService.fetchDataDeviceStatus(input);
-    return res;
+    const { rowData, totalCount } =
+      await this.influxService.fetchDataDeviceStatus(input);
+    return {
+      paginatorInfo: {
+        count: totalCount,
+      },
+      data: rowData,
+    };
   }
 
   @UseGuards(new AuthGuard())
@@ -46,9 +58,11 @@ export class InfluxResolver {
     return res;
   }
 
-  @Mutation(() => [DeviceStatus])
+  @Mutation(() => DeviceStatus)
   async getAllStatusDevice() {
     const res = await this.influxService.fetchAllDeviceStatus();
-    return res;
+    return {
+      data: res,
+    };
   }
 }

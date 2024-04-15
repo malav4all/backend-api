@@ -34,27 +34,6 @@ type PaginatorInfo {
   total: Float
 }
 
-type Coordinate {
-  label: String!
-  speed: Float!
-  satellites: Float!
-  gps: String!
-  direction: Float!
-  lat: Float!
-  lng: Float!
-}
-
-type AlertResponse {
-  label: String
-  event: String
-  imei: String
-  message: String
-  lat: String
-  lng: String
-  mode: String
-  source: String
-}
-
 type UserResponse {
   paginatorInfo: PaginatorInfo
   success: Float
@@ -295,7 +274,7 @@ type TrackPlayResponse {
   lng: String!
 }
 
-type AlertResponseTableData {
+type AlertResponseType {
   event: String
   lat: String
   imei: String
@@ -307,13 +286,23 @@ type AlertResponseTableData {
   time: String
 }
 
-type DeviceStatus {
+type AlertResponseTableData {
+  paginatorInfo: PaginatorInfo
+  data: [AlertResponseType!]!
+}
+
+type DeviceStatusResponse {
   time: String!
   imei: String!
   label: String!
   lat: String!
   lng: String!
   status: String!
+}
+
+type DeviceStatus {
+  paginatorInfo: PaginatorInfo
+  data: [DeviceStatusResponse!]!
 }
 
 type CoordinatesTypeResponse {
@@ -345,10 +334,10 @@ input CreateUserInput {
 
 type Mutation {
   getRowData: [TrackPlayResponse!]!
-  getAlertData(input: AlertInputType!): [AlertResponseTableData!]!
-  getStatusDevice(input: AlertInputType!): [DeviceStatus!]!
+  getAlertData(input: AlertInputType!): AlertResponseTableData!
+  getStatusDevice(input: AlertInputType!): DeviceStatus!
   fetchDistanceReport(input: AlertInputType!): [DistanceReportResponse!]!
-  getAllStatusDevice: [DeviceStatus!]!
+  getAllStatusDevice: DeviceStatus!
   addUser(input: CreateUserInput!): UserResponse!
   forgetPassword(input: ChangePasswordInput!): UserResponse!
   changePassword(input: ChangePasswordInput!): UserResponse!
@@ -386,6 +375,8 @@ type Mutation {
 }
 
 input AlertInputType {
+  page: Int
+  limit: Int
   startDate: String!
   endDate: String!
 }
@@ -566,9 +557,4 @@ input SearchJourneysInput {
   search: String!
   page: Int
   limit: Int
-}
-
-type Subscription {
-  coordinatesUpdated(topic: String!): Coordinate!
-  alertUpdated(topic: String!): AlertResponse!
 }
