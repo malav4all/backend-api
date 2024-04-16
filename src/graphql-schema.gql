@@ -34,6 +34,27 @@ type PaginatorInfo {
   total: Float
 }
 
+type Coordinate {
+  label: String!
+  speed: Float!
+  satellites: Float!
+  gps: String!
+  direction: Float!
+  lat: Float!
+  lng: Float!
+}
+
+type AlertResponse {
+  label: String
+  event: String
+  imei: String
+  message: String
+  lat: String
+  lng: String
+  mode: String
+  source: String
+}
+
 type UserResponse {
   paginatorInfo: PaginatorInfo
   success: Float
@@ -557,4 +578,9 @@ input SearchJourneysInput {
   search: String!
   page: Int
   limit: Int
+}
+
+type Subscription {
+  coordinatesUpdated(topic: String!): Coordinate!
+  alertUpdated(topic: String!): AlertResponse!
 }
