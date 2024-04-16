@@ -13,6 +13,7 @@ import { MqttService } from './helper/comman/mqtt/mqtt-service.connection';
 import { MqttResolver } from './helper/comman/mqtt/mqtt.resolver';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { InfluxResolver } from './helper/comman/influx-db/influx-resolver';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { InfluxResolver } from './helper/comman/influx-db/influx-resolver';
     LocationTypeModule,
     JourneyModule,
     DashboardModule,
+    RedisModule,
   ],
   providers: [InfluxService, InfluxResolver, MqttResolver, MqttService],
   exports: [InfluxService],
