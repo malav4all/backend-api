@@ -14,6 +14,7 @@ import { MqttResolver } from './helper/comman/mqtt/mqtt.resolver';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { InfluxResolver } from './helper/comman/influx-db/influx-resolver';
 import { RedisModule } from './redis/redis.module';
+import { AlertModule } from './alert/alert.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { RedisModule } from './redis/redis.module';
     JourneyModule,
     DashboardModule,
     RedisModule,
+    AlertModule,
   ],
   providers: [InfluxService, InfluxResolver, MqttResolver, MqttService],
   exports: [InfluxService],
