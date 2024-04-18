@@ -28,7 +28,7 @@ export class AlertResolver {
 
   @UseGuards(new AuthGuard())
   @Mutation(() => AlertResponseData)
-  async userListAll(@Args('input') input: AlertInput) {
+  async fetchAlert(@Args('input') input: AlertInput) {
     try {
       const { count, records } = await this.alertService.findAll(input);
       return {

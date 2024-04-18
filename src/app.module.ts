@@ -48,7 +48,7 @@ import { AlertModule } from './alert/alert.module';
     RedisModule,
     AlertModule,
   ],
-  providers: [InfluxService, InfluxResolver],
+  providers: [InfluxService, InfluxResolver, MqttResolver, MqttService],
   exports: [InfluxService],
 })
 export class AppModule {}

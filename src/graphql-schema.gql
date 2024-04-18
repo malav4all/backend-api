@@ -34,6 +34,27 @@ type PaginatorInfo {
   total: Float
 }
 
+type Coordinate {
+  label: String!
+  speed: Float!
+  satellites: Float!
+  gps: String!
+  direction: Float!
+  lat: Float!
+  lng: Float!
+}
+
+type AlertResponse {
+  label: String
+  event: String
+  imei: String
+  message: String
+  lat: String
+  lng: String
+  mode: String
+  source: String
+}
+
 type UserResponse {
   paginatorInfo: PaginatorInfo
   success: Float
@@ -369,7 +390,7 @@ type Mutation {
   forgetPassword(input: ChangePasswordInput!): UserResponse!
   changePassword(input: ChangePasswordInput!): UserResponse!
   loginUser(input: LoginUserInput!): LoginResponse!
-  userListAll(input: AlertInput!): AlertResponseData!
+  userListAll(input: UserInput!): UserResponse!
   updateUser(input: UpdateAlertInput!): AlertResponseData!
   deleteUser(input: UpdateUserInput!): UserResponse!
   searchUsers(input: SearchUsersInput!): UserResponse!
@@ -400,6 +421,7 @@ type Mutation {
   upComingJourney: JourneyResponseData!
   fetchDashboardDetail: DashboardResponse!
   addAlert(input: CreateAlertInputType!): AlertResponseData!
+  fetchAlert(input: AlertInput!): AlertResponseData!
 }
 
 input AlertInputType {
@@ -419,7 +441,7 @@ input LoginUserInput {
   email: String
 }
 
-input AlertInput {
+input UserInput {
   page: Int
   limit: Int
 }
@@ -612,4 +634,14 @@ input CreateAlertInputType {
   mobileNo: String
   alertConfig: AlertConfigData
   isAllSystemAlert: Boolean = false
+}
+
+input AlertInput {
+  page: Int
+  limit: Int
+}
+
+type Subscription {
+  coordinatesUpdated(topic: String!): Coordinate!
+  alertUpdated(topic: String!): AlertResponse!
 }
