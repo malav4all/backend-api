@@ -34,27 +34,6 @@ type PaginatorInfo {
   total: Float
 }
 
-type Coordinate {
-  label: String!
-  speed: Float!
-  satellites: Float!
-  gps: String!
-  direction: Float!
-  lat: Float!
-  lng: Float!
-}
-
-type AlertResponse {
-  label: String
-  event: String
-  imei: String
-  message: String
-  lat: String
-  lng: String
-  mode: String
-  source: String
-}
-
 type UserResponse {
   paginatorInfo: PaginatorInfo
   success: Float
@@ -337,6 +316,33 @@ type DistanceReportResponse {
   coordinates: [CoordinatesTypeResponse!]
 }
 
+type AlertEntityConfig {
+  eventName: String
+  isAlreadyGenerateAlert: Boolean
+  startDate: String
+  endDate: String
+}
+
+type AlertConfigEntityData {
+  imei: String
+  alertData: [AlertEntityConfig!]
+}
+
+type Alert {
+  _id: String!
+  alertName: String
+  mobileNo: String
+  alertConfig: AlertConfigEntityData
+  isAllSystemAlert: Boolean
+}
+
+type AlertResponseData {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [Alert!]!
+}
+
 type Query {
   createUser(input: CreateUserInput!): UserResponse!
 }
@@ -363,8 +369,8 @@ type Mutation {
   forgetPassword(input: ChangePasswordInput!): UserResponse!
   changePassword(input: ChangePasswordInput!): UserResponse!
   loginUser(input: LoginUserInput!): LoginResponse!
-  userListAll(input: UserInput!): UserResponse!
-  updateUser(input: UpdateUserInput!): UserResponse!
+  userListAll(input: AlertInput!): AlertResponseData!
+  updateUser(input: UpdateAlertInput!): AlertResponseData!
   deleteUser(input: UpdateUserInput!): UserResponse!
   searchUsers(input: SearchUsersInput!): UserResponse!
   refreshToken: String!
@@ -393,6 +399,7 @@ type Mutation {
   archiveJourney: JourneyResponseData!
   upComingJourney: JourneyResponseData!
   fetchDashboardDetail: DashboardResponse!
+  addAlert(input: CreateAlertInputType!): AlertResponseData!
 }
 
 input AlertInputType {
@@ -412,9 +419,29 @@ input LoginUserInput {
   email: String
 }
 
-input UserInput {
+input AlertInput {
   page: Int
   limit: Int
+}
+
+input UpdateAlertInput {
+  alertName: String
+  mobileNo: String
+  alertConfig: AlertConfigData
+  isAllSystemAlert: Boolean = false
+  _id: String!
+}
+
+input AlertConfigData {
+  imei: String
+  alertData: [AlertConfig!]
+}
+
+input AlertConfig {
+  eventName: String
+  isAlreadyGenerateAlert: Boolean = false
+  startDate: String
+  endDate: String
 }
 
 input UpdateUserInput {
@@ -580,7 +607,9 @@ input SearchJourneysInput {
   limit: Int
 }
 
-type Subscription {
-  coordinatesUpdated(topic: String!): Coordinate!
-  alertUpdated(topic: String!): AlertResponse!
+input CreateAlertInputType {
+  alertName: String
+  mobileNo: String
+  alertConfig: AlertConfigData
+  isAllSystemAlert: Boolean = false
 }
