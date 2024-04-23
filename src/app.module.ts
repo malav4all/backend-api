@@ -13,6 +13,7 @@ import { MqttService } from './helper/comman/mqtt/mqtt-service.connection';
 import { MqttResolver } from './helper/comman/mqtt/mqtt.resolver';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { InfluxResolver } from './helper/comman/influx-db/influx-resolver';
+import { DeviceGroupModule } from './device-group/device-group.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { InfluxResolver } from './helper/comman/influx-db/influx-resolver';
     LocationTypeModule,
     JourneyModule,
     DashboardModule,
+    DeviceGroupModule,
   ],
   providers: [InfluxService, InfluxResolver, MqttResolver, MqttService],
   exports: [InfluxService],

@@ -134,7 +134,7 @@ type JourneyResponseType {
   _id: String
   journeyName: String
   journeyData: [GeozoneAsset!]
-  createdBy: String!
+  createdBy: String
   startDate: DateTime!
   endDate: DateTime!
   totalDistance: Float!
@@ -337,6 +337,21 @@ type DistanceReportResponse {
   coordinates: [CoordinatesTypeResponse!]
 }
 
+type DeviceGroup {
+  _id: String
+  deviceGroupName: String!
+  imeiData: [AssertAssingmentModuleEntity!]
+  createdBy: String
+  updateBy: String
+}
+
+type DeviceGroupResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [DeviceGroup!]
+}
+
 type Query {
   createUser(input: CreateUserInput!): UserResponse!
 }
@@ -389,10 +404,13 @@ type Mutation {
   addJourney(input: CreateJourneyInput!): JourneyResponseData!
   fetchJourney(input: JourneyInput!): JourneyResponseData!
   updateJourney(input: UpdateJourneyInput!): JourneyResponseData!
-  searchJourneys(input: SearchJourneysInput!): JourneyResponseData!
+  searchJourneys(input: SearchDeviceGroupInput!): DeviceGroupResponse!
   archiveJourney: JourneyResponseData!
   upComingJourney: JourneyResponseData!
   fetchDashboardDetail: DashboardResponse!
+  createDeviceGroup(input: CreateDeviceGroupInput!): DeviceGroupResponse!
+  fetchDeviceGroup(input: DeviceGroupInput!): DeviceGroupResponse!
+  updateDeviceGroup(input: UpdateDeviceGroupInput!): DeviceGroupResponse!
 }
 
 input AlertInputType {
@@ -574,10 +592,30 @@ input UpdateJourneyInput {
   _id: String!
 }
 
-input SearchJourneysInput {
-  search: String!
+input SearchDeviceGroupInput {
+  search: String
   page: Int
   limit: Int
+}
+
+input CreateDeviceGroupInput {
+  deviceGroupName: String
+  imeiData: [String!]
+  createdBy: String
+  updatedBy: String
+}
+
+input DeviceGroupInput {
+  page: Int
+  limit: Int
+}
+
+input UpdateDeviceGroupInput {
+  deviceGroupName: String
+  imeiData: [String!]
+  createdBy: String
+  updatedBy: String
+  _id: String!
 }
 
 type Subscription {

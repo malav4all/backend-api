@@ -17,7 +17,7 @@ export class JourneyResponseType {
   @Prop()
   journeyData: GeozoneAsset[];
 
-  @Field()
+  @Field({ nullable: true })
   @Prop()
   createdBy: string;
 
