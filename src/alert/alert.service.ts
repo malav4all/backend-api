@@ -28,7 +28,7 @@ export class AlertService {
         throw new Error('Record Already Exits');
       }
       const record = await this.AlertModel.create(payload);
-      await this.setJsonValue(payload.alertConfig.imei, payload);
+      await this.setJsonValue(payload.alertConfig.imei, record);
       return record;
     } catch (error) {
       throw new Error(`Failed to create : ${error.message}`);

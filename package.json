@@ -45,6 +45,7 @@
     "firebase": "^9.15.0",
     "firebase-admin": "^11.3.0",
     "fs": "^0.0.1-security",
+    "geolib": "^3.3.4",
     "graphql": "15.6.0",
     "graphql-request": "^6.1.0",
     "graphql-subscriptions": "^2.0.0",

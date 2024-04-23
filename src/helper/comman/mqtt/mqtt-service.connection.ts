@@ -1,4 +1,3 @@
-import moment from 'moment';
 import {
   Injectable,
   InternalServerErrorException,
@@ -8,6 +7,8 @@ import { connect, MqttClient } from 'mqtt';
 import { PubSub } from 'graphql-subscriptions';
 import { RedisService } from '@imz/redis/redis.service';
 import axios from 'axios';
+import { getDistance } from 'geolib';
+import { getDistanceInMeters } from '@imz/helper/generateotp';
 
 @Injectable()
 export class MqttService {
@@ -30,13 +31,13 @@ export class MqttService {
       const [first, second] = topic.split('/');
       const messageString = Buffer.from(message).toString('utf8');
       const messageObject = JSON.parse(messageString);
+      const redisClient = this._redisService.getClient();
+      const getObject = await redisClient.get(messageObject.imei);
+      const finalObject = JSON.parse(getObject);
       if (first === 'alerts') {
         this.pubSub.publish('alertUpdated', {
           alertUpdated: messageObject,
         });
-        const redisClient = this._redisService.getClient();
-        const getObject = await redisClient.get(messageObject.imei);
-        const finalObject = JSON.parse(getObject);
         if (finalObject && finalObject.alertConfig) {
           const { mobileNo, alertConfig } = finalObject;
           for (const alert of alertConfig.alertData) {
@@ -60,8 +61,6 @@ export class MqttService {
                   await this.sendOtp(mobileNo, smsMessage);
                 }
               }
-              alert.isAlreadyGenerateAlert = true;
-              await redisClient.set(messageObject.imei, getObject);
             }
           }
         }
@@ -69,6 +68,53 @@ export class MqttService {
         this.pubSub.publish('coordinatesUpdated', {
           coordinatesUpdated: messageObject,
         });
+        if (finalObject && finalObject.alertConfig) {
+          const { mobileNo, alertConfig } = finalObject;
+          for (let i = 0; i < alertConfig?.alertData?.length; i++) {
+            const alert = finalObject.alertConfig.alertData[i];
+            const { event, location } = alert;
+            const { coordinates, radius } = location.geoCodeData.geometry;
+            const distanceInMeters = getDistanceInMeters(
+              {
+                latitude: coordinates[0],
+                longitude: coordinates[1],
+              },
+              {
+                latitude: messageObject.lat,
+                longitude: messageObject.lng,
+              }
+            );
+
+            if (
+              event === 'geo_in' &&
+              distanceInMeters <= radius &&
+              !finalObject.alertConfig.alertData[i].isAlreadyGenerateAlert
+            ) {
+              finalObject.alertConfig.alertData[i].isAlreadyGenerateAlert =
+                true;
+              await this.sendOtp(mobileNo, 'Your car is within the geozone');
+              break;
+            } else if (
+              event === 'geo_out' &&
+              distanceInMeters > radius &&
+              !finalObject.alertConfig.alertData[i].isAlreadyGenerateAlert
+            ) {
+              finalObject.alertConfig.alertData[i].isAlreadyGenerateAlert =
+                true;
+              await this.sendOtp(mobileNo, 'Your car is outside the geozone');
+              break;
+            } else if (
+              event === 'geo_in' &&
+              distanceInMeters <= radius &&
+              finalObject.alertConfig.alertData[i].isAlreadyGenerateAlert
+            ) {
+              break;
+            }
+          }
+          await this._redisService
+            .getClient()
+            .set(messageObject.imei, JSON.stringify(finalObject));
+        }
       }
     });
 
