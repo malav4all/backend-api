@@ -338,7 +338,8 @@ type DistanceReportResponse {
 }
 
 type AlertEntityConfig {
-  eventName: String
+  event: String
+  location: JSON!
   isAlreadyGenerateAlert: Boolean
   startDate: String
   endDate: String
@@ -355,6 +356,7 @@ type Alert {
   mobileNo: String
   alertConfig: AlertConfigEntityData
   isAllSystemAlert: Boolean
+  createdBy: String
 }
 
 type AlertResponseData {
@@ -391,7 +393,7 @@ type Mutation {
   changePassword(input: ChangePasswordInput!): UserResponse!
   loginUser(input: LoginUserInput!): LoginResponse!
   userListAll(input: UserInput!): UserResponse!
-  updateUser(input: UpdateAlertInput!): AlertResponseData!
+  updateUser(input: UpdateUserInput!): UserResponse!
   deleteUser(input: UpdateUserInput!): UserResponse!
   searchUsers(input: SearchUsersInput!): UserResponse!
   refreshToken: String!
@@ -422,6 +424,7 @@ type Mutation {
   fetchDashboardDetail: DashboardResponse!
   addAlert(input: CreateAlertInputType!): AlertResponseData!
   fetchAlert(input: AlertInput!): AlertResponseData!
+  updateAlert(input: UpdateAlertInput!): AlertResponseData!
 }
 
 input AlertInputType {
@@ -444,26 +447,6 @@ input LoginUserInput {
 input UserInput {
   page: Int
   limit: Int
-}
-
-input UpdateAlertInput {
-  alertName: String
-  mobileNo: String
-  alertConfig: AlertConfigData
-  isAllSystemAlert: Boolean = false
-  _id: String!
-}
-
-input AlertConfigData {
-  imei: String
-  alertData: [AlertConfig!]
-}
-
-input AlertConfig {
-  eventName: String
-  isAlreadyGenerateAlert: Boolean = false
-  startDate: String
-  endDate: String
 }
 
 input UpdateUserInput {
@@ -634,11 +617,34 @@ input CreateAlertInputType {
   mobileNo: String
   alertConfig: AlertConfigData
   isAllSystemAlert: Boolean = false
+  createdBy: String
+}
+
+input AlertConfigData {
+  imei: String
+  alertData: [AlertConfig!]
+}
+
+input AlertConfig {
+  event: String
+  location: JSON
+  isAlreadyGenerateAlert: Boolean = false
+  startDate: String
+  endDate: String
 }
 
 input AlertInput {
   page: Int
   limit: Int
+}
+
+input UpdateAlertInput {
+  alertName: String
+  mobileNo: String
+  alertConfig: AlertConfigData
+  isAllSystemAlert: Boolean = false
+  createdBy: String
+  _id: String!
 }
 
 type Subscription {

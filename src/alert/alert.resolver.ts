@@ -10,7 +10,7 @@ import { UpdateAlertInput } from './dto/update-alert';
 export class AlertResolver {
   constructor(private readonly alertService: AlertService) {}
 
-  @UseGuards(new AuthGuard())
+  // @UseGuards(new AuthGuard())
   @Mutation(() => AlertResponseData)
   async addAlert(@Args('input') input: CreateAlertInputType) {
     try {
@@ -46,7 +46,7 @@ export class AlertResolver {
 
   @UseGuards(new AuthGuard())
   @Mutation(() => AlertResponseData)
-  async updateUser(@Args('input') input: UpdateAlertInput) {
+  async updateAlert(@Args('input') input: UpdateAlertInput) {
     try {
       const record = await this.alertService.update(input);
       return {

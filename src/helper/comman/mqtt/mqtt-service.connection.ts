@@ -1,15 +1,21 @@
-import { Injectable, Logger } from '@nestjs/common';
+import moment from 'moment';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { connect, MqttClient } from 'mqtt';
 import { PubSub } from 'graphql-subscriptions';
+import { RedisService } from '@imz/redis/redis.service';
+import axios from 'axios';
 
 @Injectable()
 export class MqttService {
   private client: MqttClient;
   private pubSub: PubSub = new PubSub();
   private logger = new Logger('MqttConnection');
-  private currentTopic: string;
 
-  constructor() {
+  constructor(private readonly _redisService: RedisService) {
     this.client = connect('mqtt://103.20.214.75:1883', {
       clientId: 'malav_web_app',
       username: 'malav',
@@ -20,15 +26,45 @@ export class MqttService {
       this.logger.log('Connected MQTT Server');
     });
 
-    this.client.on('message', (topic, message) => {
+    this.client.on('message', async (topic, message) => {
       const [first, second] = topic.split('/');
       const messageString = Buffer.from(message).toString('utf8');
       const messageObject = JSON.parse(messageString);
-      console.log(messageObject);
       if (first === 'alerts') {
         this.pubSub.publish('alertUpdated', {
           alertUpdated: messageObject,
         });
+        const redisClient = this._redisService.getClient();
+        const getObject = await redisClient.get(messageObject.imei);
+        const finalObject = JSON.parse(getObject);
+        if (finalObject && finalObject.alertConfig) {
+          const { mobileNo, alertConfig } = finalObject;
+          for (const alert of alertConfig.alertData) {
+            if (alert.event === messageObject.event) {
+              const startDate = new Date(alert.startDate);
+              const endDate = new Date(alert.endDate);
+              if (alert.event === 'locked') {
+                if (
+                  new Date().getTime() >= startDate.getTime() &&
+                  new Date().getTime() <= endDate.getTime()
+                ) {
+                  const smsMessage = `Your car is within the geozone`;
+                  await this.sendOtp(mobileNo, smsMessage);
+                }
+              } else if (alert.event === 'unlocked') {
+                if (
+                  new Date().getTime() >= startDate.getTime() &&
+                  new Date().getTime() <= endDate.getTime()
+                ) {
+                  const smsMessage = `Your car is within the geozone`;
+                  await this.sendOtp(mobileNo, smsMessage);
+                }
+              }
+              alert.isAlreadyGenerateAlert = true;
+              await redisClient.set(messageObject.imei, getObject);
+            }
+          }
+        }
       } else if (first === 'track') {
         this.pubSub.publish('coordinatesUpdated', {
           coordinatesUpdated: messageObject,
@@ -47,11 +83,39 @@ export class MqttService {
         this.logger.error('Error subscribing to topic:', err);
       } else {
         this.logger.log('Subscribed to topic:', topic);
-        this.currentTopic = topic;
       }
     });
 
     return this.pubSub.asyncIterator('coordinatesUpdated');
+  }
+
+  async sendOtp(mobileNumber: any, message: string) {
+    try {
+      const response = await axios.get(process.env.URL, {
+        params: {
+          method: 'SendMessage',
+          v: '1.1',
+          auth_scheme: process.env.AUTH_SCHEME,
+          msg_type: process.env.MSG_TYPE,
+          format: process.env.FORMAT,
+          msg: `IMZ - ${message} is the One-Time Password (OTP) for login with IMZ`,
+          send_to: Number(mobileNumber),
+          userid: process.env.USERID,
+          password: process.env.PASSWORD,
+        },
+        timeout: 120000,
+      });
+
+      return {
+        success: response.status >= 400 ? 0 : 1,
+        message:
+          response.status >= 400
+            ? 'Failed to send OTP'
+            : 'OTP sent successfully',
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
   }
 
   alertUpdated(topic: string) {
@@ -60,7 +124,6 @@ export class MqttService {
         this.logger.error('Error subscribing to topic:', err);
       } else {
         this.logger.log('Subscribed to Alert topic:', topic);
-        this.currentTopic = topic;
       }
     });
 

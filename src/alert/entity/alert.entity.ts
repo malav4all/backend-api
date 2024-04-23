@@ -1,6 +1,7 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { IsOptional } from 'class-validator';
+import GraphQLJSON from 'graphql-type-json';
 import { Column, Entity, ObjectIdColumn } from 'typeorm';
 
 @ObjectType()
@@ -8,7 +9,12 @@ class AlertEntityConfig {
   @Prop()
   @Column()
   @Field({ nullable: true })
-  eventName: string;
+  event: string;
+
+  @Field(() => GraphQLJSON)
+  @Prop({ type: typeof GraphQLJSON })
+  @Column()
+  location: typeof GraphQLJSON;
 
   @Prop()
   @Column()
@@ -70,6 +76,11 @@ export class Alert {
   @IsOptional()
   @Field({ nullable: true, defaultValue: false })
   isAllSystemAlert?: boolean;
+
+  @Prop()
+  @Column()
+  @Field({ nullable: true })
+  createdBy: string;
 }
 
 export type AlertDocument = Alert & Document;

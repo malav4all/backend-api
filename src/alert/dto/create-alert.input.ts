@@ -1,10 +1,14 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
+import GraphQLJSON from 'graphql-type-json';
 
 @InputType()
 class AlertConfig {
   @Field(() => String, { nullable: true })
-  eventName: string;
+  event: string;
+
+  @Field(() => GraphQLJSON, { nullable: true })
+  location: typeof GraphQLJSON;
 
   @IsOptional()
   @Field({ nullable: true, defaultValue: false })
@@ -42,6 +46,9 @@ export class CreateAlertInputType {
   @IsOptional()
   @Field({ nullable: true, defaultValue: false })
   isAllSystemAlert?: boolean;
+
+  @Field(() => String, { nullable: true })
+  createdBy: string;
 }
 
 @InputType()
