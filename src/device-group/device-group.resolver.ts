@@ -36,9 +36,9 @@ export class DeviceGroupResolver {
     try {
       const { count, records } =
         await this.deviceGroupService.findAllDeviceGroupsWithImeis(input);
-      const success = 1;
+      const success = records.length > 0 ? 1 : 0;
       return {
-        PaginatorInfo: {
+        paginatorInfo: {
           count,
         },
         success: success,
@@ -52,7 +52,7 @@ export class DeviceGroupResolver {
 
   @UseGuards(new AuthGuard())
   @Mutation(() => DeviceGroupResponse)
-  async searchJourneys(@Args('input') input: SearchDeviceGroupInput) {
+  async searchDeviceGroup(@Args('input') input: SearchDeviceGroupInput) {
     try {
       const { records, count } =
         await this.deviceGroupService.searchDeviceGroup(input);

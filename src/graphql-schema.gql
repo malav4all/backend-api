@@ -404,12 +404,13 @@ type Mutation {
   addJourney(input: CreateJourneyInput!): JourneyResponseData!
   fetchJourney(input: JourneyInput!): JourneyResponseData!
   updateJourney(input: UpdateJourneyInput!): JourneyResponseData!
-  searchJourneys(input: SearchDeviceGroupInput!): DeviceGroupResponse!
+  searchJourneys(input: SearchJourneysInput!): JourneyResponseData!
   archiveJourney: JourneyResponseData!
   upComingJourney: JourneyResponseData!
   fetchDashboardDetail: DashboardResponse!
   createDeviceGroup(input: CreateDeviceGroupInput!): DeviceGroupResponse!
   fetchDeviceGroup(input: DeviceGroupInput!): DeviceGroupResponse!
+  searchDeviceGroup(input: SearchDeviceGroupInput!): DeviceGroupResponse!
   updateDeviceGroup(input: UpdateDeviceGroupInput!): DeviceGroupResponse!
 }
 
@@ -592,8 +593,8 @@ input UpdateJourneyInput {
   _id: String!
 }
 
-input SearchDeviceGroupInput {
-  search: String
+input SearchJourneysInput {
+  search: String!
   page: Int
   limit: Int
 }
@@ -606,6 +607,12 @@ input CreateDeviceGroupInput {
 }
 
 input DeviceGroupInput {
+  page: Int
+  limit: Int
+}
+
+input SearchDeviceGroupInput {
+  search: String
   page: Int
   limit: Int
 }
