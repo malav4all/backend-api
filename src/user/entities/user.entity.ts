@@ -69,6 +69,16 @@ export class User {
   @Column()
   roleId: string;
 
+  @Field({ nullable: true })
+  @Prop()
+  @Column()
+  deviceGroupId: string;
+
+  @Field({ nullable: true })
+  @Prop()
+  @Column()
+  deviceGroup: string;
+
   @Field({ nullable: true, defaultValue: 'Active' })
   @Prop({ text: true, default: 'Active' })
   @Column({ default: 'Active' })

@@ -23,6 +23,12 @@ export class CreateUserInput {
   @Field({ nullable: true })
   roleId: string;
 
+  @Field({ nullable: true })
+  deviceGroupId: string;
+
+  @Field({ nullable: true })
+  deviceGroup: string;
+
   @Field({ nullable: true, defaultValue: 'Active' })
   status: string;
 
