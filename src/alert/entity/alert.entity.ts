@@ -25,6 +25,12 @@ class AlertEntityConfig {
   @Prop()
   @Column()
   @IsOptional()
+  @Field({ nullable: true, defaultValue: false })
+  isDailyAlert?: boolean;
+
+  @Prop()
+  @Column()
+  @IsOptional()
   @Field({ nullable: true })
   startDate?: string;
 

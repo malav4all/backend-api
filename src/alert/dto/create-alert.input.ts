@@ -23,6 +23,10 @@ class AlertConfig {
   endDate?: string;
 
   @IsOptional()
+  @Field({ nullable: true, defaultValue: false })
+  isDailyAlert?: boolean;
+
+  @IsOptional()
   @Field(() => String, { nullable: true })
   startAlertTime?: string;
 
