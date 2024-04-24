@@ -22,13 +22,19 @@ export class AlertService {
   async create(payload: CreateAlertInputType) {
     try {
       const existingRecord = await this.AlertModel.findOne({
-        'alertConfig.imei': payload.alertConfig.imei,
+        alertName: payload.alertName,
       });
       if (existingRecord) {
         throw new Error('Record Already Exits');
       }
       const record = await this.AlertModel.create(payload);
-      await this.setJsonValue(payload.alertConfig.imei, record);
+      for (const alert of record.alertConfig.imei) {
+        await this.setJsonValue(
+          alert,
+          JSON.stringify(record.alertConfig.alertData)
+        );
+      }
+
       return record;
     } catch (error) {
       throw new Error(`Failed to create : ${error.message}`);

@@ -21,12 +21,20 @@ class AlertConfig {
   @IsOptional()
   @Field(() => String, { nullable: true })
   endDate?: string;
+
+  @IsOptional()
+  @Field(() => String, { nullable: true })
+  startAlertTime?: string;
+
+  @IsOptional()
+  @Field(() => String, { nullable: true })
+  endAlertTime?: string;
 }
 
 @InputType()
 class AlertConfigData {
-  @Field(() => String, { nullable: true })
-  imei: string;
+  @Field(() => [String], { nullable: true })
+  imei: string[];
 
   @Field(() => [AlertConfig], { nullable: true })
   alertData: [AlertConfig];

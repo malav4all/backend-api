@@ -345,10 +345,12 @@ type AlertEntityConfig {
   isAlreadyGenerateAlert: Boolean
   startDate: String
   endDate: String
+  startAlertTime: String
+  endAlertTime: String
 }
 
 type AlertConfigEntityData {
-  imei: String
+  imei: [String!]
   alertData: [AlertEntityConfig!]
 }
 
@@ -646,7 +648,7 @@ input CreateAlertInputType {
 }
 
 input AlertConfigData {
-  imei: String
+  imei: [String!]
   alertData: [AlertConfig!]
 }
 
@@ -656,6 +658,8 @@ input AlertConfig {
   isAlreadyGenerateAlert: Boolean = false
   startDate: String
   endDate: String
+  startAlertTime: String
+  endAlertTime: String
 }
 
 input AlertInput {

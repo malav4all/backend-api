@@ -33,14 +33,26 @@ class AlertEntityConfig {
   @IsOptional()
   @Field({ nullable: true })
   endDate?: string;
+
+  @Prop()
+  @Column()
+  @IsOptional()
+  @Field({ nullable: true })
+  startAlertTime?: string;
+
+  @Prop()
+  @Column()
+  @IsOptional()
+  @Field({ nullable: true })
+  endAlertTime?: string;
 }
 
 @ObjectType()
 class AlertConfigEntityData {
   @Prop()
   @Column()
-  @Field({ nullable: true })
-  imei: string;
+  @Field(() => [String], { nullable: true })
+  imei: string[];
 
   @Prop()
   @Column()
