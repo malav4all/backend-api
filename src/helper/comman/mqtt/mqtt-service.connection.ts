@@ -68,46 +68,37 @@ export class MqttService {
         this.pubSub.publish('coordinatesUpdated', {
           coordinatesUpdated: messageObject,
         });
-        if (finalObject && finalObject.alertConfig) {
+        if (
+          finalObject &&
+          finalObject.alertConfig &&
+          finalObject.alertConfig.alertData
+        ) {
           const { mobileNo, alertConfig } = finalObject;
-          for (let i = 0; i < alertConfig?.alertData?.length; i++) {
-            const alert = finalObject.alertConfig.alertData[i];
+          for (const alert of alertConfig.alertData) {
             const { event, location } = alert;
             const { coordinates, radius } = location.geoCodeData.geometry;
             const distanceInMeters = getDistanceInMeters(
-              {
-                latitude: coordinates[0],
-                longitude: coordinates[1],
-              },
-              {
-                latitude: messageObject.lat,
-                longitude: messageObject.lng,
-              }
+              { latitude: coordinates[0], longitude: coordinates[1] },
+              { latitude: messageObject.lat, longitude: messageObject.lng }
             );
 
-            if (
-              event === 'geo_in' &&
-              distanceInMeters <= radius &&
-              !finalObject.alertConfig.alertData[i].isAlreadyGenerateAlert
-            ) {
-              finalObject.alertConfig.alertData[i].isAlreadyGenerateAlert =
-                true;
-              await this.sendOtp(mobileNo, 'Your car is within the geozone');
+            if (alert.isAlreadyGenerateAlert) {
+              continue; // Skip checking this alertData object if alert has already been generated
+            }
+
+            const isVehicleInGeozone =
+              event === 'geo_in' && distanceInMeters <= radius;
+            if (isVehicleInGeozone) {
+              if (!alert.isAlreadyGenerateAlert) {
+                alert.isAlreadyGenerateAlert = true;
+                await this.sendOtp(mobileNo, 'Your car is within the geozone');
+              }
               break;
-            } else if (
-              event === 'geo_out' &&
-              distanceInMeters > radius &&
-              !finalObject.alertConfig.alertData[i].isAlreadyGenerateAlert
-            ) {
-              finalObject.alertConfig.alertData[i].isAlreadyGenerateAlert =
-                true;
-              await this.sendOtp(mobileNo, 'Your car is outside the geozone');
-              break;
-            } else if (
-              event === 'geo_in' &&
-              distanceInMeters <= radius &&
-              finalObject.alertConfig.alertData[i].isAlreadyGenerateAlert
-            ) {
+            } else if (event === 'geo_out' && distanceInMeters > radius) {
+              if (!alert.isAlreadyGenerateAlert) {
+                alert.isAlreadyGenerateAlert = true;
+                await this.sendOtp(mobileNo, 'Your car is outside the geozone');
+              }
               break;
             }
           }
@@ -121,6 +112,16 @@ export class MqttService {
     this.client.on('error', (err) => {
       this.logger.error(err);
     });
+  }
+
+  async handleGeoInAlert(alert, mobileNo) {
+    alert.isAlreadyGenerateAlert = true;
+    await this.sendOtp(mobileNo, 'Your car is within the geozone');
+  }
+
+  async handleGeoOutAlert(alert, mobileNo) {
+    alert.isAlreadyGenerateAlert = true;
+    await this.sendOtp(mobileNo, 'Your car is outside the geozone');
   }
 
   coordinatesUpdated(topic: string) {
