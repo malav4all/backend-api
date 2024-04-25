@@ -16,6 +16,7 @@ import { InfluxResolver } from './helper/comman/influx-db/influx-resolver';
 import { RedisModule } from './redis/redis.module';
 import { AlertModule } from './alert/alert.module';
 import { DeviceGroupModule } from './device-group/device-group.module';
+import { MqttModule } from './mqtt/mqtt.module';
 
 @Module({
   imports: [
@@ -49,8 +50,9 @@ import { DeviceGroupModule } from './device-group/device-group.module';
     RedisModule,
     AlertModule,
     DeviceGroupModule,
+    MqttModule,
   ],
-  providers: [InfluxService, InfluxResolver, MqttResolver, MqttService],
+  providers: [InfluxService, InfluxResolver],
   exports: [InfluxService],
 })
 export class AppModule {}

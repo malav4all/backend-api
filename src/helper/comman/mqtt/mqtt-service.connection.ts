@@ -7,7 +7,6 @@ import { connect, MqttClient } from 'mqtt';
 import { PubSub } from 'graphql-subscriptions';
 import { RedisService } from '@imz/redis/redis.service';
 import axios from 'axios';
-import { getDistance } from 'geolib';
 import { getDistanceInMeters } from '@imz/helper/generateotp';
 
 @Injectable()

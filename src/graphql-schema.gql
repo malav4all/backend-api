@@ -36,16 +36,6 @@ type PaginatorInfo {
   total: Float
 }
 
-type Coordinate {
-  label: String!
-  speed: Float!
-  satellites: Float!
-  gps: String!
-  direction: Float!
-  lat: Float!
-  lng: Float!
-}
-
 type AlertResponse {
   label: String
   event: String
@@ -343,6 +333,7 @@ type AlertEntityConfig {
   event: String
   location: JSON!
   isAlreadyGenerateAlert: Boolean
+  isDailyAlert: Boolean
   startDate: String
   endDate: String
   startAlertTime: String
@@ -658,6 +649,7 @@ input AlertConfig {
   isAlreadyGenerateAlert: Boolean = false
   startDate: String
   endDate: String
+  isDailyAlert: Boolean = false
   startAlertTime: String
   endAlertTime: String
 }
@@ -703,6 +695,5 @@ input UpdateDeviceGroupInput {
 }
 
 type Subscription {
-  coordinatesUpdated(topic: String!): Coordinate!
   alertUpdated(topic: String!): AlertResponse!
 }
