@@ -32,7 +32,6 @@ export class AlertService {
       const redisClient = this.redisService.getClient();
       const getObject = await redisClient.get(messageObject.imei);
       const finalObject = JSON.parse(getObject);
-
       this.pubSub.publish('alertUpdated', {
         alertUpdated: messageObject,
       });
