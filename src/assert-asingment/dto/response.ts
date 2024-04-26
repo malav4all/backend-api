@@ -1,6 +1,5 @@
 import { ObjectType, Field } from '@nestjs/graphql';
 import { PaginatorInfo } from '@imz/helper';
-import { AssertAssingmentModuleModule } from '../assert-asingment.module';
 import { AssertAssingmentModuleEntity } from '../entities/assert-asingment.enitiy';
 
 @ObjectType()

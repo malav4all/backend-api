@@ -1,6 +1,6 @@
 import { Prop } from '@nestjs/mongoose';
 import { ObjectType, Field } from '@nestjs/graphql';
-import { GeozoneAsset } from './geozone.-response.type';
+import { GeozoneAsset } from './geozone-response.type';
 import { Index } from 'typeorm';
 
 @ObjectType()
@@ -21,11 +21,11 @@ export class JourneyResponseType {
   @Prop()
   createdBy: string;
 
-  @Field(() => Date,{ nullable: true })
+  @Field(() => Date, { nullable: true })
   @Prop()
   startDate: Date;
 
-  @Field(() => Date,{ nullable: true })
+  @Field(() => Date, { nullable: true })
   @Prop()
   endDate: Date;
 
