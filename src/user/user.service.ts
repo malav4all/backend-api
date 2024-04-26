@@ -35,42 +35,42 @@ export class UserService {
       const page = Number(input.page);
       const limit = Number(input.limit);
       const skip = page === -1 ? 0 : (page - 1) * limit;
-  
+
       const pipeline = [
         {
           $addFields: {
-            "deviceGroupIdObj": { $toObjectId: "$deviceGroupId" }
-          }
+            deviceGroupIdObj: { $toObjectId: '$deviceGroupId' },
+          },
         },
         {
           $lookup: {
-            from: "devicegroups",
-            localField: "deviceGroupIdObj",
-            foreignField: "_id",
-            as: "deviceGroup"
-          }
+            from: 'devicegroups',
+            localField: 'deviceGroupIdObj',
+            foreignField: '_id',
+            as: 'deviceGroup',
+          },
         },
         {
           $unwind: {
             path: '$deviceGroup',
-            preserveNullAndEmptyArrays: true
-          }
+            preserveNullAndEmptyArrays: true,
+          },
         },
         {
           $lookup: {
-            from: "assertassingmentmoduleentities",
-            localField: "deviceGroup.imeiData",
-            foreignField: "_id",
-            as: "imeiData"
-          }
+            from: 'assertassingmentmoduleentities',
+            localField: 'deviceGroup.imeiData',
+            foreignField: '_id',
+            as: 'imeiData',
+          },
         },
         {
           $lookup: {
-            from: "journeys",
-            localField: "deviceGroup.imeiData.journey",
-            foreignField: "_id",
-            as: "journeyData"
-          }
+            from: 'journeys',
+            localField: 'deviceGroup.imeiData.journey',
+            foreignField: '_id',
+            as: 'journeyData',
+          },
         },
         {
           $project: {
@@ -84,51 +84,54 @@ export class UserService {
             roleId: 1,
             status: 1,
             deviceGroup: {
-              _id: "$deviceGroup._id",
-              deviceGroupName: "$deviceGroup.deviceGroupName",
-              createdBy: "$deviceGroup.createdBy",
-              updateBy: "$deviceGroup.updateBy",
+              _id: '$deviceGroup._id',
+              deviceGroupName: '$deviceGroup.deviceGroupName',
+              createdBy: '$deviceGroup.createdBy',
+              updateBy: '$deviceGroup.updateBy',
               imeiData: {
                 $map: {
-                  input: "$imeiData",
-                  as: "imei",
+                  input: '$imeiData',
+                  as: 'imei',
                   in: {
-                    imei: "$$imei.imei",
-                    labelName: "$$imei.labelName",
-                    boxSet: "$$imei.boxSet",
-                    journey:"$$imei.journey",
-                    _id: "$$imei._id"
-                  }
-                }
-              }
-            }
-          }
+                    imei: '$$imei.imei',
+                    labelName: '$$imei.labelName',
+                    boxSet: '$$imei.boxSet',
+                    journey: '$$imei.journey',
+                    _id: '$$imei._id',
+                  },
+                },
+              },
+            },
+          },
         },
         {
           $group: {
-            _id: "$_id",
-            firstName: { $first: "$firstName" },
-            lastName: { $first: "$lastName" },
-            userName: { $first: "$userName" },
-            email: { $first: "$email" },
-            mobileNumber: { $first: "$mobileNumber" },
-            createdBy: { $first: "$createdBy" },
-            roleId: { $first: "$roleId" },
-            status: { $first: "$status" },
-            deviceGroup: { $first: "$deviceGroup" }
-          }
-        }
+            _id: '$_id',
+            firstName: { $first: '$firstName' },
+            lastName: { $first: '$lastName' },
+            userName: { $first: '$userName' },
+            email: { $first: '$email' },
+            mobileNumber: { $first: '$mobileNumber' },
+            createdBy: { $first: '$createdBy' },
+            roleId: { $first: '$roleId' },
+            status: { $first: '$status' },
+            deviceGroup: { $first: '$deviceGroup' },
+          },
+        },
       ];
-  
-      const result = await this.UserModel.aggregate(pipeline).skip(skip).limit(limit).exec();
+
+      const result = await this.UserModel.aggregate(pipeline)
+        .skip(skip)
+        .limit(limit)
+        .exec();
       const count = await this.UserModel.countDocuments().exec();
-  
+
       return { records: result, count };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
   }
-   
+
   async create(payload: CreateUserInput) {
     try {
       const existingUser = await this.UserModel.findOne({
@@ -280,10 +283,10 @@ export class UserService {
 
   async update(payload: UpdateUserInput) {
     try {
-      const getUser=await this.UserModel.findById(payload._id);
+      const getUser = await this.UserModel.findById(payload._id);
       const updatePayload = {
         ...payload,
-        password:getUser.password,
+        password: getUser.password,
         updatedAt: new Date(),
       };
       const record = await this.UserModel.findByIdAndUpdate(
