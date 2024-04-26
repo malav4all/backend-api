@@ -12,7 +12,7 @@ export class AssertAssingmentModuleEntity {
   _id: string;
 
   @Field()
-  @Prop({ text: true })
+  @Prop({ type: Number })
   imei: number;
 
   @Field()

@@ -21,19 +21,19 @@ export class JourneyResponseType {
   @Prop()
   createdBy: string;
 
-  @Field(() => Date)
+  @Field(() => Date,{ nullable: true })
   @Prop()
   startDate: Date;
 
-  @Field(() => Date)
+  @Field(() => Date,{ nullable: true })
   @Prop()
   endDate: Date;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop()
   totalDistance: number;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop()
   totalDuration: number;
 }
