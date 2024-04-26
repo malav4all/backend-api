@@ -199,10 +199,8 @@ export class UserService {
 
   async update(payload: UpdateUserInput) {
     try {
-      const getUser = await this.UserModel.findById(payload._id);
       const updatePayload = {
         ...payload,
-        password: getUser.password,
         updatedAt: new Date(),
       };
       const record = await this.UserModel.findByIdAndUpdate(

@@ -39,28 +39,46 @@ export class AlertService {
         const { mobileNo, alertConfig } = finalObject;
         for (const alert of alertConfig.alertData) {
           if (alert.event === messageObject.event) {
-            const startDate = new Date(alert.startDate);
-            const endDate = new Date(alert.endDate);
-            if (alert.event === 'locked') {
-              if (
-                new Date().getTime() >= startDate.getTime() &&
-                new Date().getTime() <= endDate.getTime()
-              ) {
-                const smsMessage = `Your car is within the geozone`;
-                await this.sendOtp(mobileNo, smsMessage);
-              }
-            } else if (alert.event === 'unlocked') {
-              if (
-                new Date().getTime() >= startDate.getTime() &&
-                new Date().getTime() <= endDate.getTime()
-              ) {
-                const smsMessage = `Your car is within the geozone`;
-                await this.sendOtp(mobileNo, smsMessage);
-              }
+            if (alert.isAlreadyGenerateAlert) continue;
+
+            const {
+              startDate,
+              endDate,
+              startAlertTime,
+              endAlertTime,
+              isDailyAlert,
+            } = alert;
+            const now = new Date();
+            const startTime = new Date(startAlertTime);
+            const endTime = new Date(endAlertTime);
+
+            startTime.setFullYear(
+              now.getFullYear(),
+              now.getMonth(),
+              now.getDate()
+            );
+            endTime.setFullYear(
+              now.getFullYear(),
+              now.getMonth(),
+              now.getDate()
+            );
+            if (
+              (now.getTime() >= new Date(startDate).getTime() &&
+                now.getTime() <= new Date(endDate).getTime()) ||
+              (now >= startTime && now <= endTime && isDailyAlert)
+            ) {
+              alert.isAlreadyGenerateAlert = true;
+              const smsMessage =
+                alert.event === 'locked' ? 'locked' : 'Unlocked';
+              await this.sendOtp(mobileNo, smsMessage);
+              break;
             }
           }
         }
       }
+      await this.redisService
+        .getClient()
+        .set(messageObject.imei, JSON.stringify(finalObject));
     });
   }
 

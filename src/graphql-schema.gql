@@ -36,6 +36,16 @@ type PaginatorInfo {
   total: Float
 }
 
+type Coordinate {
+  label: String!
+  speed: Float!
+  satellites: Float!
+  gps: String!
+  direction: Float!
+  lat: Float!
+  lng: Float!
+}
+
 type AlertResponse {
   label: String
   event: String
@@ -695,5 +705,6 @@ input UpdateDeviceGroupInput {
 }
 
 type Subscription {
+  coordinatesUpdated(topic: String!): Coordinate!
   alertUpdated(topic: String!): AlertResponse!
 }
