@@ -3,6 +3,7 @@ import { ObjectType, Field } from '@nestjs/graphql';
 import { Entity, ObjectIdColumn, Column } from 'typeorm';
 import { now, Document } from 'mongoose';
 import { IsOptional } from 'class-validator';
+import { DeviceGroup } from '@imz/device-group/entities/device-group.entity';
 
 @Schema({ timestamps: true })
 @ObjectType()
@@ -74,10 +75,9 @@ export class User {
   @Column()
   deviceGroupId: string;
 
-  @Field({ nullable: true })
-  @Prop()
-  @Column()
-  deviceGroup: string;
+  @Field(() => DeviceGroup, { nullable: true })
+  @Prop({ required: false })
+  deviceGroup?: DeviceGroup;
 
   @Field({ nullable: true, defaultValue: 'Active' })
   @Prop({ text: true, default: 'Active' })

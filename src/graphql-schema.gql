@@ -2,6 +2,77 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type PropertyTypeAssetEntity {
+  name: String
+}
+
+type GeoJsonGeometryAssetEntity {
+  type: String!
+  coordinates: [Float!]!
+  radius: Float!
+}
+
+type GeoJsonAssetEntity {
+  type: String!
+  geometry: GeoJsonGeometryAssetEntity!
+  properties: PropertyTypeAssetEntity
+}
+
+type AddressAssetEntityType {
+  zipCode: String
+  country: String
+  state: String
+  area: String
+  city: String
+  district: String
+}
+
+type GeozoneAsset {
+  _id: String!
+  name: String!
+  description: String!
+  locationType: String!
+  mobileNumber: Float!
+  address: AddressAssetEntityType!
+  geoCodeData: GeoJsonAssetEntity!
+  finalAddress: String!
+  createdBy: String!
+}
+
+type JourneyResponseType {
+  _id: String
+  journeyName: String
+  journeyData: [GeozoneAsset!]
+  createdBy: String
+  startDate: DateTime
+  endDate: DateTime
+  totalDistance: Float
+  totalDuration: Float
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type AssertAssingmentModuleEntity {
+  _id: String
+  imei: Float!
+  labelName: String!
+  journey: JourneyResponseType
+  boxSet: String!
+  createdBy: String
+  updatedBy: String
+}
+
+type DeviceGroup {
+  _id: String
+  deviceGroupName: String!
+  imeiData: [AssertAssingmentModuleEntity!]
+  createdBy: String
+  updateBy: String
+}
+
 type User {
   _id: String!
   firstName: String!
@@ -16,14 +87,9 @@ type User {
   otp: String!
   roleId: String
   deviceGroupId: String
-  deviceGroup: String
+  deviceGroup: DeviceGroup
   status: String
 }
-
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
 
 type PaginatorInfo {
   count: Float
@@ -93,64 +159,6 @@ type OtpLoginResponse {
   success: Float
   message: String
   data: JSON
-}
-
-type PropertyTypeAssetEntity {
-  name: String
-}
-
-type GeoJsonGeometryAssetEntity {
-  type: String!
-  coordinates: [Float!]!
-  radius: Float!
-}
-
-type GeoJsonAssetEntity {
-  type: String!
-  geometry: GeoJsonGeometryAssetEntity!
-  properties: PropertyTypeAssetEntity
-}
-
-type AddressAssetEntityType {
-  zipCode: String
-  country: String
-  state: String
-  area: String
-  city: String
-  district: String
-}
-
-type GeozoneAsset {
-  _id: String!
-  name: String!
-  description: String!
-  locationType: String!
-  mobileNumber: Float!
-  address: AddressAssetEntityType!
-  geoCodeData: GeoJsonAssetEntity!
-  finalAddress: String!
-  createdBy: String!
-}
-
-type JourneyResponseType {
-  _id: String
-  journeyName: String
-  journeyData: [GeozoneAsset!]
-  createdBy: String
-  startDate: DateTime!
-  endDate: DateTime!
-  totalDistance: Float!
-  totalDuration: Float!
-}
-
-type AssertAssingmentModuleEntity {
-  _id: String
-  imei: Float!
-  labelName: String!
-  journey: JourneyResponseType
-  boxSet: String!
-  createdBy: String
-  updatedBy: String
 }
 
 type AssertAssingmentModuleResponse {
@@ -343,6 +351,7 @@ type AlertEntityConfig {
   event: String
   location: JSON!
   isAlreadyGenerateAlert: Boolean
+  isDailyAlert: Boolean
   startDate: String
   endDate: String
   startAlertTime: String
@@ -370,14 +379,6 @@ type AlertResponseData {
   data: [Alert!]!
 }
 
-type DeviceGroup {
-  _id: String
-  deviceGroupName: String!
-  imeiData: [AssertAssingmentModuleEntity!]
-  createdBy: String
-  updateBy: String
-}
-
 type DeviceGroupResponse {
   paginatorInfo: PaginatorInfo
   success: Float
@@ -398,7 +399,7 @@ input CreateUserInput {
   password: String
   roleId: String
   deviceGroupId: String
-  deviceGroup: String
+  deviceGroupName: String
   status: String = "Active"
   createdBy: String
 }
@@ -483,7 +484,7 @@ input UpdateUserInput {
   password: String
   roleId: String
   deviceGroupId: String
-  deviceGroup: String
+  deviceGroupName: String
   status: String = "Active"
   createdBy: String
   _id: String!
@@ -658,6 +659,7 @@ input AlertConfig {
   isAlreadyGenerateAlert: Boolean = false
   startDate: String
   endDate: String
+  isDailyAlert: Boolean = false
   startAlertTime: String
   endAlertTime: String
 }

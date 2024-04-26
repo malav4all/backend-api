@@ -27,7 +27,7 @@ export class CreateUserInput {
   deviceGroupId: string;
 
   @Field({ nullable: true })
-  deviceGroup: string;
+  deviceGroupName: string;
 
   @Field({ nullable: true, defaultValue: 'Active' })
   status: string;

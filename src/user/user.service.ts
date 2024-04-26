@@ -35,19 +35,100 @@ export class UserService {
       const page = Number(input.page);
       const limit = Number(input.limit);
       const skip = page === -1 ? 0 : (page - 1) * limit;
-
-      const records = await this.UserModel.find({})
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .exec();
-      const count = await this.UserModel.count().exec();
-      return { records, count };
+  
+      const pipeline = [
+        {
+          $addFields: {
+            "deviceGroupIdObj": { $toObjectId: "$deviceGroupId" }
+          }
+        },
+        {
+          $lookup: {
+            from: "devicegroups",
+            localField: "deviceGroupIdObj",
+            foreignField: "_id",
+            as: "deviceGroup"
+          }
+        },
+        {
+          $unwind: {
+            path: '$deviceGroup',
+            preserveNullAndEmptyArrays: true
+          }
+        },
+        {
+          $lookup: {
+            from: "assertassingmentmoduleentities",
+            localField: "deviceGroup.imeiData",
+            foreignField: "_id",
+            as: "imeiData"
+          }
+        },
+        {
+          $lookup: {
+            from: "journeys",
+            localField: "deviceGroup.imeiData.journey",
+            foreignField: "_id",
+            as: "journeyData"
+          }
+        },
+        {
+          $project: {
+            _id: 1,
+            firstName: 1,
+            lastName: 1,
+            userName: 1,
+            email: 1,
+            mobileNumber: 1,
+            createdBy: 1,
+            roleId: 1,
+            status: 1,
+            deviceGroup: {
+              _id: "$deviceGroup._id",
+              deviceGroupName: "$deviceGroup.deviceGroupName",
+              createdBy: "$deviceGroup.createdBy",
+              updateBy: "$deviceGroup.updateBy",
+              imeiData: {
+                $map: {
+                  input: "$imeiData",
+                  as: "imei",
+                  in: {
+                    imei: "$$imei.imei",
+                    labelName: "$$imei.labelName",
+                    boxSet: "$$imei.boxSet",
+                    journey:"$$imei.journey",
+                    _id: "$$imei._id"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          $group: {
+            _id: "$_id",
+            firstName: { $first: "$firstName" },
+            lastName: { $first: "$lastName" },
+            userName: { $first: "$userName" },
+            email: { $first: "$email" },
+            mobileNumber: { $first: "$mobileNumber" },
+            createdBy: { $first: "$createdBy" },
+            roleId: { $first: "$roleId" },
+            status: { $first: "$status" },
+            deviceGroup: { $first: "$deviceGroup" }
+          }
+        }
+      ];
+  
+      const result = await this.UserModel.aggregate(pipeline).skip(skip).limit(limit).exec();
+      const count = await this.UserModel.countDocuments().exec();
+  
+      return { records: result, count };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
   }
-
+   
   async create(payload: CreateUserInput) {
     try {
       const existingUser = await this.UserModel.findOne({
@@ -199,8 +280,10 @@ export class UserService {
 
   async update(payload: UpdateUserInput) {
     try {
+      const getUser=await this.UserModel.findById(payload._id);
       const updatePayload = {
         ...payload,
+        password:getUser.password,
         updatedAt: new Date(),
       };
       const record = await this.UserModel.findByIdAndUpdate(
