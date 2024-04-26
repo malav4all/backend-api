@@ -107,7 +107,7 @@ export class UserResolver {
     }
   }
 
-  // @UseGuards(new AuthGuard())
+  @UseGuards(new AuthGuard())
   @Mutation(() => UserResponse)
   async userListAll(@Args('input') input: UserInput) {
     try {
