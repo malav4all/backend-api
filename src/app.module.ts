@@ -9,13 +9,12 @@ import { GeozoneModule } from './geozone/geozone.module';
 import { LocationTypeModule } from './location-type/location-type.module';
 import { JourneyModule } from './journey/journey.module';
 import { InfluxService } from './helper/comman/influx-db/influx-db.connection';
-import { MqttService } from './helper/comman/mqtt/mqtt-service.connection';
-import { MqttResolver } from './helper/comman/mqtt/mqtt.resolver';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { InfluxResolver } from './helper/comman/influx-db/influx-resolver';
 import { RedisModule } from './redis/redis.module';
 import { AlertModule } from './alert/alert.module';
 import { DeviceGroupModule } from './device-group/device-group.module';
+import { MqttModule } from './mqtt/mqtt.module';
 
 @Module({
   imports: [
@@ -49,8 +48,9 @@ import { DeviceGroupModule } from './device-group/device-group.module';
     RedisModule,
     AlertModule,
     DeviceGroupModule,
+    MqttModule,
   ],
-  providers: [InfluxService, InfluxResolver, MqttResolver, MqttService],
+  providers: [InfluxService, InfluxResolver],
   exports: [InfluxService],
 })
 export class AppModule {}

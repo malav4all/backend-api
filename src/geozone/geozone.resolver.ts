@@ -1,10 +1,11 @@
-import { Args, Mutation, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Resolver, Subscription } from '@nestjs/graphql';
 import { GeozoneResponse } from './dto/response';
 import { InternalServerErrorException, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@imz/user/guard';
 import { CreateGeoZoneInput, GeozoneInput } from './dto/create-geozone.input';
 import { GeozoneService } from './geozone.service';
 import { UpdateGeozoneInput } from './dto/update-geozone.input';
+import { Coordinate } from '@imz/helper';
 
 @Resolver(() => GeozoneResponse)
 export class GeozoneResolver {
@@ -58,5 +59,10 @@ export class GeozoneResolver {
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
+  }
+
+  @Subscription(() => Coordinate)
+  coordinatesUpdated(@Args('topic') topic: string) {
+    return this.geoZoneService.coordinatesUpdated(topic);
   }
 }

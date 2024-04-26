@@ -1,10 +1,11 @@
 import { AuthGuard } from '@imz/user/guard';
 import { InternalServerErrorException, UseGuards } from '@nestjs/common';
-import { Args, Mutation, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Resolver, Subscription } from '@nestjs/graphql';
 import { AlertInput, CreateAlertInputType } from './dto/create-alert.input';
 import { AlertService } from './alert.service';
 import { AlertResponseData } from './dto/response';
 import { UpdateAlertInput } from './dto/update-alert';
+import { AlertResponse } from '@imz/helper';
 
 @Resolver(() => AlertResponseData)
 export class AlertResolver {
@@ -58,5 +59,11 @@ export class AlertResolver {
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
+  }
+
+  @Subscription(() => AlertResponse)
+  async alertUpdated(@Args('topic') topic: string) {
+    const res = await this.alertService.alertUpdated(topic);
+    return res;
   }
 }
