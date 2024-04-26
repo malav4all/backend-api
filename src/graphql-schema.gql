@@ -399,7 +399,7 @@ input CreateUserInput {
   password: String
   roleId: String
   deviceGroupId: String
-  deviceGroup: String
+  deviceGroupName: String
   status: String = "Active"
   createdBy: String
 }
@@ -484,7 +484,7 @@ input UpdateUserInput {
   password: String
   roleId: String
   deviceGroupId: String
-  deviceGroup: String
+  deviceGroupName: String
   status: String = "Active"
   createdBy: String
   _id: String!
