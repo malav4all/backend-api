@@ -351,15 +351,20 @@ type AlertEntityConfig {
   event: String
   location: JSON!
   isAlreadyGenerateAlert: Boolean
-  isDailyAlert: Boolean
   startDate: String
   endDate: String
   startAlertTime: String
   endAlertTime: String
 }
 
-type AlertConfigEntityData {
+type AlertImeiTypeData {
+  deviceGroupName: String
   imei: [String!]
+}
+
+type AlertConfigEntityData {
+  alertImeiGroup: AlertImeiTypeData
+  userSelectedImei: [String!]
   alertData: [AlertEntityConfig!]
 }
 
@@ -369,6 +374,7 @@ type Alert {
   mobileNo: String
   alertConfig: AlertConfigEntityData
   isAllSystemAlert: Boolean
+  isAlertDisable: Boolean
   createdBy: String
 }
 
@@ -645,12 +651,19 @@ input CreateAlertInputType {
   mobileNo: String
   alertConfig: AlertConfigData
   isAllSystemAlert: Boolean = false
+  isAlertDisable: Boolean = true
   createdBy: String
 }
 
 input AlertConfigData {
-  imei: [String!]
+  alertImeiGroup: AlertImei
+  userSelectedImei: [String!]
   alertData: [AlertConfig!]
+}
+
+input AlertImei {
+  deviceGroupName: String
+  imei: [String!]
 }
 
 input AlertConfig {
@@ -659,7 +672,6 @@ input AlertConfig {
   isAlreadyGenerateAlert: Boolean = false
   startDate: String
   endDate: String
-  isDailyAlert: Boolean = false
   startAlertTime: String
   endAlertTime: String
 }
@@ -674,6 +686,7 @@ input UpdateAlertInput {
   mobileNo: String
   alertConfig: AlertConfigData
   isAllSystemAlert: Boolean = false
+  isAlertDisable: Boolean = true
   createdBy: String
   _id: String!
 }

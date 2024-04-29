@@ -39,7 +39,8 @@ export class GeozoneService {
       if (
         finalObject &&
         finalObject.alertConfig &&
-        finalObject.alertConfig.alertData
+        finalObject.alertConfig.alertData &&
+        finalObject.isAlertDisable
       ) {
         const { mobileNo, alertConfig } = finalObject;
 

@@ -35,43 +35,53 @@ export class AlertService {
       this.pubSub.publish('alertUpdated', {
         alertUpdated: messageObject,
       });
-      if (finalObject && finalObject.alertConfig) {
+      if (
+        finalObject &&
+        finalObject.alertConfig &&
+        finalObject.isAlertDisable
+      ) {
         const { mobileNo, alertConfig } = finalObject;
         for (const alert of alertConfig.alertData) {
           if (alert.event === messageObject.event) {
             if (alert.isAlreadyGenerateAlert) continue;
 
-            const {
-              startDate,
-              endDate,
-              startAlertTime,
-              endAlertTime,
-              isDailyAlert,
-            } = alert;
+            const { startDate, endDate, startAlertTime, endAlertTime } = alert;
             const now = new Date();
-            const startTime = new Date(startAlertTime);
-            const endTime = new Date(endAlertTime);
 
-            startTime.setFullYear(
-              now.getFullYear(),
-              now.getMonth(),
-              now.getDate()
-            );
-            endTime.setFullYear(
-              now.getFullYear(),
-              now.getMonth(),
-              now.getDate()
-            );
-            if (
-              (now.getTime() >= new Date(startDate).getTime() &&
-                now.getTime() <= new Date(endDate).getTime()) ||
-              (now >= startTime && now <= endTime && isDailyAlert)
-            ) {
-              alert.isAlreadyGenerateAlert = true;
-              const smsMessage =
-                alert.event === 'locked' ? 'locked' : 'Unlocked';
-              await this.sendOtp(mobileNo, smsMessage);
-              break;
+            // Check if startDate and endDate are present
+            if (startDate && endDate) {
+              const startDateTime = new Date(startDate);
+              const endDateTime = new Date(endDate);
+              if (now >= startDateTime && now <= endDateTime) {
+                alert.isAlreadyGenerateAlert = true;
+                const smsMessage =
+                  alert.event === 'locked' ? 'locked' : 'Unlocked';
+                await this.sendOtp(mobileNo, smsMessage);
+                break;
+              }
+            }
+
+            // Check if startAlertTime and endAlertTime are present
+            if (startAlertTime && endAlertTime) {
+              const startTime = new Date(startAlertTime);
+              const endTime = new Date(endAlertTime);
+              startTime.setFullYear(
+                now.getFullYear(),
+                now.getMonth(),
+                now.getDate()
+              );
+              endTime.setFullYear(
+                now.getFullYear(),
+                now.getMonth(),
+                now.getDate()
+              );
+              if (now >= startTime && now <= endTime) {
+                alert.isAlreadyGenerateAlert = true;
+                const smsMessage =
+                  alert.event === 'locked' ? 'locked' : 'Unlocked';
+                await this.sendOtp(mobileNo, smsMessage);
+                break;
+              }
             }
           }
         }
@@ -125,11 +135,12 @@ export class AlertService {
         throw new Error('Record Already Exits');
       }
       const record = await this.AlertModel.create(payload);
-      for (const alert of record.alertConfig.imei) {
-        await this.setJsonValue(
-          alert,
-          JSON.stringify(record.alertConfig.alertData)
-        );
+      const imeisToIterate =
+        record.alertConfig.alertImeiGroup.imei ||
+        record.alertConfig.userSelectedImei;
+
+      for (const alert of imeisToIterate) {
+        await this.setJsonValue(alert, record.alertConfig.alertData);
       }
 
       return record;

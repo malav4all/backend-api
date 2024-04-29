@@ -167,7 +167,7 @@ export class InfluxService {
   async fetchAllDeviceStatus() {
     const query = `
     from(bucket: "tracking-v2")
-    |> range(start: -2d)
+    |> range(start: -6d)
     |> filter(fn: (r) => r["_measurement"] == "track")
     |> filter(fn: (r) => r["_field"] == "direction" or r["_field"] == "gps" or r["_field"] == "lat" or r["_field"] == "lng" or r["_field"] == "satellites" or r["_field"] == "speed")
     |> sort(columns:["_time"], desc: true)

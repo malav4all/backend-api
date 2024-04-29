@@ -25,12 +25,6 @@ class AlertEntityConfig {
   @Prop()
   @Column()
   @IsOptional()
-  @Field({ nullable: true, defaultValue: false })
-  isDailyAlert?: boolean;
-
-  @Prop()
-  @Column()
-  @IsOptional()
   @Field({ nullable: true })
   startDate?: string;
 
@@ -54,11 +48,25 @@ class AlertEntityConfig {
 }
 
 @ObjectType()
+class AlertImeiTypeData {
+  @Field(() => String, { nullable: true })
+  deviceGroupName: string;
+
+  @Field(() => [String], { nullable: true })
+  imei: string[];
+}
+@ObjectType()
 class AlertConfigEntityData {
   @Prop()
   @Column()
+  @Field(() => AlertImeiTypeData, { nullable: true })
+  alertImeiGroup: AlertImeiTypeData;
+
+  @IsOptional()
+  @Prop()
+  @Column()
   @Field(() => [String], { nullable: true })
-  imei: string[];
+  userSelectedImei?: string[];
 
   @Prop()
   @Column()
@@ -94,6 +102,12 @@ export class Alert {
   @IsOptional()
   @Field({ nullable: true, defaultValue: false })
   isAllSystemAlert?: boolean;
+
+  @Prop()
+  @Column()
+  @IsOptional()
+  @Field({ nullable: true, defaultValue: true })
+  isAlertDisable?: boolean;
 
   @Prop()
   @Column()

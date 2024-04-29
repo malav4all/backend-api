@@ -23,10 +23,6 @@ class AlertConfig {
   endDate?: string;
 
   @IsOptional()
-  @Field({ nullable: true, defaultValue: false })
-  isDailyAlert?: boolean;
-
-  @IsOptional()
   @Field(() => String, { nullable: true })
   startAlertTime?: string;
 
@@ -36,9 +32,22 @@ class AlertConfig {
 }
 
 @InputType()
-class AlertConfigData {
+class AlertImei {
+  @Field(() => String, { nullable: true })
+  deviceGroupName: string;
+
   @Field(() => [String], { nullable: true })
   imei: string[];
+}
+
+@InputType()
+class AlertConfigData {
+  @Field(() => AlertImei, { nullable: true })
+  alertImeiGroup: AlertImei;
+
+  @IsOptional()
+  @Field(() => [String], { nullable: true })
+  userSelectedImei?: string[];
 
   @Field(() => [AlertConfig], { nullable: true })
   alertData: [AlertConfig];
@@ -58,6 +67,10 @@ export class CreateAlertInputType {
   @IsOptional()
   @Field({ nullable: true, defaultValue: false })
   isAllSystemAlert?: boolean;
+
+  @IsOptional()
+  @Field({ nullable: true, defaultValue: true })
+  isAlertDisable?: boolean;
 
   @Field(() => String, { nullable: true })
   createdBy: string;
