@@ -270,7 +270,21 @@ export class AssertAssingmentModuleService {
 
   async findAllDevice() {
     try {
-      const record = await this.AssertAssingmentModuleModule.find({});
+      const record = await this.AssertAssingmentModuleModule.aggregate([
+        {
+          $lookup: {
+            from: 'devicegroups',
+            localField: '_id',
+            foreignField: 'imeiData',
+            as: 'matchedGroups',
+          },
+        },
+        {
+          $match: {
+            matchedGroups: { $eq: [] },
+          },
+        },
+      ]);
       return record;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
