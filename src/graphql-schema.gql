@@ -457,6 +457,7 @@ type Mutation {
   fetchDeviceGroup(input: DeviceGroupInput!): DeviceGroupResponse!
   searchDeviceGroup(input: SearchDeviceGroupInput!): DeviceGroupResponse!
   updateDeviceGroup(input: UpdateDeviceGroupInput!): DeviceGroupResponse!
+  fetchDeviceGroupById(input: DeviceGroupInput!): DeviceGroupResponse!
 }
 
 input AlertInputType {
@@ -701,6 +702,7 @@ input CreateDeviceGroupInput {
 input DeviceGroupInput {
   page: Int
   limit: Int
+  _id: String
 }
 
 input SearchDeviceGroupInput {

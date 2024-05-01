@@ -1,5 +1,6 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
+import { ObjectID, ObjectIdColumn } from 'typeorm';
 
 @InputType()
 export class CreateDeviceGroupInput {
@@ -24,6 +25,10 @@ export class DeviceGroupInput {
   page: typeof Int;
   @Field(() => Int, { nullable: true })
   limit: typeof Int;
+
+  @ObjectIdColumn()
+  @Field(() => ObjectID, { nullable: true })
+  _id: ObjectID;
 }
 
 @InputType()

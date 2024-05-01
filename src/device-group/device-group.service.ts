@@ -19,7 +19,7 @@ import {
   AssertAssingmentModuleDocument,
   AssertAssingmentModuleEntity,
 } from '@imz/assert-asingment/entities/assert-asingment.enitiy';
-
+import { ObjectID } from 'typeorm';
 export class DeviceGroupService {
   constructor(
     @InjectModel(DeviceGroup.name)
@@ -105,6 +105,98 @@ export class DeviceGroupService {
         .lean()
         .exec();
       return record;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async fetchDeviceGroupById(input:DeviceGroupInput){
+    try {
+      const page = Number(input.page);
+      const limit = Number(input.limit);
+      const skip = page === -1 ? 0 : (page - 1) * limit;
+
+      const pipeline = [
+        {
+          $match: {
+              _id: new ObjectID("6630df2f9753a45614d87cfe")  
+          }
+      },
+        ,{
+          $lookup: {
+            from: 'assertassingmentmoduleentities',
+            localField: 'imeiData',
+            foreignField: '_id',
+            as: 'imeiData',
+          },
+        },
+        {
+          $unwind: {
+            path: '$imeiData',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: 'journeys',
+            localField: 'imeiData.journey',
+            foreignField: '_id',
+            as: 'imeiData.journey',
+          },
+        },
+        {
+          $unwind: {
+            path: '$imeiData.journey',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $group: {
+              _id: "$_id",
+              createdBy: { $first: "$createdBy" },
+              deviceGroupName: { $first: "$deviceGroupName" },
+              imeiData: {
+                  $push: {
+                      imei: "$imeiData.imei",
+                      labelName: "$imeiData.labelName",
+                      _id: "$imeiData._id",
+                      boxSet: "$imeiData.boxSet",
+                      journey: {
+                          _id: "$imeiData.journey._id",
+                          totalDuration: "$imeiData.journey.totalDuration",
+                          totalDistance: "$imeiData.journey.totalDistance",
+                          endDate: "$imeiData.journey.endDate",
+                          startDate: "$imeiData.journey.startDate",
+                          createdBy: "$imeiData.journey.createdBy",
+                          journeyName: "$imeiData.journey.journeyName"
+                      }
+                  }
+              }
+          }
+      },
+      {
+          $project: {
+              _id: 1,
+              createdBy: 1,
+              deviceGroupName: 1,
+              imeiData: 1,
+              "imeiData.journey._id": 1,
+              "imeiData.journey.totalDuration": 1,
+              "imeiData.journey.totalDistance": 1,
+              "imeiData.journey.endDate": 1,
+              "imeiData.journey.startDate": 1,
+              "imeiData.journey.createdBy": 1,
+              "imeiData.journey.journeyName": 1
+          }
+      }
+      ];
+
+      const records = await this.DeviceGroupModel.aggregate(pipeline)
+        .skip(skip)
+        .limit(limit)
+        .exec();
+      const count = await this.DeviceGroupModel.countDocuments().exec();
+    return { count, records };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }

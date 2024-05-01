@@ -87,4 +87,26 @@ export class DeviceGroupResolver {
       throw new InternalServerErrorException(error.message);
     }
   }
+
+
+@UseGuards(new AuthGuard())
+@Mutation(()=>DeviceGroupResponse)
+async fetchDeviceGroupById(@Args('input')input:DeviceGroupInput){
+try {
+  const {count,records}=await this.deviceGroupService.fetchDeviceGroupById(input);
+  const success = records.length > 0 ? 1 : 0;
+  return {
+    paginatorInfo: {
+      count,
+    },
+    success: success,
+    message: success ? 'list available.' : 'No data found.',
+    data: records,
+  };
+} catch (error:any) {
+  throw new InternalServerErrorException(error.message);
+
+}
+}
+
 }
