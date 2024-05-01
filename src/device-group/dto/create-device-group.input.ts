@@ -1,5 +1,6 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
+import { ObjectID, ObjectIdColumn } from 'typeorm';
 
 @InputType()
 export class CreateDeviceGroupInput {
@@ -22,12 +23,31 @@ export class CreateDeviceGroupInput {
 export class DeviceGroupInput {
   @Field(() => Int, { nullable: true })
   page: typeof Int;
+
+  @Field(() => Int, { nullable: true })
+  limit: typeof Int;
+
+  @Field(() => String, { nullable: true })
+  id: string;
+}
+
+@InputType()
+export class SearchDeviceGroupInput {
+  @Field({ nullable: true })
+  search: string;
+
+  @Field(() => Int, { nullable: true })
+  page: typeof Int;
+
   @Field(() => Int, { nullable: true })
   limit: typeof Int;
 }
 
 @InputType()
-export class SearchDeviceGroupInput {
+export class SearchImeiDataInput {
+  @Field(() => String, { nullable: true })
+  id: string;
+
   @Field({ nullable: true })
   search: string;
 

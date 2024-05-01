@@ -13,13 +13,14 @@ import {
   CreateDeviceGroupInput,
   DeviceGroupInput,
   SearchDeviceGroupInput,
+  SearchImeiDataInput,
 } from './dto/create-device-group.input';
 import { UpdateDeviceGroupInput } from './dto/update-device-group.input';
 import {
   AssertAssingmentModuleDocument,
   AssertAssingmentModuleEntity,
 } from '@imz/assert-asingment/entities/assert-asingment.enitiy';
-
+import { ObjectID } from 'typeorm';
 export class DeviceGroupService {
   constructor(
     @InjectModel(DeviceGroup.name)
@@ -105,6 +106,279 @@ export class DeviceGroupService {
         .lean()
         .exec();
       return record;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async fetchDeviceGroupById(input: DeviceGroupInput) {
+    try {
+      const page = Number(input.page);
+      const limit = Number(input.limit);
+      const skip = page === -1 ? 0 : (page - 1) * limit;
+
+      const [records, count] = await Promise.all([
+        this.DeviceGroupModel.aggregate([
+          {
+            $match: {
+              $expr: {
+                $eq: [
+                  '$_id',
+                  {
+                    $convert: {
+                      input: input.id,
+                      to: 'objectId',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+          {
+            $lookup: {
+              from: 'assertassingmentmoduleentities',
+              localField: 'imeiData',
+              foreignField: '_id',
+              as: 'imeiData',
+            },
+          },
+          {
+            $unwind: {
+              path: '$imeiData',
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $lookup: {
+              from: 'journeys',
+              localField: 'imeiData.journey',
+              foreignField: '_id',
+              as: 'imeiData.journey',
+            },
+          },
+          {
+            $unwind: {
+              path: '$imeiData.journey',
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $group: {
+              _id: '$_id',
+              createdBy: { $first: '$createdBy' },
+              deviceGroupName: { $first: '$deviceGroupName' },
+              imeiData: {
+                $push: {
+                  imei: '$imeiData.imei',
+                  labelName: '$imeiData.labelName',
+                  _id: '$imeiData._id',
+                  boxSet: '$imeiData.boxSet',
+                  journey: {
+                    _id: '$imeiData.journey._id',
+                    totalDuration: '$imeiData.journey.totalDuration',
+                    totalDistance: '$imeiData.journey.totalDistance',
+                    endDate: '$imeiData.journey.endDate',
+                    startDate: '$imeiData.journey.startDate',
+                    createdBy: '$imeiData.journey.createdBy',
+                    journeyName: '$imeiData.journey.journeyName',
+                  },
+                },
+              },
+              countImeiData: { $sum: 1 }, // Count of imeiData
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              createdBy: 1,
+              deviceGroupName: 1,
+              imeiData: { $slice: ['$imeiData', skip, limit] },
+              countImeiData: 1, // Include the count field
+            },
+          },
+        ]),
+        this.DeviceGroupModel.aggregate([
+          // New aggregation pipeline to get count of imeiData
+          {
+            $match: {
+              $expr: {
+                $eq: [
+                  '$_id',
+                  {
+                    $convert: {
+                      input: input.id,
+                      to: 'objectId',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+          {
+            $lookup: {
+              from: 'assertassingmentmoduleentities',
+              localField: 'imeiData',
+              foreignField: '_id',
+              as: 'imeiData',
+            },
+          },
+          {
+            $unwind: {
+              path: '$imeiData',
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $group: {
+              _id: '$_id',
+              countImeiData: { $sum: 1 }, // Count of imeiData
+            },
+          },
+        ]),
+      ]);
+
+      // Extracting count from the second aggregation result
+      const imeiDataCount = count.length > 0 ? count[0].countImeiData : 0;
+
+      return { count: imeiDataCount, records };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async searchImeiData(input: SearchImeiDataInput) {
+    console.log(input, 'Device Service');
+    try {
+      const page = Number(input.page);
+      const limit = Number(input.limit);
+      const skip = page === -1 ? 0 : (page - 1) * limit;
+
+      // Construct the search query
+
+      const recordsPipeline = [
+        {
+          $lookup: {
+            from: 'assertassingmentmoduleentities',
+            localField: 'imeiData',
+            foreignField: '_id',
+            as: 'imeiData',
+          },
+        },
+        {
+          $unwind: {
+            path: '$imeiData',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: 'journeys',
+            localField: 'imeiData.journey',
+            foreignField: '_id',
+            as: 'imeiData.journey',
+          },
+        },
+        {
+          $unwind: {
+            path: '$imeiData.journey',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $match: {
+            $or: [
+              {
+                'imeiData.imei': isNaN(Number(input.search))
+                  ? undefined
+                  : Number(input.search),
+              },
+              {
+                'imeiData.labelName': { $regex: input.search, $options: 'i' },
+              },
+            ],
+          },
+        },
+        {
+          $group: {
+            _id: '$_id',
+            createdBy: { $first: '$createdBy' },
+            deviceGroupName: { $first: '$deviceGroupName' },
+            imeiData: {
+              $push: {
+                imei: '$imeiData.imei',
+                labelName: '$imeiData.labelName',
+                _id: '$imeiData._id',
+                boxSet: '$imeiData.boxSet',
+                journey: {
+                  _id: '$imeiData.journey._id',
+                  totalDuration: '$imeiData.journey.totalDuration',
+                  totalDistance: '$imeiData.journey.totalDistance',
+                  endDate: '$imeiData.journey.endDate',
+                  startDate: '$imeiData.journey.startDate',
+                  createdBy: '$imeiData.journey.createdBy',
+                  journeyName: '$imeiData.journey.journeyName',
+                },
+              },
+            },
+            countImeiData: { $sum: 1 }, // Count of imeiData
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            createdBy: 1,
+            deviceGroupName: 1,
+            imeiData: { $slice: ['$imeiData', skip, limit] },
+            countImeiData: 1, // Include the count field
+          },
+        },
+      ];
+
+      const countPipeline = [
+        {
+          $lookup: {
+            from: 'assertassingmentmoduleentities',
+            localField: 'imeiData',
+            foreignField: '_id',
+            as: 'imeiData',
+          },
+        },
+        {
+          $unwind: {
+            path: '$imeiData',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $match: {
+            $or: [
+              {
+                'imeiData.imei': isNaN(Number(input.search))
+                  ? undefined
+                  : Number(input.search),
+              },
+              {
+                'imeiData.labelName': { $regex: input.search, $options: 'i' },
+              },
+            ],
+          },
+        },
+        {
+          $group: {
+            _id: '$_id',
+            countImeiData: { $sum: 1 }, // Count of imeiData
+          },
+        },
+      ];
+
+      const [records, count] = await Promise.all([
+        this.DeviceGroupModel.aggregate(recordsPipeline),
+        this.DeviceGroupModel.aggregate(countPipeline),
+      ]);
+
+      const imeiDataCount = count.length > 0 ? count[0].countImeiData : 0;
+
+      return { count: imeiDataCount, records };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
