@@ -23,16 +23,31 @@ export class CreateDeviceGroupInput {
 export class DeviceGroupInput {
   @Field(() => Int, { nullable: true })
   page: typeof Int;
+
   @Field(() => Int, { nullable: true })
   limit: typeof Int;
 
-  @ObjectIdColumn()
-  @Field(() => ObjectID, { nullable: true })
-  _id: ObjectID;
+  @Field(() => String, { nullable: true })
+  id: string;
 }
 
 @InputType()
 export class SearchDeviceGroupInput {
+  @Field({ nullable: true })
+  search: string;
+
+  @Field(() => Int, { nullable: true })
+  page: typeof Int;
+
+  @Field(() => Int, { nullable: true })
+  limit: typeof Int;
+}
+
+@InputType()
+export class SearchImeiDataInput {
+  @Field(() => String, { nullable: true })
+  id: string;
+
   @Field({ nullable: true })
   search: string;
 

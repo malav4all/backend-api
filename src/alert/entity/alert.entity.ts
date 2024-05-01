@@ -52,6 +52,9 @@ class AlertImeiTypeData {
   @Field(() => String, { nullable: true })
   deviceGroupName: string;
 
+  @Field(() => String, { nullable: true })
+  deviceGroupId: string;
+
   @Field(() => [String], { nullable: true })
   imei: string[];
 }

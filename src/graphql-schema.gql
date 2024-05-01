@@ -359,6 +359,7 @@ type AlertEntityConfig {
 
 type AlertImeiTypeData {
   deviceGroupName: String
+  deviceGroupId: String
   imei: [String!]
 }
 
@@ -458,6 +459,7 @@ type Mutation {
   searchDeviceGroup(input: SearchDeviceGroupInput!): DeviceGroupResponse!
   updateDeviceGroup(input: UpdateDeviceGroupInput!): DeviceGroupResponse!
   fetchDeviceGroupById(input: DeviceGroupInput!): DeviceGroupResponse!
+  searchDeviceImeiData(input: SearchImeiDataInput!): DeviceGroupResponse!
 }
 
 input AlertInputType {
@@ -664,6 +666,7 @@ input AlertConfigData {
 
 input AlertImei {
   deviceGroupName: String
+  deviceGroupId: String
   imei: [String!]
 }
 
@@ -702,7 +705,7 @@ input CreateDeviceGroupInput {
 input DeviceGroupInput {
   page: Int
   limit: Int
-  _id: String
+  id: String
 }
 
 input SearchDeviceGroupInput {
@@ -717,6 +720,13 @@ input UpdateDeviceGroupInput {
   createdBy: String
   updatedBy: String
   _id: String!
+}
+
+input SearchImeiDataInput {
+  id: String
+  search: String
+  page: Int
+  limit: Int
 }
 
 type Subscription {
