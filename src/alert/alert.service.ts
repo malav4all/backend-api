@@ -6,7 +6,11 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { AlertDocument, Alert } from './entity/alert.entity';
-import { AlertInput, CreateAlertInputType } from './dto/create-alert.input';
+import {
+  AlertInput,
+  CreateAlertInputType,
+  SearchAlertInput,
+} from './dto/create-alert.input';
 import { RedisService } from '@imz/redis/redis.service';
 import { UpdateAlertInput } from './dto/update-alert';
 import { MqttService } from '@imz/mqtt/mqtt.service';
@@ -149,6 +153,61 @@ export class AlertService {
     }
   }
 
+  async searchAlert(input: SearchAlertInput) {
+    try {
+      const page = Number(input.page) || 1;
+      const limit = Number(input.limit) || 10;
+      const skip = page === -1 ? 0 : (page - 1) * limit;
+      const records = await this.AlertModel.find({
+        $or: [
+          { alertName: { $regex: input.search, $options: 'i' } },
+          { mobileNo: { $regex: input.search, $options: 'i' } },
+          {
+            'alertConfig.alertImeiGroup.deviceGroupName': {
+              $regex: input.search,
+              $options: 'i',
+            },
+          },
+          {
+            'alertConfig.userSelectedImei': {
+              $regex: input.search,
+              $options: 'i',
+            },
+          },
+          { createdBy: { $regex: input.search, $options: 'i' } },
+        ],
+      })
+        .skip(skip)
+        .limit(limit)
+        .lean()
+        .exec();
+
+      const count = await this.AlertModel.countDocuments({
+        $or: [
+          { alertName: { $regex: input.search, $options: 'i' } },
+          { mobileNo: { $regex: input.search, $options: 'i' } },
+          {
+            'alertConfig.alertImeiGroup.deviceGroupName': {
+              $regex: input.search,
+              $options: 'i',
+            },
+          },
+          {
+            'alertConfig.userSelectedImei': {
+              $regex: input.search,
+              $options: 'i',
+            },
+          },
+          { createdBy: { $regex: input.search, $options: 'i' } },
+        ],
+      });
+
+      return { records, count };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
   async findAll(input: AlertInput) {
     try {
       const page = Number(input.page);
@@ -182,6 +241,14 @@ export class AlertService {
       )
         .lean()
         .exec();
+      const imeisToIterate =
+        record.alertConfig.alertImeiGroup.imei ||
+        record.alertConfig.userSelectedImei;
+
+      for (const alert of imeisToIterate) {
+        await this.setJsonValue(alert, record.alertConfig.alertData);
+      }
+
       return record;
     } catch (error) {
       throw new InternalServerErrorException(error.message);

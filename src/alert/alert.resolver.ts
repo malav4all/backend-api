@@ -1,7 +1,11 @@
 import { AuthGuard } from '@imz/user/guard';
 import { InternalServerErrorException, UseGuards } from '@nestjs/common';
 import { Args, Mutation, Resolver, Subscription } from '@nestjs/graphql';
-import { AlertInput, CreateAlertInputType } from './dto/create-alert.input';
+import {
+  AlertInput,
+  CreateAlertInputType,
+  SearchAlertInput,
+} from './dto/create-alert.input';
 import { AlertService } from './alert.service';
 import { AlertResponseData } from './dto/response';
 import { UpdateAlertInput } from './dto/update-alert';
@@ -11,7 +15,7 @@ import { AlertResponse } from '@imz/helper';
 export class AlertResolver {
   constructor(private readonly alertService: AlertService) {}
 
-  // @UseGuards(new AuthGuard())
+  @UseGuards(new AuthGuard())
   @Mutation(() => AlertResponseData)
   async addAlert(@Args('input') input: CreateAlertInputType) {
     try {
@@ -55,6 +59,24 @@ export class AlertResolver {
         message: record
           ? 'Records update successfully.'
           : 'Technical issue please try again.',
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @UseGuards(new AuthGuard())
+  @Mutation(() => AlertResponseData)
+  async searchAlert(@Args('input') input: SearchAlertInput) {
+    try {
+      const { count, records } = await this.alertService.searchAlert(input);
+      return {
+        paginatorInfo: {
+          count,
+        },
+        success: 1,
+        message: 'Alert list available.',
+        data: records,
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);

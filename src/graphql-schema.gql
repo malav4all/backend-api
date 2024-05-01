@@ -454,6 +454,7 @@ type Mutation {
   addAlert(input: CreateAlertInputType!): AlertResponseData!
   fetchAlert(input: AlertInput!): AlertResponseData!
   updateAlert(input: UpdateAlertInput!): AlertResponseData!
+  searchAlert(input: SearchAlertInput!): AlertResponseData!
   createDeviceGroup(input: CreateDeviceGroupInput!): DeviceGroupResponse!
   fetchDeviceGroup(input: DeviceGroupInput!): DeviceGroupResponse!
   searchDeviceGroup(input: SearchDeviceGroupInput!): DeviceGroupResponse!
@@ -693,6 +694,12 @@ input UpdateAlertInput {
   isAlertDisable: Boolean = true
   createdBy: String
   _id: String!
+}
+
+input SearchAlertInput {
+  search: String
+  page: Int
+  limit: Int
 }
 
 input CreateDeviceGroupInput {
