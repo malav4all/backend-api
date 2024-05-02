@@ -88,19 +88,39 @@ export class JourneyService {
       const page = Number(input.page) || 1;
       const limit = Number(input.limit) || 10;
       const skip = page === -1 ? 0 : (page - 1) * limit;
+      const searchStr = input.search.trim();
+      const searchNumber = parseFloat(searchStr);
+      const isNumericSearch = !isNaN(searchNumber);
 
-      const record = await this.JourneyModel.find({
-        $or: [
-          { journeyName: { $regex: input.search, $options: 'i' } },
-          { createdBy: { $regex: input.search, $options: 'i' } },
-        ],
-      })
+      let numericSearchConditions = [];
+      if (isNumericSearch) {
+        const decimalPlaces = searchStr.includes('.')
+          ? searchStr.split('.')[1].length
+          : 0;
+        const precision = Math.pow(10, -decimalPlaces);
+        const lowerBound = searchNumber;
+        const upperBound = searchNumber + precision;
+
+        numericSearchConditions = [
+          { totalDistance: { $gte: lowerBound, $lt: upperBound } },
+          { totalDuration: { $gte: lowerBound, $lt: upperBound } },
+        ];
+      }
+
+      const searchConditions = [
+        { journeyName: { $regex: new RegExp(searchStr, 'i') } },
+        { createdBy: { $regex: new RegExp(searchStr, 'i') } },
+        ...numericSearchConditions,
+      ];
+
+      const records = await this.JourneyModel.find({ $or: searchConditions })
         .skip(skip)
         .limit(limit)
         .populate({ path: 'journeyData' })
         .lean()
         .exec();
-      const records = record.map((record) => ({
+
+      const formattedRecords = records.map((record) => ({
         ...record,
         journeyData: record.journeyData.filter(
           (journey) => journey.name != null
@@ -108,12 +128,10 @@ export class JourneyService {
       }));
 
       const count = await this.JourneyModel.countDocuments({
-        $or: [
-          { journeyName: { $regex: input.search, $options: 'i' } },
-          { createdBy: { $regex: input.search, $options: 'i' } },
-        ],
+        $or: searchConditions,
       });
-      return { records, count };
+
+      return { records: formattedRecords, count };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
