@@ -59,4 +59,8 @@ JourneySchema.index({
   journeyName: 'text',
   createdBy: 'text',
   imei: 'text',
+  totalDistance:'text',
+  totalDuration:'text',
+  startDate:'text',
+  endDate:'text'
 });
