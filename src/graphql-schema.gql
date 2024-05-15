@@ -303,6 +303,7 @@ type TrackPlayResponse {
   direction: String!
   lat: String!
   lng: String!
+  speed: String!
 }
 
 type AlertResponseType {

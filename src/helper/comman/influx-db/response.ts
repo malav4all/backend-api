@@ -30,6 +30,9 @@ export class TrackPlayResponse {
 
   @Field(() => String)
   lng: string;
+
+  @Field(() => String)
+  speed: string;
 }
 
 @ObjectType()

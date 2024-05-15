@@ -23,7 +23,7 @@ export class InfluxService {
     from(bucket: "tracking-v2")
       |> range(start: ${startTime}, stop: ${endTime})
       |> filter(fn: (r) => r["_measurement"] == "track")
-      |> filter(fn: (r) => r["_field"] == "lat" or r["_field"] == "lng" or r["_field"] == "direction")
+      |> filter(fn: (r) => r["_field"] == "lat" or r["_field"] == "lng" or r["_field"] == "direction" or r["_field"] == "speed")
       |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
       |> filter(fn: (r) => r["imei"] == "864180068905939")
       |> filter(fn: (r) => r["label"] == "864180068905939")`;
@@ -31,7 +31,7 @@ export class InfluxService {
     const data = [];
 
     for await (const { values } of this.queryApi.iterateRows(fluxQuery)) {
-      const [t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11] = values;
+      const [t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12] = values;
       data.push({
         startTime: t3,
         stopTime: t4,
@@ -42,6 +42,7 @@ export class InfluxService {
         direction: t9,
         lat: t10,
         lng: t11,
+        speed: t12.replace(/\D/g, '').substring(0, 2),
       });
     }
     return data;
