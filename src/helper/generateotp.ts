@@ -1,7 +1,14 @@
 import { randomInt } from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
 export const generateOtp = () => {
   const otp = randomInt(100000, 1000000);
   return otp;
+};
+
+export const generateShortUuid = () => {
+  const uuid = uuidv4().replace(/-/g, '');
+  const shortUuid = uuid.substr(0, 5);
+  return shortUuid;
 };
 
 export function getDistanceInMeters(coord1, coord2) {
