@@ -20,6 +20,7 @@ import { CustomerModuleModule } from './customer-module/customer-module.module';
 import { RoleModule } from './role/role.module';
 import { TenantsModule } from './tenants/tenants.module';
 import { AccountModule } from './account/account.module';
+import { Upload } from './helper/comman/scalar/Upload.scalar';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { AccountModule } from './account/account.module';
         uri: process.env.DB_URL,
       }),
     }),
+
     GraphQLModule.forRoot({
       playground: true,
       installSubscriptionHandlers: true,
@@ -60,7 +62,7 @@ import { AccountModule } from './account/account.module';
     AccountModule,
     TenantsModule,
   ],
-  providers: [InfluxService, InfluxResolver],
+  providers: [InfluxService, InfluxResolver, Upload],
   exports: [InfluxService],
 })
 export class AppModule {}

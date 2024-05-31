@@ -199,6 +199,7 @@ export class UserService {
       let user: any = await this.UserModel.findOne({
         email: inputUser.email,
       })
+        .populate([{ path: 'accountId' }, { path: 'roleId' }])
         .lean()
         .exec();
       if (user) {
@@ -213,6 +214,7 @@ export class UserService {
             accessToken,
             name: user.firstName,
             email: user.email,
+            account: user.accountId,
             roleId: user.roleId,
           };
           this.logger.verbose(`User Login Successfully:::${user.name}`);
