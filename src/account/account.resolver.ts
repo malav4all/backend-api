@@ -100,6 +100,35 @@ export class AccountResolver {
         accountId: context?.user?.accountId,
         roleId: context?.user?.roleId,
       };
+      console.log(loggedInAccount);
+      const { records, count } = await this.accountModuleService.findAll(
+        input,
+        loggedInAccount
+      );
+      return {
+        paginatorInfo: {
+          count,
+        },
+        success: 1,
+        message: 'Account list available.',
+        data: records,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @UseGuards(new AuthGuard())
+  @Mutation(() => AccountResponse)
+  async fetchAccountModuleList(
+    @Args('input') input: AccountInput,
+    @Context() context
+  ) {
+    try {
+      const loggedInAccount = {
+        accountId: context?.user?.accountId,
+        roleId: context?.user?.roleId,
+      };
       const { records, count } = await this.accountModuleService.findAll(
         input,
         loggedInAccount

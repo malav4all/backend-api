@@ -19,6 +19,7 @@ import * as jwt from 'jsonwebtoken';
 import { UAParser } from 'ua-parser-js';
 import { REQUEST } from '@nestjs/core';
 import { generateOtp } from '@imz/helper/generateotp';
+import { Account, AccountDocument } from '@imz/account/enities/account-module.enitiy';
 
 @Injectable()
 export class UserService {
@@ -72,6 +73,14 @@ export class UserService {
             as: 'journeyData',
           },
         },
+        // {
+        //   $lookup: {
+        //     from: 'accounts',
+        //     localField: 'accountID',
+        //     foreignField: '_id',
+        //     as: 'accountDetails',
+        //   },
+        // },
         {
           $project: {
             _id: 1,
@@ -102,6 +111,7 @@ export class UserService {
                 },
               },
             },
+            // accountDetails: 1,
           },
         },
         {
@@ -116,6 +126,7 @@ export class UserService {
             roleId: { $first: '$roleId' },
             status: { $first: '$status' },
             deviceGroup: { $first: '$deviceGroup' },
+            accountDetails: { $first: '$accountDetails' }, // Group account details
           },
         },
       ];
@@ -124,6 +135,7 @@ export class UserService {
         .skip(skip)
         .limit(limit)
         .exec();
+
       const count = await this.UserModel.countDocuments().exec();
 
       return { records: result, count };
@@ -196,17 +208,25 @@ export class UserService {
   async login(payload: LoginUserInput) {
     const inputUser: any = payload;
     try {
+      console.log('in the user service');
       let user: any = await this.UserModel.findOne({
         email: inputUser.email,
       })
-        .populate([{ path: 'accountId' }, { path: 'roleId' }])
-        .lean()
-        .exec();
+        // .populate([{ path: 'accountId' }, { path: 'roleId' }])
+        // .populate([{ path: 'accountId' }]);
+        .populate([{ path: 'roleId' }]);
+      // .lean()
+      // .exec();
+
+      console.log('mongo query');
+      // console.log(user.email);
+      // console.log({ user });
       if (user) {
         const isPasswordValid = await this.verifyPassword(
           user,
           inputUser.password
         );
+        console.log(user);
         if (isPasswordValid) {
           const accessToken = await this.generateAccessToken(user);
           user = {
@@ -276,6 +296,8 @@ export class UserService {
       {
         email: user.email,
         _id: user._id,
+        accountId: user.accountId,
+        roleId: user.roleId,
         // exp: Math.floor(Date.now() / 1000) + 10,
         exp: Math.floor(Date.now() / 1000) + 12 * 60 * 60, // 1-hour Token Expiry By default
       },

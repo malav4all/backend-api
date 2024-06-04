@@ -1,5 +1,4 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
-
 @InputType()
 export class CreateUserInput {
   @Field({ nullable: true })
@@ -21,16 +20,40 @@ export class CreateUserInput {
   password: string;
 
   @Field({ nullable: true })
+  avatar?: string;
+
+  @Field({ nullable: true, defaultValue: false })
+  active?: boolean;
+
+  @Field({ nullable: true, defaultValue: true })
+  emailVerified?: boolean;
+
+  @Field({ nullable: true, defaultValue: true })
+  mobileVerified?: boolean;
+
+  @Field({ nullable: true })
+  accountId: string;
+
+  @Field({ nullable: true })
   roleId: string;
+
+  @Field({ nullable: true })
+  parentUserId: string;
+
+  @Field({ nullable: true })
+  industryType: string;
+
+  @Field({ nullable: true })
+  mainParentId: string;
+
+  @Field({ nullable: true, defaultValue: 'Active' })
+  status: string;
 
   @Field({ nullable: true })
   deviceGroupId: string;
 
   @Field({ nullable: true })
   deviceGroupName: string;
-
-  @Field({ nullable: true, defaultValue: 'Active' })
-  status: string;
 
   @Field({ nullable: true })
   createdBy: string;

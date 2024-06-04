@@ -1,9 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { Entity, ObjectIdColumn, Column } from 'typeorm';
-import { now, Document } from 'mongoose';
+import { now, Document, Types } from 'mongoose';
 import { IsOptional } from 'class-validator';
 import { DeviceGroup } from '@imz/device-group/entities/device-group.entity';
+import { IndustryType } from '../dto/industry.response.type';
+import { RoleResponseType } from '../dto/role.response';
+import { AccountResponseType } from '../dto/account.response.type';
 
 @Schema({ timestamps: true })
 @ObjectType()
@@ -42,7 +45,17 @@ export class User {
   @Field()
   @Prop()
   @Column()
+  avatar: string;
+
+  @Field()
+  @Prop()
+  @Column()
   password: string;
+
+  @Field({ defaultValue: false })
+  @Prop()
+  @Column()
+  active: boolean;
 
   @Field()
   @Prop()
@@ -59,16 +72,48 @@ export class User {
   @Column()
   updatedAt: Date;
 
+  @Field({ defaultValue: true })
+  @Prop({ default: now() })
+  @Column()
+  emailVerified: boolean;
+
+  @Field({ defaultValue: true })
+  @Prop({ default: now() })
+  @Column()
+  mobileVerified: boolean;
+
+  @Field()
+  @Prop({ type: Types.ObjectId, ref: 'AccountModule', text: true })
+  accountId: AccountResponseType;
+
+  @Field()
+  @Column()
+  @Prop({ type: Types.ObjectId, ref: 'Role', text: true })
+  roleId: RoleResponseType;
+
+  @Field()
+  @Column()
+  @Prop({ type: Types.ObjectId, ref: 'Industry', text: true })
+  @IsOptional()
+  industryType?: IndustryType;
+
   @Field()
   @Column()
   @Prop()
   @IsOptional()
   otp?: string;
 
-  @Field({ nullable: true })
-  @Prop()
+  @Field()
   @Column()
-  roleId: string;
+  @Prop()
+  @IsOptional()
+  parentUserId?: string;
+
+  @Field()
+  @Column()
+  @Prop()
+  @IsOptional()
+  mainParentId?: string;
 
   @Field({ nullable: true })
   @Prop()
@@ -92,4 +137,7 @@ UserSchema.index({
   email: 'text',
   mobileNumber: 'text',
   createdBy: 'text',
+  accountId: 'text',
+  roleId: 'text',
+  industryType: 'text',
 });

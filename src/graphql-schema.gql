@@ -73,6 +73,53 @@ type DeviceGroup {
   updateBy: String
 }
 
+type IndustryType {
+  _id: String!
+  name: String!
+  code: [String!]!
+  description: String!
+  lastUpdated: DateTime!
+}
+
+type RoleResponseType {
+  _id: String!
+  name: String
+  description: String
+  industryType: String
+  isDelete: Boolean
+  resources: String
+}
+
+type UserAccountModuleValue {
+  key: String
+  value: String
+}
+
+type AccountResponseType {
+  _id: String!
+  accountLogo: String
+  accountName: String!
+  industryType: IndustryType!
+  accountPanNo: String
+  accountGstNo: String
+  parentId: String
+  accountAadharNo: String
+  accountAddress: String!
+  accountState: String
+  accountCity: String
+  accountContactName: String!
+  accountContactEmail: String!
+  accountContactMobile: String
+  remarks: String
+  accountAuthMobile: [String!]
+  accountApiKey: String
+  accountConfiguration: [UserAccountModuleValue!]!
+  accountCreatedBy: String
+  nodeSequence: Float
+  updatedBy: String
+  isDelete: Boolean
+}
+
 type User {
   _id: String!
   firstName: String!
@@ -80,12 +127,20 @@ type User {
   email: String!
   mobileNumber: String!
   userName: String!
+  avatar: String!
   password: String!
+  active: Boolean!
   createdBy: String!
   createdAt: DateTime
   updatedAt: DateTime
+  emailVerified: Boolean!
+  mobileVerified: Boolean!
+  accountId: AccountResponseType!
+  roleId: RoleResponseType!
+  industryType: IndustryType!
   otp: String!
-  roleId: String
+  parentUserId: String!
+  mainParentId: String!
   deviceGroupId: String
   deviceGroup: DeviceGroup
   status: String
@@ -121,6 +176,44 @@ type AlertResponse {
   lng: String
   mode: String
   source: String
+}
+
+type IndustryTypeResponse {
+  _id: String!
+  name: String
+  code: String
+  description: String
+}
+
+type DataType {
+  key: String
+  value: String
+}
+
+type Account {
+  _id: String!
+  accountLogo: String
+  accountName: String!
+  industryType: IndustryTypeResponse!
+  accountPanNo: String
+  accountGstNo: String
+  parentId: String
+  accountAadharNo: String
+  accountAddress: String!
+  accountState: String
+  accountCity: String
+  accountContactName: String!
+  accountContactEmail: String!
+  accountContactMobile: String
+  remarks: String
+  accountAuthMobile: [String!]
+  accountApiKey: String
+  accountConfiguration: [DataType!]!
+  accountCreatedBy: String
+  nodeSequence: Float
+  tenantId: String
+  updatedBy: String
+  isDelete: Boolean
 }
 
 type UserResponse {
@@ -461,44 +554,6 @@ type RoleResponse {
   data: [Role!]!
 }
 
-type IndustryTypeResponse {
-  _id: String!
-  name: String
-  code: String
-  description: String
-}
-
-type DataType {
-  key: String
-  value: String
-}
-
-type Account {
-  _id: String!
-  accountLogo: String
-  accountName: String!
-  industryType: IndustryTypeResponse!
-  accountPanNo: String
-  accountGstNo: String
-  parentId: String
-  accountAadharNo: String
-  accountAddress: String!
-  accountState: String
-  accountCity: String
-  accountContactName: String!
-  accountContactEmail: String!
-  accountContactMobile: String
-  remarks: String
-  accountAuthMobile: [String!]
-  accountApiKey: String
-  accountConfiguration: [DataType!]!
-  accountCreatedBy: String
-  nodeSequence: Float
-  tenantId: String
-  updatedBy: String
-  isDelete: Boolean
-}
-
 type AccountResponse {
   paginatorInfo: PaginatorInfo
   success: Float
@@ -518,10 +573,18 @@ input CreateUserInput {
   mobileNumber: String
   userName: String
   password: String
+  avatar: String
+  active: Boolean = false
+  emailVerified: Boolean = true
+  mobileVerified: Boolean = true
+  accountId: String
   roleId: String
+  parentUserId: String
+  industryType: String
+  mainParentId: String
+  status: String = "Active"
   deviceGroupId: String
   deviceGroupName: String
-  status: String = "Active"
   createdBy: String
 }
 
@@ -600,6 +663,7 @@ type Mutation {
   updateAccount(input: UpdateAccountInput!): AccountResponse!
   deleteAccount(input: UpdateAccountInput!): AccountResponse!
   searchAccount(input: SearchAccountInput!): AccountResponse!
+  fetchAccountModuleList(input: AccountInput!): AccountResponse!
 }
 
 input AlertInputType {
@@ -631,10 +695,18 @@ input UpdateUserInput {
   mobileNumber: String
   userName: String
   password: String
+  avatar: String
+  active: Boolean = false
+  emailVerified: Boolean = true
+  mobileVerified: Boolean = true
+  accountId: String
   roleId: String
+  parentUserId: String
+  industryType: String
+  mainParentId: String
+  status: String = "Active"
   deviceGroupId: String
   deviceGroupName: String
-  status: String = "Active"
   createdBy: String
   _id: String!
 }
