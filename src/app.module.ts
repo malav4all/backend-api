@@ -16,6 +16,12 @@ import { AlertModule } from './alert/alert.module';
 import { DeviceGroupModule } from './device-group/device-group.module';
 import { MqttModule } from './mqtt/mqtt.module';
 import { InfluxDbModule } from './influx-db/influx-db.module';
+import { IndustryModule } from './industry/industry.module';
+import { CustomerModuleModule } from './customer-module/customer-module.module';
+import { RoleModule } from './role/role.module';
+import { TenantsModule } from './tenants/tenants.module';
+import { AccountModule } from './account/account.module';
+import { Upload } from './helper/comman/scalar/Upload.scalar';
 
 @Module({
   imports: [
@@ -29,6 +35,7 @@ import { InfluxDbModule } from './influx-db/influx-db.module';
         uri: process.env.DB_URL,
       }),
     }),
+
     GraphQLModule.forRoot({
       playground: true,
       installSubscriptionHandlers: true,
@@ -50,8 +57,14 @@ import { InfluxDbModule } from './influx-db/influx-db.module';
     AlertModule,
     DeviceGroupModule,
     InfluxDbModule,
+    MqttModule,
+    IndustryModule,
+    CustomerModuleModule,
+    RoleModule,
+    AccountModule,
+    TenantsModule,
   ],
-  providers: [InfluxService, InfluxResolver],
+  providers: [InfluxService, InfluxResolver, Upload],
   exports: [InfluxService],
 })
 export class AppModule {}

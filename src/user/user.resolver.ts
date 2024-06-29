@@ -26,7 +26,7 @@ import _ from 'lodash';
 export class UserResolver {
   constructor(private readonly userService: UserService) {}
 
-  @UseGuards(new AuthGuard())
+  // @UseGuards(new AuthGuard())
   @Query(() => UserResponse)
   async createUser(@Args('input') input: CreateUserInput) {
     try {
@@ -92,7 +92,9 @@ export class UserResolver {
   async loginUser(@Args('input') input: LoginUserInput) {
     try {
       try {
+        // console.log('At B');
         const res = await this.userService.login(input);
+        // console.log(res);
         return {
           data: res,
         };
@@ -107,7 +109,7 @@ export class UserResolver {
     }
   }
 
-  @UseGuards(new AuthGuard())
+  // @UseGuards(new AuthGuard())
   @Mutation(() => UserResponse)
   async userListAll(@Args('input') input: UserInput) {
     try {

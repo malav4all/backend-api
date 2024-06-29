@@ -73,6 +73,53 @@ type DeviceGroup {
   updateBy: String
 }
 
+type IndustryType {
+  _id: String!
+  name: String!
+  code: [String!]!
+  description: String!
+  lastUpdated: DateTime!
+}
+
+type RoleResponseType {
+  _id: String!
+  name: String
+  description: String
+  industryType: String
+  isDelete: Boolean
+  resources: String
+}
+
+type UserAccountModuleValue {
+  key: String
+  value: String
+}
+
+type AccountResponseType {
+  _id: String!
+  accountLogo: String
+  accountName: String!
+  industryType: IndustryType!
+  accountPanNo: String
+  accountGstNo: String
+  parentId: String
+  accountAadharNo: String
+  accountAddress: String!
+  accountState: String
+  accountCity: String
+  accountContactName: String!
+  accountContactEmail: String!
+  accountContactMobile: String
+  remarks: String
+  accountAuthMobile: [String!]
+  accountApiKey: String
+  accountConfiguration: [UserAccountModuleValue!]!
+  accountCreatedBy: String
+  nodeSequence: Float
+  updatedBy: String
+  isDelete: Boolean
+}
+
 type User {
   _id: String!
   firstName: String!
@@ -80,12 +127,20 @@ type User {
   email: String!
   mobileNumber: String!
   userName: String!
+  avatar: String!
   password: String!
+  active: Boolean!
   createdBy: String!
   createdAt: DateTime
   updatedAt: DateTime
+  emailVerified: Boolean!
+  mobileVerified: Boolean!
+  accountId: AccountResponseType!
+  roleId: RoleResponseType!
+  industryType: IndustryType!
   otp: String!
-  roleId: String
+  parentUserId: String!
+  mainParentId: String!
   deviceGroupId: String
   deviceGroup: DeviceGroup
   status: String
@@ -121,6 +176,44 @@ type AlertResponse {
   lng: String
   mode: String
   source: String
+}
+
+type IndustryTypeResponse {
+  _id: String!
+  name: String
+  code: String
+  description: String
+}
+
+type DataType {
+  key: String
+  value: String
+}
+
+type Account {
+  _id: String!
+  accountLogo: String
+  accountName: String!
+  industryType: IndustryTypeResponse!
+  accountPanNo: String
+  accountGstNo: String
+  parentId: String
+  accountAadharNo: String
+  accountAddress: String!
+  accountState: String
+  accountCity: String
+  accountContactName: String!
+  accountContactEmail: String!
+  accountContactMobile: String
+  remarks: String
+  accountAuthMobile: [String!]
+  accountApiKey: String
+  accountConfiguration: [DataType!]!
+  accountCreatedBy: String
+  nodeSequence: Float
+  tenantId: String
+  updatedBy: String
+  isDelete: Boolean
 }
 
 type UserResponse {
@@ -394,8 +487,83 @@ type DeviceGroupResponse {
   data: [DeviceGroup!]
 }
 
+type Industry {
+  _id: String!
+  name: String!
+  code: [String!]!
+  description: String!
+  file: String!
+  lastUpdated: DateTime
+}
+
+type IndustryResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [Industry!]!
+}
+
+type IndustryCodeResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: Industry!
+}
+
+type CustomerModule {
+  _id: String!
+  name: String!
+  code: String!
+  description: String!
+  lastUpdated: DateTime
+}
+
+type CustomerModuleResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [CustomerModule!]!
+}
+
+type IndustryResponseType {
+  _id: String!
+  name: String
+  code: String
+  description: String
+}
+
+type Values {
+  name: String
+  permissions: [String!]!
+}
+
+type Role {
+  _id: String!
+  name: String!
+  industryType: IndustryResponseType!
+  description: String!
+  resources: [Values!]!
+  isDelete: Boolean!
+  lastUpdated: DateTime
+}
+
+type RoleResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [Role!]!
+}
+
+type AccountResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [Account!]
+}
+
 type Query {
   createUser(input: CreateUserInput!): UserResponse!
+  fetchAccountList(input: AccountInput!): AccountResponse!
 }
 
 input CreateUserInput {
@@ -405,11 +573,24 @@ input CreateUserInput {
   mobileNumber: String
   userName: String
   password: String
+  avatar: String
+  active: Boolean = false
+  emailVerified: Boolean = true
+  mobileVerified: Boolean = true
+  accountId: String
   roleId: String
+  parentUserId: String
+  industryType: String
+  mainParentId: String
+  status: String = "Active"
   deviceGroupId: String
   deviceGroupName: String
-  status: String = "Active"
   createdBy: String
+}
+
+input AccountInput {
+  page: Int
+  limit: Int
 }
 
 type Mutation {
@@ -462,6 +643,27 @@ type Mutation {
   updateDeviceGroup(input: UpdateDeviceGroupInput!): DeviceGroupResponse!
   fetchDeviceGroupById(input: DeviceGroupInput!): DeviceGroupResponse!
   searchDeviceImeiData(input: SearchImeiDataInput!): DeviceGroupResponse!
+  createIndustry(input: CreateIndustryInput!): IndustryResponse!
+  industryListAll(input: IndustryInput!): IndustryResponse!
+  searchIndustry(input: SearchIndustryInput!): IndustryResponse!
+  checkIndustryExistsRecord(input: checkExitIndustryInput!): IndustryResponse!
+  fetchIndustryName(input: fetchIndustryNameCodeInput!): IndustryCodeResponse!
+  createCustomerModule(input: CreateCustomerModuleInput!): CustomerModuleResponse!
+  customerModuleListAll(input: CustomerModuleInput!): CustomerModuleResponse!
+  updateRole(input: UpdateCustomerModuleInput!): CustomerModuleResponse!
+  searchCustomerModule(input: SearchInput!): CustomerModuleResponse!
+  checkCustomerModuleExistsRecord(input: CustomerModuleExitsInput!): CustomerModuleResponse!
+  createRole(input: CreateRoleInput!): RoleResponse!
+  roleListAll(input: RoleInput!): RoleResponse!
+  delete(input: UpdateRoleInput!): RoleResponse!
+  searchRoles(input: SearchRolesInput!): RoleResponse!
+  checkExistsRole(input: checkRoleInput!): RoleResponse!
+  updateRoleData(input: UpdateRoleInput!): RoleResponse!
+  createAccount(input: CreateAccountInput!): AccountResponse!
+  updateAccount(input: UpdateAccountInput!): AccountResponse!
+  deleteAccount(input: UpdateAccountInput!): AccountResponse!
+  searchAccount(input: SearchAccountInput!): AccountResponse!
+  fetchAccountModuleList(input: AccountInput!): AccountResponse!
 }
 
 input AlertInputType {
@@ -493,10 +695,18 @@ input UpdateUserInput {
   mobileNumber: String
   userName: String
   password: String
+  avatar: String
+  active: Boolean = false
+  emailVerified: Boolean = true
+  mobileVerified: Boolean = true
+  accountId: String
   roleId: String
+  parentUserId: String
+  industryType: String
+  mainParentId: String
+  status: String = "Active"
   deviceGroupId: String
   deviceGroupName: String
-  status: String = "Active"
   createdBy: String
   _id: String!
 }
@@ -732,6 +942,161 @@ input UpdateDeviceGroupInput {
 
 input SearchImeiDataInput {
   id: String
+  search: String
+  page: Int
+  limit: Int
+}
+
+input CreateIndustryInput {
+  name: String
+  code: [String!]
+  description: String
+  file: Upload
+}
+
+"""File upload scalar type"""
+scalar Upload
+
+input IndustryInput {
+  page: Int
+  limit: Int
+}
+
+input SearchIndustryInput {
+  search: String
+  page: Int
+  limit: Int
+}
+
+input checkExitIndustryInput {
+  name: String
+}
+
+input fetchIndustryNameCodeInput {
+  _id: String
+}
+
+input CreateCustomerModuleInput {
+  name: String
+  code: String
+  description: String
+}
+
+input CustomerModuleInput {
+  page: Int
+  limit: Int
+}
+
+input UpdateCustomerModuleInput {
+  name: String
+  code: String
+  description: String
+  _id: String!
+}
+
+input SearchInput {
+  search: String
+  page: Int
+  limit: Int
+}
+
+input CustomerModuleExitsInput {
+  code: String
+  name: String
+}
+
+input CreateRoleInput {
+  name: String
+  description: String
+  industryType: String
+  isDelete: Boolean = false
+  resources: [ValuesInput!]
+}
+
+input ValuesInput {
+  name: String
+  permissions: [String!]
+}
+
+input RoleInput {
+  page: Int
+  limit: Int
+}
+
+input UpdateRoleInput {
+  name: String
+  description: String
+  industryType: String
+  isDelete: Boolean = false
+  resources: [ValuesInput!]
+  _id: String!
+}
+
+input SearchRolesInput {
+  search: String
+  page: Int
+  limit: Int
+}
+
+input checkRoleInput {
+  name: String
+}
+
+input CreateAccountInput {
+  accountLogo: String
+  accountName: String!
+  industryType: String!
+  accountPanNo: String
+  accountGstNo: String
+  accountAadharNo: String
+  accountAddress: String!
+  accountState: String
+  accountCity: String
+  parentId: String
+  accountContactName: String!
+  accountContactEmail: String!
+  accountContactMobile: String
+  remarks: String
+  accountAuthMobile: [String!]
+  accountApiKey: String
+  accountConfiguration: [AccountConfigInput!]
+  createdBy: String
+  updatedBy: String
+  isDelete: Boolean = false
+  nodeSequence: Float
+}
+
+input AccountConfigInput {
+  key: String
+  value: String
+}
+
+input UpdateAccountInput {
+  accountLogo: String
+  accountName: String
+  industryType: String
+  accountPanNo: String
+  accountGstNo: String
+  accountAadharNo: String
+  accountAddress: String
+  accountState: String
+  accountCity: String
+  parentId: String
+  accountContactName: String
+  accountContactEmail: String
+  accountContactMobile: String
+  remarks: String
+  accountAuthMobile: [String!]
+  accountApiKey: String
+  accountConfiguration: [AccountConfigInput!]
+  createdBy: String
+  updatedBy: String
+  isDelete: Boolean = false
+  nodeSequence: Float
+  _id: String!
+}
+
+input SearchAccountInput {
   search: String
   page: Int
   limit: Int
