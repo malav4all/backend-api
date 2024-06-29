@@ -10,7 +10,7 @@ import { MqttService } from '@imz/mqtt/mqtt.service';
   imports: [
     MongooseModule.forFeature([{ name: Geozone.name, schema: GeozoneSchema }]),
   ],
-  providers: [GeozoneResolver, GeozoneService, RedisService, MqttService],
+  providers: [GeozoneResolver, GeozoneService, RedisService],
   exports: [GeozoneService],
 })
 export class GeozoneModule {}

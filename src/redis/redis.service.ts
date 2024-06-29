@@ -10,9 +10,8 @@ export class RedisService {
   constructor() {
     this.client = new Redis({
       host: '103.20.214.75',
-      port: 6379,
-      password: 'Rootunlock@#2211',
-      db: 1,
+      port: 6333,
+      db: 0,
     });
 
     this.checkConnection();

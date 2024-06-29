@@ -23,56 +23,52 @@ export class GeozoneService {
   constructor(
     @InjectModel(Geozone.name)
     private GeoZoneModel: Model<GeozoneDocument>,
-    private readonly redisService: RedisService,
-    private readonly mqttService: MqttService
+    private readonly redisService: RedisService // private readonly mqttService: MqttService
   ) {
-    this.mqttClient = this.mqttService.getClient();
-    this.mqttClient.on('message', async (topic, message) => {
-      const messageString = Buffer.from(message).toString('utf8');
-      const messageObject = JSON.parse(messageString);
-      const redisClient = this.redisService.getClient();
-      const getObject = await redisClient.get(messageObject.imei);
-      const finalObject = JSON.parse(getObject);
-      this.pubSub.publish('coordinatesUpdated', {
-        coordinatesUpdated: messageObject,
-      });
-      if (
-        finalObject &&
-        finalObject.alertConfig &&
-        finalObject.alertConfig.alertData &&
-        finalObject.isAlertDisable
-      ) {
-        const { mobileNo, alertConfig } = finalObject;
-
-        for (const alert of alertConfig.alertData) {
-          const { event, location } = alert;
-          const { coordinates, radius } = location.geoCodeData.geometry;
-          const distanceInMeters = getDistanceInMeters(
-            { latitude: coordinates[0], longitude: coordinates[1] },
-            { latitude: messageObject.lat, longitude: messageObject.lng }
-          );
-
-          if (alert.isAlreadyGenerateAlert) continue;
-
-          const isVehicleInGeozone =
-            event === 'geo_in' && distanceInMeters <= radius;
-          if (
-            isVehicleInGeozone ||
-            (event === 'geo_out' && distanceInMeters > radius)
-          ) {
-            alert.isAlreadyGenerateAlert = true;
-            const message = isVehicleInGeozone
-              ? 'Your car is within the geozone'
-              : 'Your car is outside the geozone';
-            await this.sendOtp(mobileNo, message);
-            break;
-          }
-        }
-      }
-      await this.redisService
-        .getClient()
-        .set(messageObject.imei, JSON.stringify(finalObject));
-    });
+    // this.mqttClient = this.mqttService.getClient();
+    // this.mqttClient.on('message', async (topic, message) => {
+    //   const messageString = Buffer.from(message).toString('utf8');
+    //   const messageObject = JSON.parse(messageString);
+    //   const redisClient = this.redisService.getClient();
+    //   const getObject = await redisClient.get(messageObject.imei);
+    //   const finalObject = JSON.parse(getObject);
+    //   this.pubSub.publish('coordinatesUpdated', {
+    //     coordinatesUpdated: messageObject,
+    //   });
+    //   if (
+    //     finalObject &&
+    //     finalObject.alertConfig &&
+    //     finalObject.alertConfig.alertData &&
+    //     finalObject.isAlertDisable
+    //   ) {
+    //     const { mobileNo, alertConfig } = finalObject;
+    //     for (const alert of alertConfig.alertData) {
+    //       const { event, location } = alert;
+    //       const { coordinates, radius } = location.geoCodeData.geometry;
+    //       const distanceInMeters = getDistanceInMeters(
+    //         { latitude: coordinates[0], longitude: coordinates[1] },
+    //         { latitude: messageObject.lat, longitude: messageObject.lng }
+    //       );
+    //       if (alert.isAlreadyGenerateAlert) continue;
+    //       const isVehicleInGeozone =
+    //         event === 'geo_in' && distanceInMeters <= radius;
+    //       if (
+    //         isVehicleInGeozone ||
+    //         (event === 'geo_out' && distanceInMeters > radius)
+    //       ) {
+    //         alert.isAlreadyGenerateAlert = true;
+    //         const message = isVehicleInGeozone
+    //           ? 'Your car is within the geozone'
+    //           : 'Your car is outside the geozone';
+    //         await this.sendOtp(mobileNo, message);
+    //         break;
+    //       }
+    //     }
+    //   }
+    //   await this.redisService
+    //     .getClient()
+    //     .set(messageObject.imei, JSON.stringify(finalObject));
+    // });
   }
 
   async sendOtp(mobileNumber: any, message: string) {

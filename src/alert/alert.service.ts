@@ -26,74 +26,70 @@ export class AlertService {
   constructor(
     @InjectModel(Alert.name)
     private AlertModel: Model<AlertDocument>,
-    private readonly redisService: RedisService,
-    private readonly mqttService: MqttService
+    private readonly redisService: RedisService // private readonly mqttService: MqttService
   ) {
-    this.mqttClient = this.mqttService.getClient();
-    this.mqttClient.on('message', async (topic, message) => {
-      const messageString = Buffer.from(message).toString('utf8');
-      const messageObject = JSON.parse(messageString);
-      const redisClient = this.redisService.getClient();
-      const getObject = await redisClient.get(messageObject.imei);
-      const finalObject = JSON.parse(getObject);
-      this.pubSub.publish('alertUpdated', {
-        alertUpdated: messageObject,
-      });
-      if (
-        finalObject &&
-        finalObject.alertConfig &&
-        finalObject.isAlertDisable
-      ) {
-        const { mobileNo, alertConfig } = finalObject;
-        for (const alert of alertConfig.alertData) {
-          if (alert.event === messageObject.event) {
-            if (alert.isAlreadyGenerateAlert) continue;
-
-            const { startDate, endDate, startAlertTime, endAlertTime } = alert;
-            const now = new Date();
-
-            // Check if startDate and endDate are present
-            if (startDate && endDate) {
-              const startDateTime = new Date(startDate);
-              const endDateTime = new Date(endDate);
-              if (now >= startDateTime && now <= endDateTime) {
-                alert.isAlreadyGenerateAlert = true;
-                const smsMessage =
-                  alert.event === 'locked' ? 'locked' : 'Unlocked';
-                await this.sendOtp(mobileNo, smsMessage);
-                break;
-              }
-            }
-
-            // Check if startAlertTime and endAlertTime are present
-            if (startAlertTime && endAlertTime) {
-              const startTime = new Date(startAlertTime);
-              const endTime = new Date(endAlertTime);
-              startTime.setFullYear(
-                now.getFullYear(),
-                now.getMonth(),
-                now.getDate()
-              );
-              endTime.setFullYear(
-                now.getFullYear(),
-                now.getMonth(),
-                now.getDate()
-              );
-              if (now >= startTime && now <= endTime) {
-                alert.isAlreadyGenerateAlert = true;
-                const smsMessage =
-                  alert.event === 'locked' ? 'locked' : 'Unlocked';
-                await this.sendOtp(mobileNo, smsMessage);
-                break;
-              }
-            }
-          }
-        }
-      }
-      await this.redisService
-        .getClient()
-        .set(messageObject.imei, JSON.stringify(finalObject));
-    });
+    // this.mqttClient = this.mqttService.getClient();
+    // this.mqttClient.on('message', async (topic, message) => {
+    //   const messageString = Buffer.from(message).toString('utf8');
+    //   const messageObject = JSON.parse(messageString);
+    //   const redisClient = this.redisService.getClient();
+    //   const getObject = await redisClient.get(messageObject.imei);
+    //   const finalObject = JSON.parse(getObject);
+    //   this.pubSub.publish('alertUpdated', {
+    //     alertUpdated: messageObject,
+    //   });
+    //   if (
+    //     finalObject &&
+    //     finalObject.alertConfig &&
+    //     finalObject.isAlertDisable
+    //   ) {
+    //     const { mobileNo, alertConfig } = finalObject;
+    //     for (const alert of alertConfig.alertData) {
+    //       if (alert.event === messageObject.event) {
+    //         if (alert.isAlreadyGenerateAlert) continue;
+    //         const { startDate, endDate, startAlertTime, endAlertTime } = alert;
+    //         const now = new Date();
+    //         // Check if startDate and endDate are present
+    //         if (startDate && endDate) {
+    //           const startDateTime = new Date(startDate);
+    //           const endDateTime = new Date(endDate);
+    //           if (now >= startDateTime && now <= endDateTime) {
+    //             alert.isAlreadyGenerateAlert = true;
+    //             const smsMessage =
+    //               alert.event === 'locked' ? 'locked' : 'Unlocked';
+    //             await this.sendOtp(mobileNo, smsMessage);
+    //             break;
+    //           }
+    //         }
+    //         // Check if startAlertTime and endAlertTime are present
+    //         if (startAlertTime && endAlertTime) {
+    //           const startTime = new Date(startAlertTime);
+    //           const endTime = new Date(endAlertTime);
+    //           startTime.setFullYear(
+    //             now.getFullYear(),
+    //             now.getMonth(),
+    //             now.getDate()
+    //           );
+    //           endTime.setFullYear(
+    //             now.getFullYear(),
+    //             now.getMonth(),
+    //             now.getDate()
+    //           );
+    //           if (now >= startTime && now <= endTime) {
+    //             alert.isAlreadyGenerateAlert = true;
+    //             const smsMessage =
+    //               alert.event === 'locked' ? 'locked' : 'Unlocked';
+    //             await this.sendOtp(mobileNo, smsMessage);
+    //             break;
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    //   await this.redisService
+    //     .getClient()
+    //     .set(messageObject.imei, JSON.stringify(finalObject));
+    // });
   }
 
   async sendOtp(mobileNumber: any, message: string) {
@@ -144,7 +140,10 @@ export class AlertService {
         record.alertConfig.userSelectedImei;
 
       for (const alert of imeisToIterate) {
-        await this.setJsonValue(alert, record.alertConfig.alertData);
+        await this.setJsonValue(alert, {
+          mobileNo: record.mobileNo,
+          alarmConfig: record.alertConfig.alertData,
+        });
       }
 
       return record;

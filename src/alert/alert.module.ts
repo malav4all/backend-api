@@ -11,7 +11,7 @@ import { MqttService } from '@imz/mqtt/mqtt.service';
     MongooseModule.forFeature([{ name: Alert.name, schema: AlertSchema }]),
   ],
 
-  providers: [AlertResolver, AlertService, RedisService, MqttService],
+  providers: [AlertResolver, AlertService, RedisService],
   exports: [AlertService],
 })
 export class AlertModule {}

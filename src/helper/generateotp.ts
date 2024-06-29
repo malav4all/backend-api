@@ -21,3 +21,13 @@ export function getDistanceInMeters(coord1, coord2) {
 
   return R * c; // Distance in meters
 }
+
+export const generateUniqueID = () => {
+  const characters = '0123456789';
+  let result = '';
+  const charactersLength = 6;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return 'IMZ' + result;
+};
