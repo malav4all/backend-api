@@ -2,6 +2,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InfluxDB } from '@influxdata/influxdb-client';
 import axios from 'axios';
+import { OrgsAPI, BucketsAPI } from '@influxdata/influxdb-client-apis';
 
 @Injectable()
 export class InfluxdbService implements OnModuleInit {
@@ -33,23 +34,27 @@ export class InfluxdbService implements OnModuleInit {
   }
 
   async createBucket(bucketName: string) {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { OrgsAPI, BucketsAPI } = require('@influxdata/influxdb-client-apis');
-    const orgsAPI = new OrgsAPI(this.influxDB);
-    const bucketsAPI = new BucketsAPI(this.influxDB);
+    try {
+      const orgsAPI = new OrgsAPI(this.influxDB);
+      const bucketsAPI = new BucketsAPI(this.influxDB);
 
-    const org = 'IMZ';
-    const orgs = await orgsAPI.getOrgs({ org });
-    const orgId = orgs.orgs[0].id;
+      const org = process.env.INFLUXDB_ORG || 'my-org';
+      const orgs = await orgsAPI.getOrgs({ org });
 
-    await bucketsAPI.postBuckets({
-      body: {
-        orgID: orgId,
-        name: bucketName,
-        retentionRules: [],
-      },
-    });
+      if (!orgs.orgs || orgs.orgs.length === 0) {
+        throw new Error(`Organization ${org} not found.`);
+      }
+      const orgId = orgs.orgs[0].id;
 
-    console.log(`Bucket "${bucketName}" created successfully.`);
+      await bucketsAPI.postBuckets({
+        body: {
+          orgID: orgId,
+          name: bucketName,
+          retentionRules: [],
+        },
+      });
+    } catch (error) {
+      console.error('Error creating bucket:', error);
+    }
   }
 }

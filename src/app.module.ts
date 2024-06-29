@@ -63,8 +63,9 @@ import { Upload } from './helper/comman/scalar/Upload.scalar';
     RoleModule,
     AccountModule,
     TenantsModule,
+    InfluxDbModule,
   ],
-  providers: [InfluxService, InfluxResolver, Upload],
-  exports: [InfluxService],
+  providers: [Upload],
+  exports: [],
 })
 export class AppModule {}

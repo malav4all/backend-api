@@ -348,61 +348,6 @@ type DashboardResponse {
   data: DashboardType!
 }
 
-type TrackPlayResponse {
-  stopTime: String!
-  currentTime: String!
-  startTime: String!
-  measurement: String!
-  label: String!
-  imei: String!
-  direction: String!
-  lat: String!
-  lng: String!
-  speed: String!
-}
-
-type AlertResponseType {
-  event: String
-  lat: String
-  imei: String
-  label: String
-  lng: String
-  mode: String
-  source: String
-  message: String
-  time: String
-}
-
-type AlertResponseTableData {
-  paginatorInfo: PaginatorInfo
-  data: [AlertResponseType!]!
-}
-
-type DeviceStatusResponse {
-  time: String!
-  imei: String!
-  label: String!
-  lat: String!
-  lng: String!
-  status: String!
-}
-
-type DeviceStatus {
-  paginatorInfo: PaginatorInfo
-  data: [DeviceStatusResponse!]!
-}
-
-type CoordinatesTypeResponse {
-  latitude: String
-  longitude: String
-  time: String
-}
-
-type DistanceReportResponse {
-  imei: String
-  coordinates: [CoordinatesTypeResponse!]
-}
-
 type AlertEntityConfig {
   event: String
   location: JSON!
@@ -594,11 +539,6 @@ input AccountInput {
 }
 
 type Mutation {
-  getRowData: [TrackPlayResponse!]!
-  getAlertData(input: AlertInputType!): AlertResponseTableData!
-  getStatusDevice(input: AlertInputType!): DeviceStatus!
-  fetchDistanceReport(input: AlertInputType!): [DistanceReportResponse!]!
-  getAllStatusDevice: DeviceStatus!
   addUser(input: CreateUserInput!): UserResponse!
   forgetPassword(input: ChangePasswordInput!): UserResponse!
   changePassword(input: ChangePasswordInput!): UserResponse!
@@ -664,13 +604,6 @@ type Mutation {
   deleteAccount(input: UpdateAccountInput!): AccountResponse!
   searchAccount(input: SearchAccountInput!): AccountResponse!
   fetchAccountModuleList(input: AccountInput!): AccountResponse!
-}
-
-input AlertInputType {
-  page: Int
-  limit: Int
-  startDate: String!
-  endDate: String!
 }
 
 input ChangePasswordInput {

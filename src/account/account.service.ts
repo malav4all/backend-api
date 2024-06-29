@@ -3,10 +3,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { Role, RoleDocument } from '../role/entities/role.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import {
-  Account,
-  AccountDocument,
-} from './enities/account-module.enitiy';
+import { Account, AccountDocument } from './enities/account-module.enitiy';
 import {
   AccountInput,
   CreateAccountInput,
@@ -14,7 +11,8 @@ import {
 } from './dto/create-account-module.input';
 import { UpdateAccountInput } from './dto/update.account-module';
 import { TenantsService } from '@imz/tenants/tenants.service';
-import { generateShortUuid } from '@imz/helper/generateotp';
+import { generateShortUuid, generateUniqueID } from '@imz/helper/generateotp';
+import { InfluxdbService } from '@imz/influx-db/influx-db-.service';
 
 @Injectable()
 export class AccountService {
@@ -22,7 +20,8 @@ export class AccountService {
     @InjectModel(Account.name)
     private AccountModel: Model<AccountDocument>,
     @InjectModel(Role.name) private RoleModel: Model<RoleDocument>,
-    private tenantService: TenantsService
+    private tenantService: TenantsService,
+    private influxDbService: InfluxdbService
   ) {}
 
   async findAll(input: AccountInput, { accountId, roleId }) {
@@ -92,11 +91,14 @@ export class AccountService {
     }
 
     const record = await this.AccountModel.create(accountPayload);
+    const uniqueInfluxBucketName = generateUniqueID();
+    await this.influxDbService.createBucket(uniqueInfluxBucketName);
     await this.tenantService.createTenant({
       accountId: record._id,
       accountName: payload.accountName,
       tenantId: record.tenantId,
     });
+
     return record;
   }
 
