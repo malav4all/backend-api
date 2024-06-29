@@ -100,7 +100,6 @@ export class AccountResolver {
         accountId: context?.user?.accountId,
         roleId: context?.user?.roleId,
       };
-      console.log(loggedInAccount);
       const { records, count } = await this.accountModuleService.findAll(
         input,
         loggedInAccount

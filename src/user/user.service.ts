@@ -19,8 +19,6 @@ import * as jwt from 'jsonwebtoken';
 import { UAParser } from 'ua-parser-js';
 import { REQUEST } from '@nestjs/core';
 import { generateOtp } from '@imz/helper/generateotp';
-import { Account, AccountDocument } from '@imz/account/enities/account-module.enitiy';
-
 @Injectable()
 export class UserService {
   constructor(
@@ -208,25 +206,17 @@ export class UserService {
   async login(payload: LoginUserInput) {
     const inputUser: any = payload;
     try {
-      console.log('in the user service');
       let user: any = await this.UserModel.findOne({
         email: inputUser.email,
       })
-        // .populate([{ path: 'accountId' }, { path: 'roleId' }])
-        // .populate([{ path: 'accountId' }]);
-        .populate([{ path: 'roleId' }]);
-      // .lean()
-      // .exec();
-
-      console.log('mongo query');
-      // console.log(user.email);
-      // console.log({ user });
+        .populate([{ path: 'accountId' }, { path: 'roleId' }])
+        .lean()
+        .exec();
       if (user) {
         const isPasswordValid = await this.verifyPassword(
           user,
           inputUser.password
         );
-        console.log(user);
         if (isPasswordValid) {
           const accessToken = await this.generateAccessToken(user);
           user = {

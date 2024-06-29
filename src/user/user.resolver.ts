@@ -92,9 +92,7 @@ export class UserResolver {
   async loginUser(@Args('input') input: LoginUserInput) {
     try {
       try {
-        // console.log('At B');
         const res = await this.userService.login(input);
-        // console.log(res);
         return {
           data: res,
         };

@@ -83,7 +83,7 @@ export class User {
   mobileVerified: boolean;
 
   @Field()
-  @Prop({ type: Types.ObjectId, ref: 'AccountModule', text: true })
+  @Prop({ type: Types.ObjectId, ref: 'Account', text: true })
   accountId: AccountResponseType;
 
   @Field()
