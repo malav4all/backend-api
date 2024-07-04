@@ -8,9 +8,7 @@ import { AssertAssingmentModuleModule } from './assert-asingment/assert-asingmen
 import { GeozoneModule } from './geozone/geozone.module';
 import { LocationTypeModule } from './location-type/location-type.module';
 import { JourneyModule } from './journey/journey.module';
-import { InfluxService } from './helper/comman/influx-db/influx-db.connection';
 import { DashboardModule } from './dashboard/dashboard.module';
-import { InfluxResolver } from './helper/comman/influx-db/influx-resolver';
 import { RedisModule } from './redis/redis.module';
 import { AlertModule } from './alert/alert.module';
 import { DeviceGroupModule } from './device-group/device-group.module';
@@ -22,6 +20,7 @@ import { RoleModule } from './role/role.module';
 import { TenantsModule } from './tenants/tenants.module';
 import { AccountModule } from './account/account.module';
 import { Upload } from './helper/comman/scalar/Upload.scalar';
+import { TransitTypeModule } from './transit-type/transit-type.module';
 
 @Module({
   imports: [
@@ -64,6 +63,7 @@ import { Upload } from './helper/comman/scalar/Upload.scalar';
     AccountModule,
     TenantsModule,
     InfluxDbModule,
+    TransitTypeModule,
   ],
   providers: [Upload],
   exports: [],
