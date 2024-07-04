@@ -742,6 +742,21 @@ type DeviceSimHistoryResponse {
   data: [DeviceSimHistory!]
 }
 
+type LoginActivity {
+  _id: String!
+  loginTime: DateTime
+  logoutTime: DateTime
+  user: JSON!
+  systemInfo: JSON
+}
+
+type LoginActivityResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [LoginActivity!]!
+}
+
 type Query {
   createUser(input: CreateUserInput!): UserResponse!
   fetchAccountList(input: AccountInput!): AccountResponse!
@@ -856,6 +871,9 @@ type Mutation {
   fetchDeviceOnboardingHistoryList(input: DeviceOnboardingHistoryFetchInput!): DeviceOnboardingHistoryResponse!
   createDeviceSimHistory(input: DeviceSimHistoryInput!): DeviceSimHistoryResponse!
   fetchDeviceSimHistoryList(input: DeviceSimHistoryFetchInput!): DeviceSimHistoryResponse!
+  loginActivityListAll(input: LoginActivityFetchInput!): LoginActivityResponse!
+  logoutUser(input: LogoutInput!): String!
+  searchLoginActivity(input: SearchLoginActivityInput!): LoginActivityResponse!
 }
 
 input ChangePasswordInput {
@@ -1435,6 +1453,21 @@ input DeviceSimHistoryInput {
 }
 
 input DeviceSimHistoryFetchInput {
+  page: Int
+  limit: Int
+}
+
+input LoginActivityFetchInput {
+  page: Int
+  limit: Int
+}
+
+input LogoutInput {
+  _id: String
+}
+
+input SearchLoginActivityInput {
+  search: String
   page: Int
   limit: Int
 }

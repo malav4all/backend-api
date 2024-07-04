@@ -25,6 +25,7 @@ import { TripModuleModule } from './trip-module/trip-module.module';
 import { DeviceOnboardingModule } from './device-onboarding/device-onboarding.module';
 import { DeviceSimHistoryModule } from './history/device-sim-history/device-sim-history.module';
 import { DeviceOnboardingHistoryModule } from './history/device-onboarding-history/device-onboarding-history.module';
+import { LoginActivityModule } from './login-activity/login-activity.module';
 
 @Module({
   imports: [
@@ -72,6 +73,7 @@ import { DeviceOnboardingHistoryModule } from './history/device-onboarding-histo
     DeviceOnboardingModule,
     DeviceSimHistoryModule,
     DeviceOnboardingHistoryModule,
+    LoginActivityModule,
   ],
   providers: [Upload],
   exports: [],
