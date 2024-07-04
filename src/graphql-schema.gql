@@ -506,6 +506,57 @@ type AccountResponse {
   data: [Account!]
 }
 
+type TransitType {
+  _id: String!
+  transitName: String!
+  minBatteryPercentage: Float!
+  tripRate: Float!
+  gstPercentage: Float!
+  createdBy: String!
+  updatedBy: String!
+  lastUpdated: DateTime
+}
+
+type TransitTypeResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [TransitType!]!
+}
+
+type TripInformationData {
+  imei: [String!]
+  vehicleNo: String
+  tripDate: String
+  remarks: String
+}
+
+type Trip {
+  _id: String!
+  tripId: String!
+  status: String!
+  primaryAccount: String!
+  tripStartDate: String
+  tripEndDate: String
+  tripData: [TripInformationData!]
+  journey: JSON
+  alertConfig: JSON
+  startPoint: JSON
+  endPoint: JSON
+  metaData: JSON
+  accessAccount: [String!]
+  createdBy: String!
+  updatedBy: String!
+  lastUpdated: DateTime
+}
+
+type TripResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [Trip!]!
+}
+
 type Query {
   createUser(input: CreateUserInput!): UserResponse!
   fetchAccountList(input: AccountInput!): AccountResponse!
@@ -604,6 +655,14 @@ type Mutation {
   deleteAccount(input: UpdateAccountInput!): AccountResponse!
   searchAccount(input: SearchAccountInput!): AccountResponse!
   fetchAccountModuleList(input: AccountInput!): AccountResponse!
+  createTransitType(input: CreateTransitTypeInput!): TransitTypeResponse!
+  transitTypeList(input: TransitTypeInput!): TransitTypeResponse!
+  searchTransitType(input: SearchTransitTypeInput!): TransitTypeResponse!
+  updateTransitType(input: UpdateTransitTypeInput!): TransitTypeResponse!
+  createTrip(input: CreateTripInput!): TripResponse!
+  tripList(input: TripInput!): TripResponse!
+  searchTrip(input: SearchTripInput!): TripResponse!
+  updateTrip(input: UpdateTripInput!): TripResponse!
 }
 
 input ChangePasswordInput {
@@ -1033,6 +1092,89 @@ input SearchAccountInput {
   search: String
   page: Int
   limit: Int
+}
+
+input CreateTransitTypeInput {
+  transitName: String
+  minBatteryPercentage: Float
+  tripRate: Float
+  gstPercentage: String
+  createdBy: String
+  updatedBy: String
+}
+
+input TransitTypeInput {
+  page: Int
+  limit: Int
+}
+
+input SearchTransitTypeInput {
+  search: String
+  page: Int
+  limit: Int
+}
+
+input UpdateTransitTypeInput {
+  transitName: String
+  minBatteryPercentage: Float
+  tripRate: Float
+  gstPercentage: String
+  createdBy: String
+  updatedBy: String
+  _id: String!
+}
+
+input CreateTripInput {
+  tripId: String
+  status: String
+  primaryAccount: String
+  accessAccount: [String!]
+  tripStartDate: String
+  tripEndDate: String
+  tripData: [TripInformationDetail!]
+  journey: JSON
+  alertConfig: JSON
+  startPoint: JSON
+  endPoint: JSON
+  metaData: JSON
+  createdBy: String
+  updatedBy: String
+}
+
+input TripInformationDetail {
+  imei: [String!]
+  vehicleNo: String
+  tripDate: String
+  remarks: String
+}
+
+input TripInput {
+  page: Int
+  limit: Int
+}
+
+input SearchTripInput {
+  search: String
+  page: Int
+  limit: Int
+}
+
+input UpdateTripInput {
+  tripId: String
+  status: String
+  primaryAccount: String
+  accessAccount: [String!]
+  tripStartDate: String
+  tripEndDate: String
+  tripData: [TripInformationDetail!]
+  journey: JSON
+  alertConfig: JSON
+  startPoint: JSON
+  endPoint: JSON
+  metaData: JSON
+  createdBy: String
+  updatedBy: String
+  _id: String!
 }
 
 type Subscription {

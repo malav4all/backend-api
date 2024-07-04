@@ -21,6 +21,7 @@ import { TenantsModule } from './tenants/tenants.module';
 import { AccountModule } from './account/account.module';
 import { Upload } from './helper/comman/scalar/Upload.scalar';
 import { TransitTypeModule } from './transit-type/transit-type.module';
+import { TripModuleModule } from './trip-module/trip-module.module';
 
 @Module({
   imports: [
@@ -64,6 +65,7 @@ import { TransitTypeModule } from './transit-type/transit-type.module';
     TenantsModule,
     InfluxDbModule,
     TransitTypeModule,
+    TripModuleModule,
   ],
   providers: [Upload],
   exports: [],
