@@ -68,6 +68,7 @@ export class AccountService {
   }
 
   async create(payload: CreateAccountInput, getLoggedInUserDetail: any) {
+    const uniqueInfluxBucketName = generateUniqueID();
     let accountPayload;
     const getAccountDetail = await this.AccountModel.findById(
       getLoggedInUserDetail.accountId._id
@@ -80,18 +81,16 @@ export class AccountService {
       accountPayload = {
         ...payload,
         nodeSequence: 0 + 1,
-        tenantId: generateShortUuid(),
+        tenantId: uniqueInfluxBucketName,
       };
     } else {
       accountPayload = {
         ...payload,
         nodeSequence: getAccountDetail.nodeSequence + 1,
-        tenantId: generateShortUuid(),
+        tenantId: uniqueInfluxBucketName,
       };
     }
-
     const record = await this.AccountModel.create(accountPayload);
-    const uniqueInfluxBucketName = generateUniqueID();
     await this.influxDbService.createBucket(uniqueInfluxBucketName);
     await this.tenantService.createTenant({
       accountId: record._id,

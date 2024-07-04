@@ -557,6 +557,191 @@ type TripResponse {
   data: [Trip!]!
 }
 
+type DeviceOnboardingIndustryTypeResponse {
+  _id: String!
+  name: String
+  code: String
+  description: String
+}
+
+type DataTypeValue {
+  key: String
+  value: String
+}
+
+type DeviceOnboardingAccountModuleResponse {
+  _id: String!
+  accountLogo: String
+  accountName: String!
+  industryType: DeviceOnboardingIndustryTypeResponse!
+  accountPanNo: String
+  accountGstNo: String
+  parentId: String
+  accountAadharNo: String
+  accountAddress: String!
+  accountState: String
+  accountCity: String
+  accountContactName: String!
+  accountContactEmail: String!
+  accountContactMobile: String
+  remarks: String
+  accountAuthMobile: [String!]
+  accountApiKey: String
+  accountConfiguration: [DataTypeValue!]!
+  accountCreatedBy: String
+  nodeSequence: Float
+  updatedBy: String
+  isDelete: Boolean
+}
+
+type DeviceOnboardingUserResponse {
+  _id: String!
+  firstName: String!
+  lastName: String!
+  email: String!
+  mobileNumber: Float!
+  userName: String!
+  avatar: String!
+  password: String!
+  active: Boolean!
+  createdBy: String!
+  createdAt: DateTime
+  updatedAt: DateTime
+  emailVerified: Boolean!
+  mobileVerified: Boolean!
+  parentAccountId: String!
+}
+
+type DeviceModelValuesInputResponse {
+  key: String
+  value: String!
+}
+
+type DeviceOnboardingDeviceModelResponse {
+  _id: String!
+  deviceModelName: String!
+  deviceModel: String!
+  deviceModelType: [String!]
+  deviceModelIpAddress: String!
+  deviceModelPortNumber: Float!
+  deviceModelSimCount: Float!
+  deviceModelNetworkType: String!
+  deviceModelParser: String!
+  deviceModelComands: [String!]
+  deviceModelConfig: [DeviceModelValuesInputResponse!]!
+  createdBy: String
+  updatedBy: String
+}
+
+type DeviceOnboarding {
+  _id: String!
+  assetsType: String
+  description: String
+  deviceOnboardingName: String
+  deviceOnboardingAccount: DeviceOnboardingAccountModuleResponse
+  deviceOnboardingUser: DeviceOnboardingUserResponse
+  deviceOnboardingSimNo: [String!]
+  deviceOnboardingModel: DeviceOnboardingDeviceModelResponse
+  deviceOnboardingStatus: String
+  deviceOnboardingIMEINumber: String
+  createdBy: String
+  updatedBy: String
+  tenantId: String
+}
+
+type DeviceOnboardingResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [DeviceOnboarding!]
+}
+
+type ValueAccountModule {
+  key: String
+  value: String
+}
+
+type DeviceOnboardingAccountResponseType {
+  _id: String!
+  accountLogo: String
+  accountName: String!
+  accountPanNo: String
+  accountGstNo: String
+  parentId: String
+  accountAadharNo: String
+  accountAddress: String!
+  accountState: String
+  accountCity: String
+  accountContactName: String!
+  accountContactEmail: String!
+  accountContactMobile: String
+  remarks: String
+  accountAuthMobile: [String!]
+  accountApiKey: String
+  accountConfiguration: [ValueAccountModule!]!
+  accountCreatedBy: String
+  nodeSequence: Float
+  updatedBy: String
+  isDelete: Boolean
+}
+
+type DeviceOnboardingHistory {
+  _id: String!
+  deviceOnboardingAccount: DeviceOnboardingAccountResponseType
+  deviceOnboardingSimNo: [String!]!
+  deviceOnboardingIMEINumber: Float
+  deviceOnboardingDate: DateTime
+  deviceDeboardingDate: DateTime
+  createdBy: String
+  updatedBy: String
+}
+
+type DeviceSimHistory {
+  _id: String!
+  deviceOnboardingSimNo: [String!]!
+  deviceOnboardingIMEINumber: Float
+  fromDate: DateTime
+  toDate: DateTime
+  createdBy: String
+  updatedBy: String
+}
+
+type UserResponseType {
+  _id: String!
+  firstName: String!
+  lastName: String!
+  email: String!
+  mobileNumber: Float!
+  userName: String!
+  avatar: String!
+  password: String!
+  active: Boolean!
+  createdBy: String!
+  createdAt: DateTime
+  updatedAt: DateTime
+  emailVerified: Boolean!
+  mobileVerified: Boolean!
+  accountId: String!
+  roleId: String!
+  industryType: String!
+  parentUserId: String!
+  mainParentId: String!
+}
+
+type DeviceOnboardingHistoryResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [DeviceOnboardingHistory!]
+}
+
+type DeviceSimHistoryResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [DeviceSimHistory!]
+}
+
 type Query {
   createUser(input: CreateUserInput!): UserResponse!
   fetchAccountList(input: AccountInput!): AccountResponse!
@@ -663,6 +848,14 @@ type Mutation {
   tripList(input: TripInput!): TripResponse!
   searchTrip(input: SearchTripInput!): TripResponse!
   updateTrip(input: UpdateTripInput!): TripResponse!
+  filterRecordUerAccountId(input: DeviceOnboardingAccountIdInput!): [UserResponseType!]!
+  createDeviceOnboarding(input: DeviceOnboardingInput!): DeviceOnboardingResponse!
+  fetchDeviceOnboardingList(input: DeviceOnboardingFetchInput!): DeviceOnboardingResponse!
+  updateDeviceOnboarding(input: UpdateDeviceOnboardingInput!): DeviceOnboardingResponse!
+  createDeviceOnboardingHistory(input: DeviceOnboardingHistoryInput!): DeviceOnboardingHistoryResponse!
+  fetchDeviceOnboardingHistoryList(input: DeviceOnboardingHistoryFetchInput!): DeviceOnboardingHistoryResponse!
+  createDeviceSimHistory(input: DeviceSimHistoryInput!): DeviceSimHistoryResponse!
+  fetchDeviceSimHistoryList(input: DeviceSimHistoryFetchInput!): DeviceSimHistoryResponse!
 }
 
 input ChangePasswordInput {
@@ -1175,6 +1368,75 @@ input UpdateTripInput {
   createdBy: String
   updatedBy: String
   _id: String!
+}
+
+input DeviceOnboardingAccountIdInput {
+  accountId: String
+}
+
+input DeviceOnboardingInput {
+  assetsType: String
+  description: String
+  deviceOnboardingName: String
+  deviceOnboardingAccount: String
+  deviceOnboardingUser: String
+  deviceOnboardingSimNo: [String!]
+  deviceOnboardingModel: String
+  deviceOnboardingStatus: String
+  deviceOnboardingIMEINumber: String
+  createdBy: String
+  updatedBy: String
+  tenantId: String
+}
+
+input DeviceOnboardingFetchInput {
+  page: Int
+  limit: Int
+}
+
+input UpdateDeviceOnboardingInput {
+  assetsType: String
+  description: String
+  deviceOnboardingName: String
+  deviceOnboardingAccount: String
+  deviceOnboardingUser: String
+  deviceOnboardingSimNo: [String!]
+  deviceOnboardingModel: String
+  deviceOnboardingStatus: String
+  deviceOnboardingIMEINumber: String
+  createdBy: String
+  updatedBy: String
+  tenantId: String
+  _id: String!
+}
+
+input DeviceOnboardingHistoryInput {
+  deviceOnboardingAccount: String
+  deviceOnboardingSimNo: [String!]!
+  deviceOnboardingIMEINumber: Float
+  deviceOnboardingDate: DateTime
+  deviceDeboardingDate: DateTime
+  createdBy: String
+  updatedBy: String
+}
+
+input DeviceOnboardingHistoryFetchInput {
+  page: Int
+  limit: Int
+}
+
+input DeviceSimHistoryInput {
+  deviceOnboardingSimNo: [String!]!
+  deviceOnboardingIMEINumber: Float
+  fromDate: DateTime
+  toDate: DateTime
+  createdBy: String
+  updatedBy: String
+}
+
+input DeviceSimHistoryFetchInput {
+  page: Int
+  limit: Int
 }
 
 type Subscription {

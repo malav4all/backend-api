@@ -22,6 +22,9 @@ import { AccountModule } from './account/account.module';
 import { Upload } from './helper/comman/scalar/Upload.scalar';
 import { TransitTypeModule } from './transit-type/transit-type.module';
 import { TripModuleModule } from './trip-module/trip-module.module';
+import { DeviceOnboardingModule } from './device-onboarding/device-onboarding.module';
+import { DeviceSimHistoryModule } from './history/device-sim-history/device-sim-history.module';
+import { DeviceOnboardingHistoryModule } from './history/device-onboarding-history/device-onboarding-history.module';
 
 @Module({
   imports: [
@@ -66,6 +69,9 @@ import { TripModuleModule } from './trip-module/trip-module.module';
     InfluxDbModule,
     TransitTypeModule,
     TripModuleModule,
+    DeviceOnboardingModule,
+    DeviceSimHistoryModule,
+    DeviceOnboardingHistoryModule,
   ],
   providers: [Upload],
   exports: [],
