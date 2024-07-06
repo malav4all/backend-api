@@ -1,14 +1,21 @@
 import { InputType, Field, Int } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
+import GraphQLJSON from 'graphql-type-json';
 
 @InputType()
 export class DeviceOnboardingInput {
+  @Field({ nullable: true })
+  accountId: string;
+
   @Field({ nullable: true })
   assetsType: string;
 
   @IsOptional()
   @Field({ nullable: true })
   description?: string;
+
+  @Field(() => GraphQLJSON, { nullable: true })
+  location: typeof GraphQLJSON;
 
   @Field({ nullable: true })
   deviceOnboardingName: string;
@@ -26,7 +33,7 @@ export class DeviceOnboardingInput {
   @Field({ nullable: true })
   deviceOnboardingModel: string;
 
-  @Field({ nullable: true })
+  @Field({ nullable: true, defaultValue: 'Active' })
   deviceOnboardingStatus: string;
 
   @Field({ nullable: true })

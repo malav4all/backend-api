@@ -60,9 +60,4 @@ export class GeozoneResolver {
       throw new InternalServerErrorException(error.message);
     }
   }
-
-  @Subscription(() => Coordinate)
-  coordinatesUpdated(@Args('topic') topic: string) {
-    return this.geoZoneService.coordinatesUpdated(topic);
-  }
 }

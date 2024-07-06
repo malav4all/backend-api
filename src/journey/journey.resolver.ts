@@ -86,37 +86,37 @@ export class JourneyResolver {
     }
   }
 
-  @UseGuards(new AuthGuard())
-  @Mutation(() => JourneyResponseData)
-  async archiveJourney() {
-    try {
-      const record = await this.journeyService.archiveJourney();
-      return {
-        success: record ? 1 : 0,
-        data: record,
-        message: record
-          ? 'Records update successfully.'
-          : 'Technical issue please try again.',
-      };
-    } catch (error) {
-      throw new InternalServerErrorException(error.message);
-    }
-  }
+  // @UseGuards(new AuthGuard())
+  // @Mutation(() => JourneyResponseData)
+  // async archiveJourney() {
+  //   try {
+  //     const record = await this.journeyService.archiveJourney();
+  //     return {
+  //       success: record ? 1 : 0,
+  //       data: record,
+  //       message: record
+  //         ? 'Records update successfully.'
+  //         : 'Technical issue please try again.',
+  //     };
+  //   } catch (error) {
+  //     throw new InternalServerErrorException(error.message);
+  //   }
+  // }
 
-  @UseGuards(new AuthGuard())
-  @Mutation(() => JourneyResponseData)
-  async upComingJourney() {
-    try {
-      const record = await this.journeyService.upComingJourney();
-      return {
-        success: record ? 1 : 0,
-        data: record,
-        message: record
-          ? 'Records update successfully.'
-          : 'Technical issue please try again.',
-      };
-    } catch (error) {
-      throw new InternalServerErrorException(error.message);
-    }
-  }
+  // @UseGuards(new AuthGuard())
+  // @Mutation(() => JourneyResponseData)
+  // async upComingJourney() {
+  //   try {
+  //     const record = await this.journeyService.upComingJourney();
+  //     return {
+  //       success: record ? 1 : 0,
+  //       data: record,
+  //       message: record
+  //         ? 'Records update successfully.'
+  //         : 'Technical issue please try again.',
+  //     };
+  //   } catch (error) {
+  //     throw new InternalServerErrorException(error.message);
+  //   }
+  // }
 }

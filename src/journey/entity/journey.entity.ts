@@ -12,6 +12,10 @@ export class Journey {
 
   @Field({ nullable: true })
   @Prop({ text: true })
+  accountId: string;
+
+  @Field({ nullable: true })
+  @Prop({ text: true })
   journeyName: string;
 
   @Field(() => [JourneyResponse], { nullable: true })
@@ -53,12 +57,4 @@ export class Journey {
   updatedAt: Date;
 }
 
-export type JourneyDocument = Journey & Document;
 export const JourneySchema = SchemaFactory.createForClass(Journey);
-JourneySchema.index({
-  journeyName: 'text',
-  createdBy: 'text',
-  imei: 'text',
-  totalDistance:'text',
-  totalDuration:'text',
-});

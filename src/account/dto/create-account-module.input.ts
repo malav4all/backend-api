@@ -12,6 +12,9 @@ export class AccountConfigInput {
 @InputType()
 export class CreateAccountInput {
   @Field({ nullable: true })
+  accountId?: string;
+
+  @Field({ nullable: true })
   @IsOptional()
   accountLogo?: string;
 

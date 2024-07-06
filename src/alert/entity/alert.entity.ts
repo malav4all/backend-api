@@ -88,6 +88,11 @@ export class Alert {
   @Prop()
   @Column()
   @Field({ nullable: true })
+  accountId: string;
+
+  @Prop()
+  @Column()
+  @Field({ nullable: true })
   alertName: string;
 
   @Prop()
@@ -118,5 +123,4 @@ export class Alert {
   createdBy: string;
 }
 
-export type AlertDocument = Alert & Document;
 export const AlertSchema = SchemaFactory.createForClass(Alert);

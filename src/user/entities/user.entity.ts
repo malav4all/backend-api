@@ -91,11 +91,11 @@ export class User {
   @Prop({ type: Types.ObjectId, ref: 'Role', text: true })
   roleId: RoleResponseType;
 
-  @Field()
-  @Column()
-  @Prop({ type: Types.ObjectId, ref: 'Industry', text: true })
-  @IsOptional()
-  industryType?: IndustryType;
+  // @Field()
+  // @Column()
+  // @Prop({ type: Types.ObjectId, ref: 'Industry', text: true })
+  // @IsOptional()
+  // industryType?: IndustryType;
 
   @Field()
   @Column()
@@ -109,20 +109,11 @@ export class User {
   @IsOptional()
   parentUserId?: string;
 
-  @Field()
-  @Column()
-  @Prop()
-  @IsOptional()
-  mainParentId?: string;
-
-  @Field({ nullable: true })
-  @Prop()
-  @Column()
-  deviceGroupId: string;
-
-  @Field(() => DeviceGroup, { nullable: true })
-  @Prop({ required: false })
-  deviceGroup?: DeviceGroup;
+  // @Field()
+  // @Column()
+  // @Prop()
+  // @IsOptional()
+  // mainParentId?: string;
 
   @Field({ nullable: true, defaultValue: 'Active' })
   @Prop({ text: true, default: 'Active' })

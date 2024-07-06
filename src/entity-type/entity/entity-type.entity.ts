@@ -5,7 +5,7 @@ import { Column, Entity, ObjectIdColumn, Index } from 'typeorm';
 @Schema({ timestamps: true })
 @ObjectType()
 @Entity()
-export class LocationType {
+export class EntityType {
   @Field()
   @ObjectIdColumn()
   _id: string;
@@ -13,15 +13,26 @@ export class LocationType {
   @Field()
   @Prop({ text: true })
   @Column()
-  type: string;
+  accountId: string;
+
+  @Field()
+  @Prop({ text: true })
+  @Column()
+  name: string;
+
+  @Field()
+  @Prop({ text: true })
+  @Column()
+  description: string;
 
   @Field()
   @Prop({ text: true })
   @Column()
   createdBy: string;
+
+  @Field()
+  @Prop({ text: true })
+  @Column()
+  updatedBy: string;
 }
-export type LocationTypeDocument = LocationType & Document;
-export const LocationTypeSchema = SchemaFactory.createForClass(LocationType);
-LocationTypeSchema.index({
-  type: 'text',
-});
+export const EntityTypeSchema = SchemaFactory.createForClass(EntityType);

@@ -3,9 +3,9 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { AlertDocument, Alert } from './entity/alert.entity';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
+import { Connection, Model } from 'mongoose';
+import { Alert, AlertSchema } from './entity/alert.entity';
 import {
   AlertInput,
   CreateAlertInputType,
@@ -13,7 +13,6 @@ import {
 } from './dto/create-alert.input';
 import { RedisService } from '@imz/redis/redis.service';
 import { UpdateAlertInput } from './dto/update-alert';
-import { MqttService } from '@imz/mqtt/mqtt.service';
 import { MqttClient } from 'mqtt';
 import { PubSub } from 'graphql-subscriptions';
 import axios from 'axios';
@@ -24,73 +23,10 @@ export class AlertService {
   private pubSub: PubSub = new PubSub();
   private logger = new Logger('AlertService');
   constructor(
-    @InjectModel(Alert.name)
-    private AlertModel: Model<AlertDocument>,
-    private readonly redisService: RedisService // private readonly mqttService: MqttService
-  ) {
-    // this.mqttClient = this.mqttService.getClient();
-    // this.mqttClient.on('message', async (topic, message) => {
-    //   const messageString = Buffer.from(message).toString('utf8');
-    //   const messageObject = JSON.parse(messageString);
-    //   const redisClient = this.redisService.getClient();
-    //   const getObject = await redisClient.get(messageObject.imei);
-    //   const finalObject = JSON.parse(getObject);
-    //   this.pubSub.publish('alertUpdated', {
-    //     alertUpdated: messageObject,
-    //   });
-    //   if (
-    //     finalObject &&
-    //     finalObject.alertConfig &&
-    //     finalObject.isAlertDisable
-    //   ) {
-    //     const { mobileNo, alertConfig } = finalObject;
-    //     for (const alert of alertConfig.alertData) {
-    //       if (alert.event === messageObject.event) {
-    //         if (alert.isAlreadyGenerateAlert) continue;
-    //         const { startDate, endDate, startAlertTime, endAlertTime } = alert;
-    //         const now = new Date();
-    //         // Check if startDate and endDate are present
-    //         if (startDate && endDate) {
-    //           const startDateTime = new Date(startDate);
-    //           const endDateTime = new Date(endDate);
-    //           if (now >= startDateTime && now <= endDateTime) {
-    //             alert.isAlreadyGenerateAlert = true;
-    //             const smsMessage =
-    //               alert.event === 'locked' ? 'locked' : 'Unlocked';
-    //             await this.sendOtp(mobileNo, smsMessage);
-    //             break;
-    //           }
-    //         }
-    //         // Check if startAlertTime and endAlertTime are present
-    //         if (startAlertTime && endAlertTime) {
-    //           const startTime = new Date(startAlertTime);
-    //           const endTime = new Date(endAlertTime);
-    //           startTime.setFullYear(
-    //             now.getFullYear(),
-    //             now.getMonth(),
-    //             now.getDate()
-    //           );
-    //           endTime.setFullYear(
-    //             now.getFullYear(),
-    //             now.getMonth(),
-    //             now.getDate()
-    //           );
-    //           if (now >= startTime && now <= endTime) {
-    //             alert.isAlreadyGenerateAlert = true;
-    //             const smsMessage =
-    //               alert.event === 'locked' ? 'locked' : 'Unlocked';
-    //             await this.sendOtp(mobileNo, smsMessage);
-    //             break;
-    //           }
-    //         }
-    //       }
-    //     }
-    //   }
-    //   await this.redisService
-    //     .getClient()
-    //     .set(messageObject.imei, JSON.stringify(finalObject));
-    // });
-  }
+    @InjectConnection()
+    private connection: Connection,
+    private readonly redisService: RedisService
+  ) {}
 
   async sendOtp(mobileNumber: any, message: string) {
     try {
@@ -126,15 +62,29 @@ export class AlertService {
     await redisClient.set(key, JSON.stringify(value));
   }
 
+  async getTenantModel<T>(
+    tenantId: string,
+    modelName: string,
+    schema: any
+  ): Promise<Model<T>> {
+    const tenantConnection = await this.connection.useDb(`tenant_${tenantId}`);
+    return tenantConnection.model(modelName, schema);
+  }
+
   async create(payload: CreateAlertInputType) {
     try {
-      const existingRecord = await this.AlertModel.findOne({
+      const alertModel = await this.getTenantModel<Alert>(
+        payload.accountId,
+        Alert.name,
+        AlertSchema
+      );
+      const existingRecord = await alertModel.findOne({
         alertName: payload.alertName,
       });
       if (existingRecord) {
         throw new Error('Record Already Exits');
       }
-      const record = await this.AlertModel.create(payload);
+      const record = await alertModel.create(payload);
       const imeisToIterate =
         record.alertConfig.alertImeiGroup.imei ||
         record.alertConfig.userSelectedImei;
@@ -154,34 +104,40 @@ export class AlertService {
 
   async searchAlert(input: SearchAlertInput) {
     try {
+      const alertModel = await this.getTenantModel<Alert>(
+        input.accountId,
+        Alert.name,
+        AlertSchema
+      );
       const page = Number(input.page) || 1;
       const limit = Number(input.limit) || 10;
       const skip = page === -1 ? 0 : (page - 1) * limit;
-      const records = await this.AlertModel.find({
-        $or: [
-          { alertName: { $regex: input.search, $options: 'i' } },
-          { mobileNo: { $regex: input.search, $options: 'i' } },
-          {
-            'alertConfig.alertImeiGroup.deviceGroupName': {
-              $regex: input.search,
-              $options: 'i',
+      const records = await alertModel
+        .find({
+          $or: [
+            { alertName: { $regex: input.search, $options: 'i' } },
+            { mobileNo: { $regex: input.search, $options: 'i' } },
+            {
+              'alertConfig.alertImeiGroup.deviceGroupName': {
+                $regex: input.search,
+                $options: 'i',
+              },
             },
-          },
-          {
-            'alertConfig.userSelectedImei': {
-              $regex: input.search,
-              $options: 'i',
+            {
+              'alertConfig.userSelectedImei': {
+                $regex: input.search,
+                $options: 'i',
+              },
             },
-          },
-          { createdBy: { $regex: input.search, $options: 'i' } },
-        ],
-      })
+            { createdBy: { $regex: input.search, $options: 'i' } },
+          ],
+        })
         .skip(skip)
         .limit(limit)
         .lean()
         .exec();
 
-      const count = await this.AlertModel.countDocuments({
+      const count = await alertModel.countDocuments({
         $or: [
           { alertName: { $regex: input.search, $options: 'i' } },
           { mobileNo: { $regex: input.search, $options: 'i' } },
@@ -209,16 +165,22 @@ export class AlertService {
 
   async findAll(input: AlertInput) {
     try {
+      const alertModel = await this.getTenantModel<Alert>(
+        input.accountId,
+        Alert.name,
+        AlertSchema
+      );
       const page = Number(input.page);
       const limit = Number(input.limit);
       const skip = page === -1 ? 0 : (page - 1) * limit;
 
-      const records = await this.AlertModel.find({})
+      const records = await alertModel
+        .find({})
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .exec();
-      const count = await this.AlertModel.count().exec();
+      const count = await alertModel.count().exec();
       return { records, count };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
@@ -227,17 +189,19 @@ export class AlertService {
 
   async update(payload: UpdateAlertInput) {
     try {
+      const alertModel = await this.getTenantModel<Alert>(
+        payload.accountId,
+        Alert.name,
+        AlertSchema
+      );
       const updatePayload = {
         ...payload,
         updatedAt: new Date(),
       };
-      const record = await this.AlertModel.findByIdAndUpdate(
-        payload._id,
-        updatePayload,
-        {
+      const record = await alertModel
+        .findByIdAndUpdate(payload._id, updatePayload, {
           new: true,
-        }
-      )
+        })
         .lean()
         .exec();
       const imeisToIterate =

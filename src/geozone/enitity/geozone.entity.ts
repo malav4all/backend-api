@@ -68,6 +68,11 @@ export class Geozone {
   @Field()
   @Prop({ text: true })
   @Column()
+  accountId: string;
+
+  @Field()
+  @Prop({ text: true })
+  @Column()
   name: string;
 
   @Field(() => String)
@@ -108,5 +113,4 @@ export class Geozone {
   createdBy: string;
 }
 
-export type GeozoneDocument = Geozone & Document;
 export const GeozoneSchema = SchemaFactory.createForClass(Geozone);

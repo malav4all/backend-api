@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  NestMiddleware,
-  BadRequestException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NestMiddleware, NotFoundException } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { TenantsService } from 'src/tenants/tenants.service';
 

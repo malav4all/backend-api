@@ -70,26 +70,13 @@ export class AccountService {
   async create(payload: CreateAccountInput, getLoggedInUserDetail: any) {
     const uniqueInfluxBucketName = generateUniqueID();
     let accountPayload;
-    const getAccountDetail = await this.AccountModel.findById(
-      getLoggedInUserDetail.accountId._id
-    );
 
-    const getRole =
-      getLoggedInUserDetail.roleId.name === 'Super Admin' ||
-      getLoggedInUserDetail.roleId.name === 'Master Admin';
-    if (getRole) {
-      accountPayload = {
-        ...payload,
-        nodeSequence: 0 + 1,
-        tenantId: uniqueInfluxBucketName,
-      };
-    } else {
-      accountPayload = {
-        ...payload,
-        nodeSequence: getAccountDetail.nodeSequence + 1,
-        tenantId: uniqueInfluxBucketName,
-      };
-    }
+    accountPayload = {
+      ...payload,
+      accountId: uniqueInfluxBucketName,
+      tenantId: uniqueInfluxBucketName,
+    };
+
     const record = await this.AccountModel.create(accountPayload);
     await this.influxDbService.createBucket(uniqueInfluxBucketName);
     await this.tenantService.createTenant({

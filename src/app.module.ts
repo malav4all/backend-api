@@ -6,13 +6,10 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { UserModule } from './user/user.module';
 import { AssertAssingmentModuleModule } from './assert-asingment/assert-asingment.module';
 import { GeozoneModule } from './geozone/geozone.module';
-import { LocationTypeModule } from './location-type/location-type.module';
 import { JourneyModule } from './journey/journey.module';
-import { DashboardModule } from './dashboard/dashboard.module';
 import { RedisModule } from './redis/redis.module';
 import { AlertModule } from './alert/alert.module';
 import { DeviceGroupModule } from './device-group/device-group.module';
-import { MqttModule } from './mqtt/mqtt.module';
 import { InfluxDbModule } from './influx-db/influx-db.module';
 import { IndustryModule } from './industry/industry.module';
 import { CustomerModuleModule } from './customer-module/customer-module.module';
@@ -26,6 +23,9 @@ import { DeviceOnboardingModule } from './device-onboarding/device-onboarding.mo
 import { DeviceSimHistoryModule } from './history/device-sim-history/device-sim-history.module';
 import { DeviceOnboardingHistoryModule } from './history/device-onboarding-history/device-onboarding-history.module';
 import { LoginActivityModule } from './login-activity/login-activity.module';
+import { EntityTypeModule } from './entity-type/entity-type.module';
+import { EntitesModule } from './entites/entites.module';
+import { UserAccessModule } from './user-access/user-access.module';
 
 @Module({
   imports: [
@@ -54,14 +54,11 @@ import { LoginActivityModule } from './login-activity/login-activity.module';
     UserModule,
     AssertAssingmentModuleModule,
     GeozoneModule,
-    LocationTypeModule,
     JourneyModule,
-    DashboardModule,
     RedisModule,
     AlertModule,
     DeviceGroupModule,
     InfluxDbModule,
-    MqttModule,
     IndustryModule,
     CustomerModuleModule,
     RoleModule,
@@ -74,6 +71,9 @@ import { LoginActivityModule } from './login-activity/login-activity.module';
     DeviceSimHistoryModule,
     DeviceOnboardingHistoryModule,
     LoginActivityModule,
+    EntityTypeModule,
+    EntitesModule,
+    UserAccessModule,
   ],
   providers: [Upload],
   exports: [],

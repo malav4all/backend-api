@@ -1,9 +1,6 @@
-import { InjectModel } from '@nestjs/mongoose';
-import {
-  DeviceGroup,
-  DeviceGroupDocument,
-} from './entities/device-group.entity';
-import { Model } from 'mongoose';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
+import { DeviceGroup, DeviceGroupSchema } from './entities/device-group.entity';
+import { Connection, Model } from 'mongoose';
 import {
   HttpException,
   HttpStatus,
@@ -16,28 +13,36 @@ import {
   SearchImeiDataInput,
 } from './dto/create-device-group.input';
 import { UpdateDeviceGroupInput } from './dto/update-device-group.input';
-import {
-  AssertAssingmentModuleDocument,
-  AssertAssingmentModuleEntity,
-} from '@imz/assert-asingment/entities/assert-asingment.enitiy';
-import { ObjectID } from 'typeorm';
+
 export class DeviceGroupService {
   constructor(
-    @InjectModel(DeviceGroup.name)
-    private DeviceGroupModel: Model<DeviceGroupDocument>,
-    @InjectModel(AssertAssingmentModuleEntity.name)
-    private AssertAssingmentModuleModule: Model<AssertAssingmentModuleDocument>
+    @InjectConnection()
+    private connection: Connection
   ) {}
+
+  async getTenantModel<T>(
+    tenantId: string,
+    modelName: string,
+    schema: any
+  ): Promise<Model<T>> {
+    const tenantConnection = await this.connection.useDb(`tenant_${tenantId}`);
+    return tenantConnection.model(modelName, schema);
+  }
 
   async create(payload: CreateDeviceGroupInput) {
     try {
-      const existingRecord = await this.DeviceGroupModel.findOne({
+      const deviceGroupModel = await this.getTenantModel<DeviceGroup>(
+        payload.accountId,
+        DeviceGroup.name,
+        DeviceGroupSchema
+      );
+      const existingRecord = await deviceGroupModel.findOne({
         deviceGroupName: payload.deviceGroupName,
       });
       if (existingRecord) {
         throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
       }
-      const record = await this.DeviceGroupModel.create({ ...payload });
+      const record = await deviceGroupModel.create({ ...payload });
       return record;
     } catch (error) {
       throw new Error(`Failed to create:${error.message}`);
@@ -46,16 +51,22 @@ export class DeviceGroupService {
 
   async findAllDeviceGroupsWithImeis(input: DeviceGroupInput) {
     try {
+      const deviceGroupModel = await this.getTenantModel<DeviceGroup>(
+        input.accountId,
+        DeviceGroup.name,
+        DeviceGroupSchema
+      );
       const page = Number(input.page);
       const limit = Number(input.limit);
       const skip = page === -1 ? 0 : (page - 1) * limit;
-      const records = await this?.DeviceGroupModel?.find({})
+      const records = await deviceGroupModel
+        ?.find({})
         ?.sort({ createdAt: -1 })
         ?.skip(skip)
         ?.limit(limit)
         .populate({ path: 'imeiData' })
         ?.exec();
-      const count = await this.DeviceGroupModel.countDocuments().exec();
+      const count = await deviceGroupModel.countDocuments().exec();
       return { count, records };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
@@ -64,20 +75,26 @@ export class DeviceGroupService {
 
   async searchDeviceGroup(input: SearchDeviceGroupInput) {
     try {
+      const deviceGroupModel = await this.getTenantModel<DeviceGroup>(
+        input.accountId,
+        DeviceGroup.name,
+        DeviceGroupSchema
+      );
       const page = Number(input.page) || 1;
       const limit = Number(input.limit) || 10;
       const skip = page === -1 ? 0 : (page - 1) * limit;
-      const records = await this.DeviceGroupModel.find({
-        $or: [
-          { deviceGroupName: { $regex: input.search, $options: 'i' } },
-          { createdBy: { $regex: input.search, $options: 'i' } },
-        ],
-      })
+      const records = await deviceGroupModel
+        .find({
+          $or: [
+            { deviceGroupName: { $regex: input.search, $options: 'i' } },
+            { createdBy: { $regex: input.search, $options: 'i' } },
+          ],
+        })
         .skip(skip)
         .limit(limit)
         .lean()
         .exec();
-      const count = await this.DeviceGroupModel.countDocuments({
+      const count = await deviceGroupModel.countDocuments({
         $or: [
           { deviceGroupName: { $regex: input.search, $options: 'i' } },
           { createdBy: { $regex: input.search, $options: 'i' } },
@@ -92,17 +109,19 @@ export class DeviceGroupService {
 
   async update(payload: UpdateDeviceGroupInput) {
     try {
+      const deviceGroupModel = await this.getTenantModel<DeviceGroup>(
+        payload.accountId,
+        DeviceGroup.name,
+        DeviceGroupSchema
+      );
       const updatePayload = {
         ...payload,
         updatedAt: new Date(),
       };
-      const record = await this.DeviceGroupModel.findByIdAndUpdate(
-        payload._id,
-        updatePayload,
-        {
+      const record = await deviceGroupModel
+        .findByIdAndUpdate(payload._id, updatePayload, {
           new: true,
-        }
-      )
+        })
         .lean()
         .exec();
       return record;
@@ -112,13 +131,18 @@ export class DeviceGroupService {
   }
 
   async fetchDeviceGroupById(input: DeviceGroupInput) {
+    const deviceGroupModel = await this.getTenantModel<DeviceGroup>(
+      input.accountId,
+      DeviceGroup.name,
+      DeviceGroupSchema
+    );
     try {
       const page = Number(input.page);
       const limit = Number(input.limit);
       const skip = page === -1 ? 0 : (page - 1) * limit;
 
       const [records, count] = await Promise.all([
-        this.DeviceGroupModel.aggregate([
+        deviceGroupModel.aggregate([
           {
             $match: {
               $expr: {
@@ -197,7 +221,7 @@ export class DeviceGroupService {
             },
           },
         ]),
-        this.DeviceGroupModel.aggregate([
+        deviceGroupModel.aggregate([
           // New aggregation pipeline to get count of imeiData
           {
             $match: {
@@ -247,8 +271,12 @@ export class DeviceGroupService {
   }
 
   async searchImeiData(input: SearchImeiDataInput) {
-    console.log(input, 'Device Service');
     try {
+      const deviceGroupModel = await this.getTenantModel<DeviceGroup>(
+        input.accountId,
+        DeviceGroup.name,
+        DeviceGroupSchema
+      );
       const page = Number(input.page);
       const limit = Number(input.limit);
       const skip = page === -1 ? 0 : (page - 1) * limit;
@@ -372,8 +400,8 @@ export class DeviceGroupService {
       ];
 
       const [records, count] = await Promise.all([
-        this.DeviceGroupModel.aggregate(recordsPipeline),
-        this.DeviceGroupModel.aggregate(countPipeline),
+        deviceGroupModel.aggregate(recordsPipeline),
+        deviceGroupModel.aggregate(countPipeline),
       ]);
 
       const imeiDataCount = count.length > 0 ? count[0].countImeiData : 0;

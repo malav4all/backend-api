@@ -50,12 +50,6 @@ export class CreateUserInput {
   status: string;
 
   @Field({ nullable: true })
-  deviceGroupId: string;
-
-  @Field({ nullable: true })
-  deviceGroupName: string;
-
-  @Field({ nullable: true })
   createdBy: string;
 }
 

@@ -20,6 +20,9 @@ export class TripInformationDetail {
 @InputType()
 export class CreateTripInput {
   @Field({ nullable: true })
+  accountId: string;
+
+  @Field({ nullable: true })
   tripId: string;
 
   @Field({ nullable: true })
@@ -66,14 +69,21 @@ export class CreateTripInput {
 
 @InputType()
 export class TripInput {
+  @Field({ nullable: true })
+  accountId: string;
+
   @Field(() => Int, { nullable: true })
   page: typeof Int;
+
   @Field(() => Int, { nullable: true })
   limit: typeof Int;
 }
 
 @InputType()
 export class SearchTripInput {
+  @Field({ nullable: true })
+  accountId: string;
+
   @Field({ nullable: true })
   search: string;
 

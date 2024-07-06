@@ -5,7 +5,6 @@ import { Document, Types } from 'mongoose';
 import { IsOptional } from 'class-validator';
 import { DeviceOnboardingAccountModuleResponse } from '../dto/device-onboarding-account.response';
 import { DeviceOnboardingUserResponse } from '../dto/device-onboarding-user.response';
-import { DeviceOnboardingDeviceModelResponse } from '../dto/device-onboarding.model.response';
 
 @Schema({ timestamps: true })
 @Entity()

@@ -1,34 +1,34 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
+import { IsOptional } from 'class-validator';
 
 @InputType()
-export class CreateJourneyInput {
+export class CreateUserAccessInput {
   @Field({ nullable: true })
   accountId: string;
 
-  @Field(() => String, { nullable: true })
-  journeyName: string;
+  @Field({ nullable: true })
+  userId: string;
 
   @Field(() => [String], { nullable: true })
-  journeyData: string[];
+  deviceGroup: string[];
+
+  @Field(() => [String], { nullable: true })
+  entites: string[];
+
+  @Field(() => [String], { nullable: true })
+  devicesImei: string[];
 
   @Field({ nullable: true })
-  createdBy: string;
-
-  @Field(() => Date)
-  startDate: Date;
-
-  @Field(() => Date)
-  endDate: Date;
+  @IsOptional()
+  createdBy?: string;
 
   @Field({ nullable: true })
-  totalDistance: number;
-
-  @Field({ nullable: true })
-  totalDuration: number;
+  @IsOptional()
+  updatedBy?: string;
 }
 
 @InputType()
-export class JourneyInput {
+export class UserAccessInput {
   @Field({ nullable: true })
   accountId: string;
 
@@ -38,12 +38,13 @@ export class JourneyInput {
   @Field(() => Int, { nullable: true })
   limit: typeof Int;
 }
+
 @InputType()
-export class SearchJourneysInput {
+export class SearchUserAccessInput {
   @Field({ nullable: true })
   accountId: string;
 
-  @Field(() => String)
+  @Field({ nullable: true })
   search: string;
 
   @Field(() => Int, { nullable: true })

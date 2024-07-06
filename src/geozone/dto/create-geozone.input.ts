@@ -58,6 +58,9 @@ class AddressType {
 @InputType()
 export class CreateGeoZoneInput {
   @Field({ nullable: true })
+  accountId: string;
+
+  @Field({ nullable: true })
   name: string;
 
   @Field({ nullable: true })
@@ -84,8 +87,12 @@ export class CreateGeoZoneInput {
 
 @InputType()
 export class GeozoneInput {
+  @Field({ nullable: true })
+  accountId: string;
+
   @Field(() => Int, { nullable: true })
   page: typeof Int;
+
   @Field(() => Int, { nullable: true })
   limit: typeof Int;
 }

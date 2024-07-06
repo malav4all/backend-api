@@ -58,6 +58,9 @@ class AlertConfigData {
 
 @InputType()
 export class CreateAlertInputType {
+  @Field({ nullable: true })
+  accountId: string;
+
   @Field(() => String, { nullable: true })
   alertName: string;
 
@@ -81,6 +84,9 @@ export class CreateAlertInputType {
 
 @InputType()
 export class AlertInput {
+  @Field({ nullable: true })
+  accountId: string;
+
   @Field(() => Int, { nullable: true })
   page: typeof Int;
 
@@ -90,6 +96,9 @@ export class AlertInput {
 
 @InputType()
 export class SearchAlertInput {
+  @Field({ nullable: true })
+  accountId: string;
+
   @Field({ nullable: true })
   search: string;
 

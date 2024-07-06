@@ -67,18 +67,11 @@ type AssertAssingmentModuleEntity {
 
 type DeviceGroup {
   _id: String
+  accountId: String!
   deviceGroupName: String!
   imeiData: [AssertAssingmentModuleEntity!]
   createdBy: String
   updateBy: String
-}
-
-type IndustryType {
-  _id: String!
-  name: String!
-  code: [String!]!
-  description: String!
-  lastUpdated: DateTime!
 }
 
 type RoleResponseType {
@@ -88,6 +81,14 @@ type RoleResponseType {
   industryType: String
   isDelete: Boolean
   resources: String
+}
+
+type IndustryType {
+  _id: String!
+  name: String!
+  code: [String!]!
+  description: String!
+  lastUpdated: DateTime!
 }
 
 type UserAccountModuleValue {
@@ -137,12 +138,8 @@ type User {
   mobileVerified: Boolean!
   accountId: AccountResponseType!
   roleId: RoleResponseType!
-  industryType: IndustryType!
   otp: String!
   parentUserId: String!
-  mainParentId: String!
-  deviceGroupId: String
-  deviceGroup: DeviceGroup
   status: String
 }
 
@@ -155,16 +152,6 @@ type PaginatorInfo {
   lastPage: Float
   perPage: Float
   total: Float
-}
-
-type Coordinate {
-  label: String!
-  speed: Float!
-  satellites: Float!
-  gps: String!
-  direction: Float!
-  lat: Float!
-  lng: Float!
 }
 
 type AlertResponse {
@@ -250,6 +237,7 @@ type AddressEntityType {
 
 type Geozone {
   _id: String!
+  accountId: String!
   name: String!
   description: String!
   locationType: String!
@@ -265,19 +253,6 @@ type GeozoneResponse {
   success: Float
   message: String
   data: [Geozone!]!
-}
-
-type LocationType {
-  _id: String!
-  type: String!
-  createdBy: String!
-}
-
-type LocationTypeResponse {
-  paginatorInfo: PaginatorInfo
-  success: Float
-  message: String
-  data: [LocationType!]!
 }
 
 type PropertyTypeEntityResponse {
@@ -319,6 +294,7 @@ type JourneyResponse {
 
 type Journey {
   _id: String
+  accountId: String
   journeyName: String
   journeyData: [JourneyResponse!]
   createdBy: String
@@ -336,16 +312,6 @@ type JourneyResponseData {
   success: Float
   message: String
   data: [Journey!]!
-}
-
-type DashboardType {
-  totalUser: Float!
-  totalJourney: Float!
-  ongoingJourney: Float!
-}
-
-type DashboardResponse {
-  data: DashboardType!
 }
 
 type AlertEntityConfig {
@@ -372,6 +338,7 @@ type AlertConfigEntityData {
 
 type Alert {
   _id: String!
+  accountId: String
   alertName: String
   mobileNo: String
   alertConfig: AlertConfigEntityData
@@ -476,6 +443,7 @@ type DataType {
 type Account {
   _id: String!
   accountLogo: String
+  accountId: String!
   accountName: String!
   industryType: IndustryTypeResponse!
   accountPanNo: String
@@ -512,6 +480,8 @@ type TransitType {
   minBatteryPercentage: Float!
   tripRate: Float!
   gstPercentage: Float!
+  disableField: JSON
+  filtrationFelid: JSON
   createdBy: String!
   updatedBy: String!
   lastUpdated: DateTime
@@ -533,6 +503,7 @@ type TripInformationData {
 
 type Trip {
   _id: String!
+  accountId: String!
   tripId: String!
   status: String!
   primaryAccount: String!
@@ -757,6 +728,67 @@ type LoginActivityResponse {
   data: [LoginActivity!]!
 }
 
+type EntityType {
+  _id: String!
+  accountId: String!
+  name: String!
+  description: String!
+  createdBy: String!
+  updatedBy: String!
+}
+
+type EntityTypeResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [EntityType!]!
+}
+
+type Entites {
+  _id: String!
+  accountId: String!
+  name: String!
+  type: String!
+  address: String!
+  city: String!
+  state: String!
+  area: String!
+  district: String!
+  pinCode: String!
+  contactName: String!
+  contactEmail: String!
+  contactPhone: String!
+  gstIn: String!
+  aadharCardNo: String!
+  createdBy: String!
+  updatedBy: String!
+}
+
+type EntitesResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [Entites!]!
+}
+
+type UserAccess {
+  _id: String!
+  accountId: String!
+  userId: String!
+  deviceGroup: [String!]!
+  entites: [String!]!
+  devicesImei: [String!]!
+  createdBy: String!
+  updatedBy: String!
+}
+
+type UserAccessResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [UserAccess!]!
+}
+
 type Query {
   createUser(input: CreateUserInput!): UserResponse!
   fetchAccountList(input: AccountInput!): AccountResponse!
@@ -779,8 +811,6 @@ input CreateUserInput {
   industryType: String
   mainParentId: String
   status: String = "Active"
-  deviceGroupId: String
-  deviceGroupName: String
   createdBy: String
 }
 
@@ -814,16 +844,10 @@ type Mutation {
   addGeozone(input: CreateGeoZoneInput!): GeozoneResponse!
   listGeozone(input: GeozoneInput!): GeozoneResponse!
   updateGeozone(input: UpdateGeozoneInput!): GeozoneResponse!
-  addLocationType(input: CreateLocationTypeInput!): LocationTypeResponse!
-  fetchLocationType(input: LocationTypeInput!): LocationTypeResponse!
-  searchLocations(input: SearchLocationsInput!): LocationTypeResponse!
   addJourney(input: CreateJourneyInput!): JourneyResponseData!
   fetchJourney(input: JourneyInput!): JourneyResponseData!
   updateJourney(input: UpdateJourneyInput!): JourneyResponseData!
   searchJourneys(input: SearchJourneysInput!): JourneyResponseData!
-  archiveJourney: JourneyResponseData!
-  upComingJourney: JourneyResponseData!
-  fetchDashboardDetail: DashboardResponse!
   addAlert(input: CreateAlertInputType!): AlertResponseData!
   fetchAlert(input: AlertInput!): AlertResponseData!
   updateAlert(input: UpdateAlertInput!): AlertResponseData!
@@ -874,6 +898,12 @@ type Mutation {
   loginActivityListAll(input: LoginActivityFetchInput!): LoginActivityResponse!
   logoutUser(input: LogoutInput!): String!
   searchLoginActivity(input: SearchLoginActivityInput!): LoginActivityResponse!
+  addEntityType(input: CreateUserAccessInput!): UserAccessResponse!
+  fetchEntityType(input: UserAccessInput!): UserAccessResponse!
+  searchEntity(input: SearchUserAccessInput!): UserAccessResponse!
+  addEntitesType(input: CreateEntitesInput!): EntitesResponse!
+  fetchEntitesType(input: EntitesTypeInput!): EntitesResponse!
+  searchEntites(input: SearchEntitesInput!): EntitesResponse!
 }
 
 input ChangePasswordInput {
@@ -908,8 +938,6 @@ input UpdateUserInput {
   industryType: String
   mainParentId: String
   status: String = "Active"
-  deviceGroupId: String
-  deviceGroupName: String
   createdBy: String
   _id: String!
 }
@@ -964,6 +992,7 @@ input AssertAssingmentModuleInput {
 }
 
 input CreateGeoZoneInput {
+  accountId: String
   name: String
   description: String
   locationType: String
@@ -1000,11 +1029,13 @@ input PropertyType {
 }
 
 input GeozoneInput {
+  accountId: String
   page: Int
   limit: Int
 }
 
 input UpdateGeozoneInput {
+  accountId: String
   name: String
   description: String
   locationType: String
@@ -1016,23 +1047,8 @@ input UpdateGeozoneInput {
   _id: String!
 }
 
-input CreateLocationTypeInput {
-  type: String!
-  createdBy: String!
-}
-
-input LocationTypeInput {
-  page: Int
-  limit: Int
-}
-
-input SearchLocationsInput {
-  search: String
-  page: Int
-  limit: Int
-}
-
 input CreateJourneyInput {
+  accountId: String
   journeyName: String
   journeyData: [String!]
   createdBy: String
@@ -1043,11 +1059,13 @@ input CreateJourneyInput {
 }
 
 input JourneyInput {
+  accountId: String
   page: Int
   limit: Int
 }
 
 input UpdateJourneyInput {
+  accountId: String
   journeyName: String
   journeyData: [String!]
   createdBy: String
@@ -1059,12 +1077,14 @@ input UpdateJourneyInput {
 }
 
 input SearchJourneysInput {
+  accountId: String
   search: String!
   page: Int
   limit: Int
 }
 
 input CreateAlertInputType {
+  accountId: String
   alertName: String
   mobileNo: String
   alertConfig: AlertConfigData
@@ -1096,11 +1116,13 @@ input AlertConfig {
 }
 
 input AlertInput {
+  accountId: String
   page: Int
   limit: Int
 }
 
 input UpdateAlertInput {
+  accountId: String
   alertName: String
   mobileNo: String
   alertConfig: AlertConfigData
@@ -1111,12 +1133,14 @@ input UpdateAlertInput {
 }
 
 input SearchAlertInput {
+  accountId: String
   search: String
   page: Int
   limit: Int
 }
 
 input CreateDeviceGroupInput {
+  accountId: String
   deviceGroupName: String
   imeiData: [String!]
   createdBy: String
@@ -1124,18 +1148,21 @@ input CreateDeviceGroupInput {
 }
 
 input DeviceGroupInput {
+  accountId: String
   page: Int
   limit: Int
   id: String
 }
 
 input SearchDeviceGroupInput {
+  accountId: String
   search: String
   page: Int
   limit: Int
 }
 
 input UpdateDeviceGroupInput {
+  accountId: String
   deviceGroupName: String
   imeiData: [String!]
   createdBy: String
@@ -1144,6 +1171,7 @@ input UpdateDeviceGroupInput {
 }
 
 input SearchImeiDataInput {
+  accountId: String
   id: String
   search: String
   page: Int
@@ -1246,6 +1274,7 @@ input checkRoleInput {
 }
 
 input CreateAccountInput {
+  accountId: String
   accountLogo: String
   accountName: String!
   industryType: String!
@@ -1275,6 +1304,7 @@ input AccountConfigInput {
 }
 
 input UpdateAccountInput {
+  accountId: String
   accountLogo: String
   accountName: String
   industryType: String
@@ -1310,6 +1340,8 @@ input CreateTransitTypeInput {
   minBatteryPercentage: Float
   tripRate: Float
   gstPercentage: String
+  disableField: JSON
+  filtrationFelid: JSON
   createdBy: String
   updatedBy: String
 }
@@ -1330,12 +1362,15 @@ input UpdateTransitTypeInput {
   minBatteryPercentage: Float
   tripRate: Float
   gstPercentage: String
+  disableField: JSON
+  filtrationFelid: JSON
   createdBy: String
   updatedBy: String
   _id: String!
 }
 
 input CreateTripInput {
+  accountId: String
   tripId: String
   status: String
   primaryAccount: String
@@ -1360,17 +1395,20 @@ input TripInformationDetail {
 }
 
 input TripInput {
+  accountId: String
   page: Int
   limit: Int
 }
 
 input SearchTripInput {
+  accountId: String
   search: String
   page: Int
   limit: Int
 }
 
 input UpdateTripInput {
+  accountId: String
   tripId: String
   status: String
   primaryAccount: String
@@ -1393,14 +1431,16 @@ input DeviceOnboardingAccountIdInput {
 }
 
 input DeviceOnboardingInput {
+  accountId: String
   assetsType: String
   description: String
+  location: JSON
   deviceOnboardingName: String
   deviceOnboardingAccount: String
   deviceOnboardingUser: String
   deviceOnboardingSimNo: [String!]
   deviceOnboardingModel: String
-  deviceOnboardingStatus: String
+  deviceOnboardingStatus: String = "Active"
   deviceOnboardingIMEINumber: String
   createdBy: String
   updatedBy: String
@@ -1413,14 +1453,16 @@ input DeviceOnboardingFetchInput {
 }
 
 input UpdateDeviceOnboardingInput {
+  accountId: String
   assetsType: String
   description: String
+  location: JSON
   deviceOnboardingName: String
   deviceOnboardingAccount: String
   deviceOnboardingUser: String
   deviceOnboardingSimNo: [String!]
   deviceOnboardingModel: String
-  deviceOnboardingStatus: String
+  deviceOnboardingStatus: String = "Active"
   deviceOnboardingIMEINumber: String
   createdBy: String
   updatedBy: String
@@ -1472,7 +1514,60 @@ input SearchLoginActivityInput {
   limit: Int
 }
 
+input CreateUserAccessInput {
+  accountId: String
+  userId: String
+  deviceGroup: [String!]
+  entites: [String!]
+  devicesImei: [String!]
+  createdBy: String
+  updatedBy: String
+}
+
+input UserAccessInput {
+  accountId: String
+  page: Int
+  limit: Int
+}
+
+input SearchUserAccessInput {
+  accountId: String
+  search: String
+  page: Int
+  limit: Int
+}
+
+input CreateEntitesInput {
+  accountId: String!
+  name: String!
+  type: String!
+  address: String!
+  city: String!
+  state: String!
+  area: String!
+  district: String!
+  pinCode: String!
+  contactName: String!
+  contactEmail: String!
+  contactPhone: String!
+  gstIn: String!
+  aadharCardNo: String!
+  createdBy: String!
+}
+
+input EntitesTypeInput {
+  accountId: String!
+  page: Int
+  limit: Int
+}
+
+input SearchEntitesInput {
+  accountId: String!
+  search: String
+  page: Int
+  limit: Int
+}
+
 type Subscription {
-  coordinatesUpdated(topic: String!): Coordinate!
   alertUpdated(topic: String!): AlertResponse!
 }

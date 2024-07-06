@@ -34,15 +34,14 @@ export class TripResolver {
   @Mutation(() => TripResponse)
   async tripList(@Args('input') input: TripInput) {
     try {
-      const res = await this.tripService.findAll(input);
-      const count = await this.tripService.count();
+      const { count, records } = await this.tripService.findAll(input);
       return {
         paginatorInfo: {
           count,
         },
         success: 1,
         message: 'Trip list available.',
-        data: res,
+        data: records,
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);

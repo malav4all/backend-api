@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { Entity, ObjectIdColumn, Column } from 'typeorm';
 import { Document } from 'mongoose';
+import GraphQLJSON from 'graphql-type-json';
 
 @Schema({ timestamps: true })
 @ObjectType()
@@ -30,6 +31,14 @@ export class TransitType {
   @Prop({ text: true })
   @Column()
   gstPercentage: number;
+
+  @Column()
+  @Field(() => GraphQLJSON, { nullable: true })
+  disableField: typeof GraphQLJSON;
+
+  @Field(() => GraphQLJSON, { nullable: true })
+  @Column()
+  filtrationFelid: typeof GraphQLJSON;
 
   @Field()
   @Prop({ text: true })

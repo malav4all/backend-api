@@ -13,6 +13,10 @@ export class DeviceGroup {
 
   @Field()
   @Prop({ text: true })
+  accountId: string;
+
+  @Field()
+  @Prop({ text: true })
   deviceGroupName: string;
 
   @IsOptional()
@@ -33,11 +37,4 @@ export class DeviceGroup {
   updateBy?: string;
 }
 
-export type DeviceGroupDocument = DeviceGroup & Document;
-
 export const DeviceGroupSchema = SchemaFactory.createForClass(DeviceGroup);
-
-DeviceGroupSchema.index({
-  deviceGroupName: 'text',
-  createdBy: 'text',
-});

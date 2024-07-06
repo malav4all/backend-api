@@ -30,6 +30,11 @@ export class Account {
   @Field()
   @Prop({ text: true })
   @Column()
+  accountId: string;
+
+  @Field()
+  @Prop({ text: true })
+  @Column()
   accountName?: string;
 
   @Field()

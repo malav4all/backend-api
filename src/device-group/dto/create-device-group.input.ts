@@ -4,6 +4,9 @@ import { ObjectID, ObjectIdColumn } from 'typeorm';
 
 @InputType()
 export class CreateDeviceGroupInput {
+  @Field({ nullable: true })
+  accountId: string;
+
   @Field(() => String, { nullable: true })
   deviceGroupName: string;
 
@@ -21,6 +24,9 @@ export class CreateDeviceGroupInput {
 
 @InputType()
 export class DeviceGroupInput {
+  @Field({ nullable: true })
+  accountId: string;
+
   @Field(() => Int, { nullable: true })
   page: typeof Int;
 
@@ -34,6 +40,9 @@ export class DeviceGroupInput {
 @InputType()
 export class SearchDeviceGroupInput {
   @Field({ nullable: true })
+  accountId: string;
+
+  @Field({ nullable: true })
   search: string;
 
   @Field(() => Int, { nullable: true })
@@ -45,6 +54,9 @@ export class SearchDeviceGroupInput {
 
 @InputType()
 export class SearchImeiDataInput {
+  @Field({ nullable: true })
+  accountId: string;
+
   @Field(() => String, { nullable: true })
   id: string;
 

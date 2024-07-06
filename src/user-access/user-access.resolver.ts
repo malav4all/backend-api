@@ -1,23 +1,23 @@
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
-import { LocationTypeResponse } from './dto/response';
 import { InternalServerErrorException, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@imz/user/guard';
+import { UserAccessResponse } from './dto/response';
 import {
-  CreateLocationTypeInput,
-  LocationTypeInput,
-  SearchLocationsInput,
-} from './dto/create-location-type.input';
-import { LocationTypeService } from './location-type.service';
+  CreateUserAccessInput,
+  SearchUserAccessInput,
+  UserAccessInput,
+} from './dto/create-user-access.input';
+import { UserAccessService } from './user-access.service';
 
-@Resolver(() => LocationTypeResponse)
-export class LocationTypeResolver {
-  constructor(private readonly locationTypeService: LocationTypeService) {}
+@Resolver(() => UserAccessResponse)
+export class UserAccessResolver {
+  constructor(private readonly userAccessService: UserAccessService) {}
 
   @UseGuards(new AuthGuard())
-  @Mutation(() => LocationTypeResponse)
-  async addLocationType(@Args('input') input: CreateLocationTypeInput) {
+  @Mutation(() => UserAccessResponse)
+  async addEntityType(@Args('input') input: CreateUserAccessInput) {
     try {
-      const record = await this.locationTypeService.create(input);
+      const record = await this.userAccessService.create(input);
       return {
         success: record ? 1 : 0,
         message: record
@@ -30,10 +30,10 @@ export class LocationTypeResolver {
   }
 
   @UseGuards(new AuthGuard())
-  @Mutation(() => LocationTypeResponse)
-  async fetchLocationType(@Args('input') input: LocationTypeInput) {
+  @Mutation(() => UserAccessResponse)
+  async fetchEntityType(@Args('input') input: UserAccessInput) {
     try {
-      const { count, records } = await this.locationTypeService.findAll(input);
+      const { count, records } = await this.userAccessService.findAll(input);
       return {
         paginatorInfo: {
           count,
@@ -47,10 +47,10 @@ export class LocationTypeResolver {
     }
   }
 
-  @Mutation(() => LocationTypeResponse)
-  async searchLocations(@Args('input') input: SearchLocationsInput) {
+  @Mutation(() => UserAccessResponse)
+  async searchEntity(@Args('input') input: SearchUserAccessInput) {
     try {
-      const { records, count } = await this.locationTypeService.searchLocations(
+      const { records, count } = await this.userAccessService.searchLocations(
         input
       );
       return {
