@@ -20,7 +20,9 @@ export class EntityTypeService {
     modelName: string,
     schema: any
   ): Promise<Model<T>> {
-    const tenantConnection = await this.connection.useDb(`tenant_${tenantId}`);
+    const tenantConnection = await this.connection.useDb(`tenant_${tenantId}`, {
+      useCache: true,
+    });
     return tenantConnection.model(modelName, schema);
   }
 
