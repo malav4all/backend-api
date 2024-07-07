@@ -8,15 +8,6 @@ import {
   AssertAssingmentModuleSchema,
 } from '@imz/assert-asingment/entities/assert-asingment.enitiy';
 @Module({
-  imports: [
-    MongooseModule.forFeature([
-      { name: DeviceGroup.name, schema: DeviceGroupSchema },
-      {
-        name: AssertAssingmentModuleEntity.name,
-        schema: AssertAssingmentModuleSchema,
-      },
-    ]),
-  ],
   providers: [DeviceGroupResolver, DeviceGroupService],
   exports: [DeviceGroupService],
 })

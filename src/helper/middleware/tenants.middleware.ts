@@ -19,10 +19,7 @@ export class TenantsMiddleware implements NestMiddleware {
         console.error(`Tenant validation failed: ${error.message}`);
         throw new NotFoundException('Tenant does not exist');
       }
-    } else {
-      console.warn('No tenant ID provided in the request headers');
     }
-
     next();
   }
 }

@@ -28,38 +28,15 @@ export class AccountService {
     try {
       const page = Number(input.page);
       const limit = Number(input.limit);
-      const loggedInUser = await this.AccountModel.findById(accountId)
-        .populate('industryType')
-        .exec();
-      const loggedInUserRole = await this.RoleModel.findById(
-        roleId._id.toString()
-      ).exec();
 
-      let query = {};
-
-      if (loggedInUserRole.name === 'Master Admin') {
-        query = {};
-      } else if (loggedInUserRole.name === 'Super Admin') {
-        if (loggedInUser.parentId === '') {
-          query = {
-            industryType: loggedInUser.industryType._id.toString(),
-          };
-        } else {
-          query = { _id: loggedInUser._id };
-        }
-      } else {
-        query = {
-          $or: [{ _id: accountId._id }, { parentId: accountId._id }],
-        };
-      }
       const skip = page === -1 ? 0 : (page - 1) * limit;
-      const records = await this.AccountModel.find(query)
+      const records = await this.AccountModel.find({})
         .populate('industryType')
         .skip(skip)
         .limit(limit)
         .lean()
         .exec();
-      const count = await this.AccountModel.count(query).exec();
+      const count = await this.AccountModel.count().exec();
 
       return { count, records };
     } catch (error) {

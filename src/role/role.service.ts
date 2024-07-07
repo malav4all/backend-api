@@ -28,16 +28,8 @@ export class RoleService {
       const loggedInUserRole = await this.RoleModel.findById(roleId).populate(
         'industryType'
       );
-      const query = { isDelete: false };
-      if (loggedInUserRole.name === 'Master Admin') {
-        query['active'] = false;
-      } else if (loggedInUserRole.name === 'Super Admin') {
-        query['industryType'] = loggedInUserRole.industryType._id.toString();
-      } else {
-        // query['_id'] = loggedInUserRole._id.toString();
-        query['industryType'] = loggedInUserRole.industryType._id.toString();
-      }
-      const record = await this.RoleModel.find(query)
+
+      const record = await this.RoleModel.find({})
         .populate('industryType')
         .skip(skip)
         .limit(limit)

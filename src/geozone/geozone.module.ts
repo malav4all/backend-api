@@ -6,9 +6,6 @@ import { GeozoneService } from './geozone.service';
 import { TenantsMiddleware } from '@imz/helper/middleware/tenants.middleware';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([{ name: Geozone.name, schema: GeozoneSchema }]),
-  ],
   providers: [GeozoneResolver, GeozoneService],
   exports: [GeozoneService],
 })
