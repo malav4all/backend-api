@@ -119,10 +119,10 @@ export class DeviceOnboardingService {
     }
   }
 
-  async create(payload: DeviceOnboardingInput, tenantId?: string) {
+  async create(payload: DeviceOnboardingInput) {
     try {
       const tenantConnection = await this.getTenantConnection(
-        payload.tenantId || tenantId
+        payload.accountId
       );
       const deviceOnboardingTenant = await tenantConnection.model(
         DeviceOnboarding.name,
@@ -151,7 +151,7 @@ export class DeviceOnboardingService {
   async createDeviceHistoryRecord(payload: DeviceOnboardingInput) {
     try {
       const deviceHistoryPayload: any = {
-        deviceOnboardingAccount: payload.deviceOnboardingAccount,
+        deviceOnboardingAccount: payload.accountId,
         deviceOnboardingSimNo: payload.deviceOnboardingSimNo,
         deviceOnboardingIMEINumber:
           payload.deviceOnboardingIMEINumber.toString(),

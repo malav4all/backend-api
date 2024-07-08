@@ -40,7 +40,7 @@ export class DeviceOnboardingResolver {
     @Context('req') request: Request
   ) {
     const tenantId = request.headers['x-tenant-id'].toString();
-    const record = await this.deviceOnboardingService.create(input, tenantId);
+    const record = await this.deviceOnboardingService.create(input);
     return {
       success: record ? 1 : 0,
       message: record
