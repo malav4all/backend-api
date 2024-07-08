@@ -789,6 +789,40 @@ type UserAccessResponse {
   data: [UserAccess!]!
 }
 
+type DeviceModelValuesInput {
+  key: String
+  value: String!
+}
+
+type DeviceModelCommandInput {
+  key: String
+  value: String!
+}
+
+type DeviceModel {
+  _id: String!
+  deviceModelName: String!
+  deviceModel: String!
+  deviceModelType: String
+  deviceModelIpAddress: String!
+  deviceModelPortNumber: Float!
+  deviceModelSimCount: Float!
+  deviceModelNetworkType: String!
+  deviceModelParser: String!
+  deviceModelCommands: [DeviceModelCommandInput!]
+  deviceModelConfig: [DeviceModelValuesInput!]!
+  isDelete: Boolean!
+  createdBy: String
+  updatedBy: String
+}
+
+type DeviceModelResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [DeviceModel!]
+}
+
 type Query {
   createUser(input: CreateUserInput!): UserResponse!
   fetchAccountList(input: AccountInput!): AccountResponse!
@@ -904,6 +938,12 @@ type Mutation {
   addEntitesType(input: CreateEntitesInput!): EntitesResponse!
   fetchEntitesType(input: EntitesTypeInput!): EntitesResponse!
   searchEntites(input: SearchEntitesInput!): EntitesResponse!
+  createDeviceModel(input: CreateDeviceModelInput!): DeviceModelResponse!
+  updateDeviceModel(input: UpdateDeviceModelInput!): DeviceModelResponse!
+  deleteDeviceModel(input: UpdateDeviceModelInput!): DeviceModelResponse!
+  searchDeviceModel(input: SearchDeviceModel!): DeviceModelResponse!
+  checkDeviceModelExistsRecord(input: checkDeviceModelInput!): DeviceModelResponse!
+  fetchDeviceModel(input: DeviceModelInput!): DeviceModelResponse!
 }
 
 input ChangePasswordInput {
@@ -1432,10 +1472,7 @@ input DeviceOnboardingAccountIdInput {
 
 input DeviceOnboardingInput {
   accountId: String
-  assetsType: String
-  description: String
   location: JSON
-  deviceOnboardingName: String
   deviceOnboardingAccount: String
   deviceOnboardingUser: String
   deviceOnboardingSimNo: [String!]
@@ -1454,10 +1491,7 @@ input DeviceOnboardingFetchInput {
 
 input UpdateDeviceOnboardingInput {
   accountId: String
-  assetsType: String
-  description: String
   location: JSON
-  deviceOnboardingName: String
   deviceOnboardingAccount: String
   deviceOnboardingUser: String
   deviceOnboardingSimNo: [String!]
@@ -1564,6 +1598,64 @@ input EntitesTypeInput {
 input SearchEntitesInput {
   accountId: String!
   search: String
+  page: Int
+  limit: Int
+}
+
+input CreateDeviceModelInput {
+  deviceModelName: String!
+  deviceModel: String!
+  deviceModelType: String
+  deviceModelIpAddress: String!
+  deviceModelPortNumber: Float!
+  deviceModelSimCount: Float!
+  deviceModelNetworkType: String!
+  deviceModelParser: String!
+  deviceModelCommands: [CreateDeviceModelCommandInput!]
+  deviceModelConfig: [CreateDeviceModelValuesInput!]
+  isDelete: Boolean = false
+  createdBy: String
+  updatedBy: String
+}
+
+input CreateDeviceModelCommandInput {
+  key: String
+  value: String!
+}
+
+input CreateDeviceModelValuesInput {
+  key: String
+  value: String!
+}
+
+input UpdateDeviceModelInput {
+  deviceModelName: String
+  deviceModel: String
+  deviceModelType: String
+  deviceModelIpAddress: String
+  deviceModelPortNumber: Float
+  deviceModelSimCount: Float
+  deviceModelNetworkType: String
+  deviceModelParser: String
+  deviceModelCommands: [CreateDeviceModelCommandInput!]
+  deviceModelConfig: [CreateDeviceModelValuesInput!]
+  isDelete: Boolean = false
+  createdBy: String
+  updatedBy: String
+  _id: String!
+}
+
+input SearchDeviceModel {
+  search: String
+  page: Int
+  limit: Int
+}
+
+input checkDeviceModelInput {
+  deviceModelName: String
+}
+
+input DeviceModelInput {
   page: Int
   limit: Int
 }

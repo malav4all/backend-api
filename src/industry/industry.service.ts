@@ -29,9 +29,8 @@ export class IndustryService {
     try {
       const { page, limit } = input;
       const skip = this.calculateSkip(Number(page), Number(limit));
-      const query = this.buildFindAllQuery(roleName, accountId);
 
-      const records = await this.IndustryModel.find(query)
+      const records = await this.IndustryModel.find({})
         .skip(skip)
         .limit(Number(limit))
         .lean()

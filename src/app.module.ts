@@ -26,6 +26,7 @@ import { LoginActivityModule } from './login-activity/login-activity.module';
 import { EntityTypeModule } from './entity-type/entity-type.module';
 import { EntitesModule } from './entites/entites.module';
 import { UserAccessModule } from './user-access/user-access.module';
+import { DeviceModelModule } from './device-model/device-model.module';
 
 @Module({
   imports: [
@@ -74,6 +75,7 @@ import { UserAccessModule } from './user-access/user-access.module';
     EntityTypeModule,
     EntitesModule,
     UserAccessModule,
+    DeviceModelModule,
   ],
   providers: [Upload],
   exports: [],

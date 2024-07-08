@@ -7,24 +7,8 @@ export class DeviceOnboardingInput {
   @Field({ nullable: true })
   accountId: string;
 
-  @Field({ nullable: true })
-  assetsType: string;
-
-  @IsOptional()
-  @Field({ nullable: true })
-  description?: string;
-
   @Field(() => GraphQLJSON, { nullable: true })
   location: typeof GraphQLJSON;
-
-  @Field({ nullable: true })
-  deviceOnboardingName: string;
-
-  @Field({ nullable: true })
-  deviceOnboardingAccount: string;
-
-  @Field({ nullable: true })
-  deviceOnboardingUser: string;
 
   @Field(() => [String], { nullable: true })
   @IsOptional()
@@ -45,22 +29,25 @@ export class DeviceOnboardingInput {
   @Field({ nullable: true })
   @IsOptional()
   updatedBy?: string;
-
-  @Field({ nullable: true })
-  @IsOptional()
-  tenantId?: string;
 }
 
 @InputType()
 export class DeviceOnboardingFetchInput {
+  @Field({ nullable: true })
+  accountId: string;
+
   @Field(() => Int, { nullable: true })
   page: typeof Int;
+
   @Field(() => Int, { nullable: true })
   limit: typeof Int;
 }
 
 @InputType()
 export class DeviceOnboardingSearchInput {
+  @Field({ nullable: true })
+  accountId: string;
+
   @Field({ nullable: true })
   search: string;
 
