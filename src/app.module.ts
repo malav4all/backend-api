@@ -27,7 +27,7 @@ import { EntityTypeModule } from './entity-type/entity-type.module';
 import { EntitesModule } from './entites/entites.module';
 import { UserAccessModule } from './user-access/user-access.module';
 import { DeviceModelModule } from './device-model/device-model.module';
-
+import { MenuItemModule } from './menu-item/menu-item.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -76,6 +76,7 @@ import { DeviceModelModule } from './device-model/device-model.module';
     EntitesModule,
     UserAccessModule,
     DeviceModelModule,
+    MenuItemModule,
   ],
   providers: [Upload],
   exports: [],
