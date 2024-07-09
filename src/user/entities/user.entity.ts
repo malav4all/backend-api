@@ -119,6 +119,14 @@ export class User {
   @Prop({ text: true, default: 'Active' })
   @Column({ default: 'Active' })
   status: string;
+
+  @Field({ nullable: true })
+  roleName?: string;
+
+  @Field({ nullable: true })
+  @Prop({ text: true })
+  @Column()
+  accountName: string;
 }
 
 export type UserDocument = User & Document;
