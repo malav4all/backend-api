@@ -17,7 +17,6 @@ import { RoleModule } from './role/role.module';
 import { TenantsModule } from './tenants/tenants.module';
 import { AccountModule } from './account/account.module';
 import { Upload } from './helper/comman/scalar/Upload.scalar';
-import { TransitTypeModule } from './transit-type/transit-type.module';
 import { TripModuleModule } from './trip-module/trip-module.module';
 import { DeviceOnboardingModule } from './device-onboarding/device-onboarding.module';
 import { DeviceSimHistoryModule } from './history/device-sim-history/device-sim-history.module';
@@ -26,6 +25,7 @@ import { LoginActivityModule } from './login-activity/login-activity.module';
 import { EntityTypeModule } from './entity-type/entity-type.module';
 import { EntitesModule } from './entites/entites.module';
 import { UserAccessModule } from './user-access/user-access.module';
+import { TripTypeModule } from './trip-type/trip-type.module';
 
 @Module({
   imports: [
@@ -65,7 +65,7 @@ import { UserAccessModule } from './user-access/user-access.module';
     AccountModule,
     TenantsModule,
     InfluxDbModule,
-    TransitTypeModule,
+    TripTypeModule,
     TripModuleModule,
     DeviceOnboardingModule,
     DeviceSimHistoryModule,
