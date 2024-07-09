@@ -25,7 +25,7 @@ export class Role {
   @Column()
   name: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop({ type: Types.ObjectId, ref: 'Industry' })
   @Column()
   industryType: IndustryResponseType;

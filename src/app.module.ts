@@ -29,6 +29,7 @@ import { UserAccessModule } from './user-access/user-access.module';
 import { DeviceModelModule } from './device-model/device-model.module';
 import { AddDeviceModule } from './add-device/add-device.module';
 
+import { MenuItemModule } from './menu-item/menu-item.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -78,6 +79,7 @@ import { AddDeviceModule } from './add-device/add-device.module';
     UserAccessModule,
     DeviceModelModule,
     AddDeviceModule,
+    MenuItemModule,
   ],
   providers: [Upload],
   exports: [],

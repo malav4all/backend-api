@@ -21,7 +21,7 @@ export class CreateAccountInput {
   @Field()
   accountName?: string;
 
-  @Field()
+  @Field({ nullable: true })
   industryType: string;
 
   @Field({ nullable: true })
