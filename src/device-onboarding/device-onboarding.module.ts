@@ -8,6 +8,7 @@ import { TenantsMiddleware } from '@imz/helper/middleware/tenants.middleware';
 import { DeviceOnboarding } from './enities/device-onboarding.enities';
 import { MongooseModule } from '@nestjs/mongoose';
 import { DeviceOnboardingCopySchema } from './enities/device-onboarding.copy.entity';
+import { RedisService } from '@imz/redis/redis.service';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { DeviceOnboardingCopySchema } from './enities/device-onboarding.copy.ent
     DeviceSimHistoryModule,
     UserModule,
   ],
-  providers: [DeviceOnboardingResolver, DeviceOnboardingService],
+  providers: [DeviceOnboardingResolver, DeviceOnboardingService, RedisService],
   exports: [DeviceOnboardingService],
 })
 export class DeviceOnboardingModule implements NestModule {

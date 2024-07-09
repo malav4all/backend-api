@@ -18,6 +18,7 @@ import { DeviceOnboardingHistoryService } from '@imz/history/device-onboarding-h
 import { DeviceSimHistoryService } from '@imz/history/device-sim-history/device-sim-history.service';
 import { UserService } from '@imz/user/user.service';
 import { DeviceOnboardingCopyDocument } from './enities/device-onboarding.copy.entity';
+import { RedisService } from '@imz/redis/redis.service';
 
 @Injectable()
 export class DeviceOnboardingService {
@@ -27,7 +28,8 @@ export class DeviceOnboardingService {
     private UserModel: UserService,
     @InjectConnection() private connection: Connection,
     @InjectModel(DeviceOnboarding.name)
-    private DeviceOnboardingCopyModel: Model<DeviceOnboardingCopyDocument>
+    private DeviceOnboardingCopyModel: Model<DeviceOnboardingCopyDocument>,
+    private readonly redisService: RedisService
   ) {}
 
   async getTenantModel<T>(
@@ -87,6 +89,15 @@ export class DeviceOnboardingService {
       const record = await deviceOnboardingModel.create(payload);
       await this.createDeviceHistoryRecord(payload);
       await this.createDeviceSimHistoryRecord(payload);
+
+      const redisClient = this.redisService.getClient();
+
+      // Set data in Redis
+      const value = JSON.stringify({
+        accountId: payload.accountId,
+        imei: payload.deviceOnboardingIMEINumber,
+      });
+      await redisClient.set(payload.deviceOnboardingIMEINumber, value);
       return record;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
@@ -214,6 +225,7 @@ export class DeviceOnboardingService {
     const payloadLength = payload.length;
     const defaultBatchSize = 1000;
     const maxBatchSize = 10000;
+    const redisClient = this.redisService.getClient();
 
     // Calculate batch size dynamically
     const batchSize =
@@ -232,6 +244,14 @@ export class DeviceOnboardingService {
         const record = await deviceOnboardingModel.insertMany(batch);
         await this.DeviceOnboardingCopyModel.insertMany(batch);
         results.push(...record);
+        // Set data in Redis for each device in the batch
+        for (const device of batch) {
+          const value = JSON.stringify({
+            accountId: device.accountId,
+            imei: device.deviceOnboardingIMEINumber,
+          });
+          await redisClient.set(device.deviceOnboardingIMEINumber, value);
+        }
       }
       return results;
     } catch (error) {
@@ -292,6 +312,12 @@ export class DeviceOnboardingService {
       await toDeviceOnboardingModel.create(newDeviceOnboardingData);
       // Insert the document into the DeviceOnboardingCopyModel for logging/auditing
       await this.DeviceOnboardingCopyModel.create(newDeviceOnboardingData);
+      const redisClient = this.redisService.getClient();
+      const redisValue = JSON.stringify({
+        accountId: toAccountId,
+        imei: imei,
+      });
+      await redisClient.set(imei, redisValue);
     } catch (error) {
       // If there's an error inserting the document, log the error and reinsert into the original collection
       await fromDeviceOnboardingModel.create(deviceOnboarding.toObject());
@@ -321,6 +347,9 @@ export class DeviceOnboardingService {
       DeviceOnboarding.name,
       DeviceOnboardingSchema
     );
+
+    // Get the Redis client
+    const redisClient = this.redisService.getClient();
 
     const transferredImeis = [];
     const failedImeis = [];
@@ -353,20 +382,26 @@ export class DeviceOnboardingService {
             );
           }
 
-          // Update the accountId to toAccountId
+          // Update the accountId to toAccountId and add accountTransferBy field
           deviceOnboarding.accountId = toAccountId;
           deviceOnboarding.accountTransferBy = accountTransferBy;
 
-          // Ensure the document is valid according to the schema
-          const newDeviceOnboarding = new toDeviceOnboardingModel(
-            deviceOnboarding.toObject()
-          );
+          // Remove the _id field to avoid duplicate key error
+          const newDeviceOnboardingData = deviceOnboarding.toObject();
+          delete newDeviceOnboardingData._id;
 
           // Insert the updated document into the toAccountId's deviceOnboarding collection
-          await newDeviceOnboarding.save();
-          await this.DeviceOnboardingCopyModel.create(
-            deviceOnboarding.toObject()
-          );
+          await toDeviceOnboardingModel.create(newDeviceOnboardingData);
+          // Insert the document into the DeviceOnboardingCopyModel for logging/auditing
+          await this.DeviceOnboardingCopyModel.create(newDeviceOnboardingData);
+
+          // Update data in Redis
+          const redisValue = JSON.stringify({
+            accountId: toAccountId,
+            imei: imei,
+          });
+          await redisClient.set(imei, redisValue);
+
           transferredImeis.push(imei);
         } catch (error) {
           failedImeis.push({ imei, error: error.message });

@@ -141,6 +141,8 @@ type User {
   otp: String!
   parentUserId: String!
   status: String
+  roleName: String
+  accountName: String
 }
 
 type PaginatorInfo {
@@ -784,6 +786,8 @@ input CreateUserInput {
   mainParentId: String
   status: String = "Active"
   createdBy: String
+  roleName: String
+  accountName: String
 }
 
 input AccountInput {
@@ -931,6 +935,8 @@ input UpdateUserInput {
   mainParentId: String
   status: String = "Active"
   createdBy: String
+  roleName: String
+  accountName: String
   _id: String!
 }
 
