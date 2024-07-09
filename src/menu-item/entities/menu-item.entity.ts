@@ -5,30 +5,30 @@ import { Document } from 'mongoose';
 @Schema({ timestamps: true })
 @ObjectType()
 export class MenuItem {
-  @Field()
+  @Field({ nullable: true })
   _id: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop()
   icon: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop()
   activeIcon: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop()
   text: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop()
   link: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop()
   pageName: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop()
   visibleInSidebar: boolean;
 

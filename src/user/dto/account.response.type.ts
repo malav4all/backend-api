@@ -30,7 +30,7 @@ export class AccountResponseType {
   @Column()
   accountName?: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop({ type: Types.ObjectId, ref: 'Industry' })
   industryType: IndustryType;
 

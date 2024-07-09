@@ -9,7 +9,7 @@ import { MenuItemInput } from './dto/menu-item.input';
 export class MenuItemResolver {
   constructor(private readonly menuItemService: MenuItemService) {}
 
-  @Mutation(() => MenuItemResponse)
+  @Query(() => MenuItemResponse)
   async menuItemListAll(@Args('input') input: MenuItemInput) {
     try {
       const res = await this.menuItemService.findAll(input);
