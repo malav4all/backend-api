@@ -31,6 +31,11 @@ export class DeviceModel {
   @Field()
   @Prop()
   @Column()
+  deviceId: string;
+
+  @Field()
+  @Prop()
+  @Column()
   deviceModelName: string;
 
   @Field()

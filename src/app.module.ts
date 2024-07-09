@@ -27,6 +27,7 @@ import { EntityTypeModule } from './entity-type/entity-type.module';
 import { EntitesModule } from './entites/entites.module';
 import { UserAccessModule } from './user-access/user-access.module';
 import { DeviceModelModule } from './device-model/device-model.module';
+import { AddDeviceModule } from './add-device/add-device.module';
 
 @Module({
   imports: [
@@ -76,6 +77,7 @@ import { DeviceModelModule } from './device-model/device-model.module';
     EntitesModule,
     UserAccessModule,
     DeviceModelModule,
+    AddDeviceModule,
   ],
   providers: [Upload],
   exports: [],

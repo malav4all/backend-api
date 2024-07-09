@@ -19,6 +19,10 @@ export class CreateDeviceModelCommandInput {
 
 @InputType()
 export class CreateDeviceModelInput {
+  @Field({ nullable: true })
+  @IsOptional()
+  deviceId?: string;
+
   @Field()
   deviceModelName: string;
 

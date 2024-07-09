@@ -5,6 +5,7 @@ import { Connection, Model } from 'mongoose';
 import { CreateGeoZoneInput, GeozoneInput } from './dto/create-geozone.input';
 import { UpdateGeozoneInput } from './dto/update-geozone.input';
 import axios from 'axios';
+import { generateUniqueID } from '@imz/helper/generateotp';
 
 @Injectable()
 export class GeozoneService {
@@ -53,6 +54,7 @@ export class GeozoneService {
 
   async create(payload: CreateGeoZoneInput) {
     try {
+      const locationId = generateUniqueID('LN');
       const geoZoneModel = await this.getTenantModel<Geozone>(
         payload.accountId,
         Geozone.name,
@@ -67,6 +69,7 @@ export class GeozoneService {
 
       const record = await geoZoneModel.create({
         ...payload,
+        locationId,
       });
       return record;
     } catch (error) {

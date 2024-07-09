@@ -1,40 +1,44 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { Entity, ObjectIdColumn, Column } from 'typeorm';
-import { Document, Types } from 'mongoose';
 import { IsOptional } from 'class-validator';
-import { DeviceOnboardingAccountModuleResponse } from '../dto/device-onboarding-account.response';
-import { DeviceOnboardingUserResponse } from '../dto/device-onboarding-user.response';
 
 @Schema({ timestamps: true })
 @Entity()
 @ObjectType()
-export class DeviceOnboardingTenant {
+export class DeviceOnboarding {
   @Field()
   @ObjectIdColumn()
   _id: string;
 
   @Field({ nullable: true })
+  @Column()
+  @Prop({ text: true })
+  @IsOptional()
+  location?: string;
+
+  @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
+  accountId: string;
+
+  @Field(() => [String], { nullable: true })
+  @Prop()
+  @Column()
   @IsOptional()
-  assetsType?: string;
-
-  @Field({ nullable: true })
-  @Prop({ type: Types.ObjectId, ref: 'AccountModule' })
-  @Column()
-  deviceOnboardingAccount: DeviceOnboardingAccountModuleResponse;
-
-  @Field({ nullable: true })
-  @Prop({ type: Types.ObjectId, ref: 'User' })
-  @Column()
-  deviceOnboardingUser: DeviceOnboardingUserResponse;
+  deviceOnboardingSimNo?: string[];
 
   @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
   @IsOptional()
   deviceOnboardingIMEINumber: string;
+
+  @Field({ nullable: true })
+  @Prop({ text: true })
+  @Column()
+  @IsOptional()
+  businessModel: string;
 
   @Field({ nullable: true })
   @Prop({ text: true })
@@ -47,14 +51,8 @@ export class DeviceOnboardingTenant {
   @Column()
   @IsOptional()
   updatedBy?: string;
-
-  @Field({ nullable: true })
-  @Prop({ text: true })
-  @Column()
-  @IsOptional()
-  tenantId?: string;
 }
 
-export const DeviceOnboardingTenantSchema = SchemaFactory.createForClass(
-  DeviceOnboardingTenant
-);
+export type DeviceOnboardingCopyDocument = DeviceOnboarding & Document;
+export const DeviceOnboardingCopySchema =
+  SchemaFactory.createForClass(DeviceOnboarding);

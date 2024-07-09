@@ -43,7 +43,20 @@ export class DeviceModelService {
 
   async create(payload: CreateDeviceModelInput) {
     try {
-      const record = await this.DeviceModelModel.create(payload);
+      const input = {
+        ...payload,
+        deviceId: `DM${payload?.deviceModel?.toLocaleUpperCase()}`,
+      };
+
+      const existingRecord = await this.DeviceModelModel.findOne({
+        deviceId: input.deviceId,
+      });
+
+      if (existingRecord) {
+        throw new Error('Record Already Exits');
+      }
+
+      const record = await this.DeviceModelModel.create(input);
       return record;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
