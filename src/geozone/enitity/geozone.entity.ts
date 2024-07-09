@@ -68,6 +68,11 @@ export class Geozone {
   @Field()
   @Prop({ text: true })
   @Column()
+  locationId: string;
+
+  @Field()
+  @Prop({ text: true })
+  @Column()
   accountId: string;
 
   @Field()

@@ -1,11 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { Entity, ObjectIdColumn, Column } from 'typeorm';
-import { Document, Types } from 'mongoose';
 import { IsOptional } from 'class-validator';
-import { DeviceOnboardingAccountModuleResponse } from '../dto/device-onboarding-account.response';
-import { DeviceOnboardingUserResponse } from '../dto/device-onboarding-user.response';
-import { DeviceOnboardingDeviceModelResponse } from '../dto/device-onboarding.model.response';
 
 @Schema({ timestamps: true })
 @Entity()
@@ -16,32 +12,15 @@ export class DeviceOnboarding {
   _id: string;
 
   @Field({ nullable: true })
-  @Prop({ text: true })
   @Column()
-  @IsOptional()
-  assetsType?: string;
-
-  @Field({ nullable: true })
   @Prop({ text: true })
-  @Column()
   @IsOptional()
-  description?: string;
+  location?: string;
 
   @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
-  @IsOptional()
-  deviceOnboardingName?: string;
-
-  @Field({ nullable: true })
-  @Prop({ type: Types.ObjectId, ref: 'AccountModule' })
-  @Column()
-  deviceOnboardingAccount: DeviceOnboardingAccountModuleResponse;
-
-  @Field({ nullable: true })
-  @Prop({ type: Types.ObjectId, ref: 'User' })
-  @Column()
-  deviceOnboardingUser: DeviceOnboardingUserResponse;
+  accountId: string;
 
   @Field(() => [String], { nullable: true })
   @Prop()
@@ -50,22 +29,16 @@ export class DeviceOnboarding {
   deviceOnboardingSimNo?: string[];
 
   @Field({ nullable: true })
-  @Prop({ type: Types.ObjectId, ref: 'DeviceModel' })
-  @Column()
-  @IsOptional()
-  deviceOnboardingModel?: DeviceOnboardingDeviceModelResponse;
-
-  @Field({ nullable: true })
-  @Prop({ text: true })
-  @Column()
-  @IsOptional()
-  deviceOnboardingStatus?: string;
-
-  @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
   @IsOptional()
   deviceOnboardingIMEINumber: string;
+
+  @Field({ nullable: true })
+  @Prop({ text: true })
+  @Column()
+  @IsOptional()
+  businessModel: string;
 
   @Field({ nullable: true })
   @Prop({ text: true })
@@ -78,14 +51,7 @@ export class DeviceOnboarding {
   @Column()
   @IsOptional()
   updatedBy?: string;
-
-  @Field({ nullable: true })
-  @Prop({ text: true })
-  @Column()
-  @IsOptional()
-  tenantId?: string;
 }
 
-export type DeviceOnboardingDocument = DeviceOnboarding & Document;
 export const DeviceOnboardingSchema =
   SchemaFactory.createForClass(DeviceOnboarding);

@@ -16,8 +16,6 @@ export class TenantsMiddleware implements NestMiddleware {
       } else {
         req['x-tenant-id'] = tenantId;
       }
-    } else {
-      console.warn('No tenant ID provided in the request headers');
     }
 
     next();

@@ -3,7 +3,7 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
-import { InjectConnection, InjectModel } from '@nestjs/mongoose';
+import { InjectConnection } from '@nestjs/mongoose';
 import { Connection, Model } from 'mongoose';
 import { Alert, AlertSchema } from './entity/alert.entity';
 import {

@@ -58,6 +58,9 @@ class AddressType {
 @InputType()
 export class CreateGeoZoneInput {
   @Field({ nullable: true })
+  locationId: string;
+
+  @Field({ nullable: true })
   accountId: string;
 
   @Field({ nullable: true })

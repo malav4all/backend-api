@@ -27,6 +27,8 @@ import { EntityTypeModule } from './entity-type/entity-type.module';
 import { EntitesModule } from './entites/entites.module';
 import { UserAccessModule } from './user-access/user-access.module';
 import { DeviceModelModule } from './device-model/device-model.module';
+import { AddDeviceModule } from './add-device/add-device.module';
+
 import { MenuItemModule } from './menu-item/menu-item.module';
 @Module({
   imports: [
@@ -76,6 +78,7 @@ import { MenuItemModule } from './menu-item/menu-item.module';
     EntitesModule,
     UserAccessModule,
     DeviceModelModule,
+    AddDeviceModule,
     MenuItemModule,
   ],
   providers: [Upload],

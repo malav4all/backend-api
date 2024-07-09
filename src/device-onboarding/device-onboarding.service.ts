@@ -1,11 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { InjectConnection } from '@nestjs/mongoose';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
 import { InternalServerErrorException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import {
-  DeviceOnboardingDocument,
   DeviceOnboarding,
   DeviceOnboardingSchema,
 } from './enities/device-onboarding.enities';
@@ -17,42 +15,58 @@ import { UpdateDeviceOnboardingInput } from './dto/update-device-onboarding.inpu
 import { DeviceOnboardingHistoryService } from '@imz/history/device-onboarding-history/device-onboarding-history.service';
 import { DeviceSimHistoryService } from '@imz/history/device-sim-history/device-sim-history.service';
 import { UserService } from '@imz/user/user.service';
-import { DeviceOnboardingTenantSchema } from './enities/device-onboarding-tenant.enitiy';
+import { DeviceOnboardingCopyDocument } from './enities/device-onboarding.copy.entity';
 
 @Injectable()
 export class DeviceOnboardingService {
   constructor(
-    @InjectModel(DeviceOnboarding.name)
-    private DeviceOnboardingModel: Model<DeviceOnboardingDocument>,
     private DeviceOnboardingHistoryModel: DeviceOnboardingHistoryService,
     private DeviceSimHistoryModel: DeviceSimHistoryService,
     private UserModel: UserService,
-    @InjectConnection() private connection: Connection
+    @InjectConnection() private connection: Connection,
+    @InjectModel(DeviceOnboarding.name)
+    private DeviceOnboardingCopyModel: Model<DeviceOnboardingCopyDocument>
   ) {}
 
-  async count() {
-    return await this.DeviceOnboardingModel.count().exec();
+  async getTenantModel<T>(
+    tenantId: string,
+    modelName: string,
+    schema: any
+  ): Promise<Model<T>> {
+    const tenantConnection = await this.connection.useDb(`tenant_${tenantId}`);
+    return tenantConnection.model(modelName, schema);
   }
 
-  async getTenantConnection(tenantId: string) {
-    return this.connection.useDb(`tenant_${tenantId}`);
-  }
-
-  async findAll(input: DeviceOnboardingFetchInput, getLoggedInUserDetail: any) {
+  async findAll(input: DeviceOnboardingFetchInput) {
     try {
-      const { roleId, _id, accountId } = getLoggedInUserDetail;
+      let deviceOnboardingModel;
+
+      if (input.accountId) {
+        deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
+          input.accountId,
+          DeviceOnboarding.name,
+          DeviceOnboardingSchema
+        );
+      } else {
+        deviceOnboardingModel = this.DeviceOnboardingCopyModel;
+      }
+
       const { page, limit } = input;
       const skip = this.calculateSkip(Number(page), Number(limit));
-      const records = await this.queryDeviceRecords(
-        Number(skip),
-        Number(limit),
-        roleId,
-        _id,
-        accountId
-      );
-      return records;
+
+      const records = await deviceOnboardingModel
+        .find()
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit))
+        .exec();
+
+      const count = await deviceOnboardingModel.countDocuments().exec();
+      return { records, count };
     } catch (error) {
-      throw new InternalServerErrorException(error.message);
+      throw new InternalServerErrorException(
+        `FindAll operation failed: ${error.message}`
+      );
     }
   }
 
@@ -60,92 +74,21 @@ export class DeviceOnboardingService {
     return page === -1 ? 0 : (page - 1) * limit;
   }
 
-  async queryDeviceRecords(
-    skip: number,
-    limit: number,
-    roleId: any,
-    _id: string,
-    accountId: any
-  ) {
-    try {
-      let query = {};
-      if (roleId.name === 'Master Admin') {
-        query = {};
-      } else if (roleId.name === 'Super Admin') {
-        query = {
-          deviceOnboardingUser: _id.toString(),
-          deviceOnboardingAccount: accountId._id.toString(),
-        };
-      } else {
-        query = {
-          deviceOnboardingUser: _id.toString(),
-          accountId: accountId._id.toString(),
-        };
-      }
-
-      if (!accountId.tenantId) {
-        return this.DeviceOnboardingModel.find(query)
-          .populate([
-            { path: 'deviceOnboardingAccount' },
-            { path: 'deviceOnboardingUser' },
-            { path: 'deviceOnboardingModel' },
-          ])
-          .skip(skip)
-          .limit(limit)
-          .lean()
-          .exec();
-      }
-
-      const tenantConnection = await this.getTenantConnection(
-        accountId.tenantId
-      );
-      const fetchTenatDb = await tenantConnection.model(
-        DeviceOnboarding.name,
-        DeviceOnboardingTenantSchema
-      );
-
-      return fetchTenatDb
-        .find(query)
-        .populate([
-          { path: 'deviceOnboardingAccount' },
-          { path: 'deviceOnboardingUser' },
-        ])
-        .skip(skip)
-        .limit(limit)
-        .lean()
-        .exec();
-    } catch (error: any) {
-      throw new InternalServerErrorException(error.message);
-    }
-  }
-
   async create(payload: DeviceOnboardingInput) {
     try {
-      const tenantConnection = await this.getTenantConnection(
-        payload.accountId
-      );
-      const deviceOnboardingTenant = await tenantConnection.model(
+      const deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
+        payload.accountId,
         DeviceOnboarding.name,
-        DeviceOnboardingTenantSchema
+        DeviceOnboardingSchema
       );
-      const record = await this.createDeviceRecord(payload);
-      await deviceOnboardingTenant.create({
-        assetsType: record.assetsType,
-        deviceOnboardingIMEINumber: record.deviceOnboardingIMEINumber,
-        deviceOnboardingAccount: record.deviceOnboardingAccount,
-        deviceOnboardingUser: record.deviceOnboardingUser,
-        tenantId: record.tenantId,
-      });
+      await this.DeviceOnboardingCopyModel.create(payload);
+      const record = await deviceOnboardingModel.create(payload);
       await this.createDeviceHistoryRecord(payload);
       await this.createDeviceSimHistoryRecord(payload);
       return record;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
-  }
-
-  async createDeviceRecord(payload: DeviceOnboardingInput) {
-    return this.DeviceOnboardingModel.create(payload);
   }
 
   async createDeviceHistoryRecord(payload: DeviceOnboardingInput) {
@@ -180,61 +123,40 @@ export class DeviceOnboardingService {
   }
 
   async update(payload: UpdateDeviceOnboardingInput) {
-    try {
-      const existingRecord = await this.findDeviceById(payload._id);
-      const updatePayload = { ...payload };
-      const record = await this.updateDeviceRecord(payload._id, updatePayload);
-      const deviceHistoryPayload = this.createDeviceHistoryPayload(
-        record,
-        existingRecord
-      );
-
-      await this.DeviceOnboardingHistoryModel.create(deviceHistoryPayload);
-      if (
-        this.hasSimNoChanged(
-          existingRecord.deviceOnboardingSimNo,
-          payload.deviceOnboardingSimNo
-        )
-      ) {
-        const deviceSimHistoryPayload = this.createDeviceSimHistoryPayload(
-          record,
-          existingRecord
-        );
-        await this.DeviceSimHistoryModel.create(deviceSimHistoryPayload);
-      }
-
-      return record;
-    } catch (error) {
-      throw new InternalServerErrorException(error.message);
-    }
-  }
-
-  async findDeviceById(deviceId: string) {
-    try {
-      const existingRecord = await this.DeviceOnboardingModel.findById(
-        deviceId
-      ).exec();
-
-      if (!existingRecord) {
-        throw new Error('Record not found');
-      }
-
-      return existingRecord;
-    } catch (error) {
-      throw new InternalServerErrorException(error.message);
-    }
-  }
-
-  async updateDeviceRecord(deviceId: string, updatePayload: any) {
-    try {
-      return this.DeviceOnboardingModel.findByIdAndUpdate(
-        deviceId,
-        updatePayload,
-        { new: true }
-      ).exec();
-    } catch (error) {
-      throw new InternalServerErrorException(error.message);
-    }
+    // try {
+    //   const deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
+    //     payload.accountId,
+    //     DeviceOnboarding.name,
+    //     DeviceOnboardingSchema
+    //   );
+    //   const existingRecord = await deviceOnboardingModel.findByIdAndUpdate(
+    //     payload._id
+    //   );
+    //   const updatePayload = { ...payload };
+    //   const record = await deviceOnboardingModel
+    //     .findByIdAndUpdate(deviceId, updatePayload, { new: true })
+    //     .exec();
+    //   const deviceHistoryPayload = this.createDeviceHistoryPayload(
+    //     record,
+    //     existingRecord
+    //   );
+    //   await this.DeviceOnboardingHistoryModel.create(deviceHistoryPayload);
+    //   if (
+    //     this.hasSimNoChanged(
+    //       existingRecord.deviceOnboardingSimNo,
+    //       payload.deviceOnboardingSimNo
+    //     )
+    //   ) {
+    //     const deviceSimHistoryPayload = this.createDeviceSimHistoryPayload(
+    //       record,
+    //       existingRecord
+    //     );
+    //     await this.DeviceSimHistoryModel.create(deviceSimHistoryPayload);
+    //   }
+    //   return record;
+    // } catch (error) {
+    //   throw new InternalServerErrorException(error.message);
+    // }
   }
 
   hasSimNoChanged(existingSimNo: any, newSimNo: any) {
@@ -278,6 +200,35 @@ export class DeviceOnboardingService {
       return res;
     } catch (error: any) {
       throw Error(error.message);
+    }
+  }
+
+  async bulkDeviceAssignment(payload: DeviceOnboardingInput[]) {
+    const payloadLength = payload.length;
+    const defaultBatchSize = 1000;
+    const maxBatchSize = 10000;
+
+    // Calculate batch size dynamically
+    const batchSize =
+      Math.min(Math.ceil(payloadLength / 10), maxBatchSize) || defaultBatchSize;
+    const results = [];
+
+    const deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
+      payload[0].accountId,
+      DeviceOnboarding.name,
+      DeviceOnboardingSchema
+    );
+
+    try {
+      for (let i = 0; i < payloadLength; i += batchSize) {
+        const batch = payload.slice(i, i + batchSize);
+        const record = await deviceOnboardingModel.insertMany(batch);
+        await this.DeviceOnboardingCopyModel.insertMany(batch);
+        results.push(...record);
+      }
+      return results;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
     }
   }
 }

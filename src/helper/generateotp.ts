@@ -29,14 +29,14 @@ export function getDistanceInMeters(coord1, coord2) {
   return R * c; // Distance in meters
 }
 
-export const generateUniqueID = () => {
+export const generateUniqueID = (dynamicString?: string) => {
   const characters = '0123456789';
   let result = '';
   const charactersLength = characters.length;
   for (let i = 0; i < 6; i++) {
     result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
-  return 'IMZ' + result;
+  return dynamicString + result;
 };
 
 export function generateTripID() {
