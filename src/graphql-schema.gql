@@ -258,63 +258,23 @@ type GeozoneResponse {
   data: [Geozone!]!
 }
 
-type PropertyTypeEntityResponse {
-  name: String
-}
-
-type GeoJsonGeometryEntityResponse {
-  type: String!
-  coordinates: [Float!]!
-  radius: Float!
-}
-
-type GeoJsonEntityResponse {
-  type: String!
-  geometry: GeoJsonGeometryEntityResponse!
-  properties: PropertyTypeEntityResponse
-}
-
-type AddressEntityTypeResponse {
-  zipCode: String
-  country: String
-  state: String
-  area: String
-  city: String
-  district: String
-}
-
-type JourneyResponse {
-  _id: String
-  name: String
-  description: String
-  locationType: String
-  mobileNumber: String
-  address: AddressEntityTypeResponse
-  geoCodeData: GeoJsonEntityResponse
-  finalAddress: String
-  createdBy: String
-}
-
-type Journey {
+type Route {
   _id: String
   accountId: String
-  journeyName: String
-  journeyData: [JourneyResponse!]
+  routeName: String
+  routeData: String
   createdBy: String
-  startDate: DateTime
-  endDate: DateTime
   totalDistance: Float
   totalDuration: Float
-  imei: Float
   createdAt: DateTime
   updatedAt: DateTime
 }
 
-type JourneyResponseData {
+type RouteResponseData {
   paginatorInfo: PaginatorInfo
   success: Float
   message: String
-  data: [Journey!]!
+  data: [Route!]!
 }
 
 type AlertEntityConfig {
@@ -672,6 +632,7 @@ type UserAccessResponse {
 
 type TripType {
   _id: String!
+  accountId: String!
   tripName: String!
   minBatteryPercentage: Float!
   tripRate: Float!
@@ -762,6 +723,31 @@ type MenuItemResponse {
   data: [MenuItem!]!
 }
 
+type FieldInputEntity {
+  id: String
+  label: String
+  required: Boolean
+  type: String
+}
+
+type FormBuilder {
+  _id: String!
+  accountId: String
+  formTitle: String
+  fields: [FieldInputEntity!]
+  createdBy: String
+  isFormEnable: Boolean
+  updatedBy: String
+  lastUpdated: DateTime
+}
+
+type FormBuilderResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [FormBuilder!]!
+}
+
 type Query {
   createUser(input: CreateUserInput!): UserResponse!
   fetchAccountList(input: AccountInput!): AccountResponse!
@@ -825,10 +811,10 @@ type Mutation {
   addGeozone(input: CreateGeoZoneInput!): GeozoneResponse!
   listGeozone(input: GeozoneInput!): GeozoneResponse!
   updateGeozone(input: UpdateGeozoneInput!): GeozoneResponse!
-  addJourney(input: CreateJourneyInput!): JourneyResponseData!
-  fetchJourney(input: JourneyInput!): JourneyResponseData!
-  updateJourney(input: UpdateJourneyInput!): JourneyResponseData!
-  searchJourneys(input: SearchJourneysInput!): JourneyResponseData!
+  addRoute(input: CreateRouteInput!): RouteResponseData!
+  fetchRoute(input: RouteInput!): RouteResponseData!
+  updateRoute(input: UpdateRouteInput!): RouteResponseData!
+  searchRoute(input: SearchRouteInput!): RouteResponseData!
   addAlert(input: CreateAlertInputType!): AlertResponseData!
   fetchAlert(input: AlertInput!): AlertResponseData!
   updateAlert(input: UpdateAlertInput!): AlertResponseData!
@@ -900,6 +886,9 @@ type Mutation {
   updateDeviceList(input: UpdateAddDeviceInput!): AddDeviceResponse!
   bulkUploadDevice(input: [CreateAddDeviceInput!]!): AddDeviceResponse!
   createMenuItem(input: CreateMenuItemInput!): MenuItemResponse!
+  addFormBuilder(input: CreateFormBuilderInput!): FormBuilderResponse!
+  fetchFormBuilder(input: FormBuildInput!): FormBuilderResponse!
+  updateFormBuilder(input: UpdateFormBuilderInput!): FormBuilderResponse!
 }
 
 input ChangePasswordInput {
@@ -1047,36 +1036,32 @@ input UpdateGeozoneInput {
   _id: String!
 }
 
-input CreateJourneyInput {
+input CreateRouteInput {
   accountId: String
-  journeyName: String
-  journeyData: [String!]
+  routeName: String
+  routeData: [String!]
   createdBy: String
-  startDate: DateTime!
-  endDate: DateTime!
   totalDistance: Float
   totalDuration: Float
 }
 
-input JourneyInput {
+input RouteInput {
   accountId: String
   page: Int
   limit: Int
 }
 
-input UpdateJourneyInput {
+input UpdateRouteInput {
   accountId: String
-  journeyName: String
-  journeyData: [String!]
+  routeName: String
+  routeData: [String!]
   createdBy: String
-  startDate: DateTime
-  endDate: DateTime
   totalDistance: Float
   totalDuration: Float
   _id: String!
 }
 
-input SearchJourneysInput {
+input SearchRouteInput {
   accountId: String
   search: String!
   page: Int
@@ -1336,6 +1321,7 @@ input SearchAccountInput {
 }
 
 input CreateTripTypeInput {
+  accountId: String
   tripName: String
   minBatteryPercentage: Float
   tripRate: Float
@@ -1347,17 +1333,20 @@ input CreateTripTypeInput {
 }
 
 input TripTypeInput {
+  accountId: String
   page: Int
   limit: Int
 }
 
 input SearchTripTypeInput {
+  accountId: String
   search: String
   page: Int
   limit: Int
 }
 
 input UpdateTripTypeInput {
+  accountId: String
   tripName: String
   minBatteryPercentage: Float
   tripRate: Float
@@ -1666,6 +1655,38 @@ input CreateMenuItemInput {
   visibleInSidebar: Boolean!
   accessToResource: [String!]
   subMenu: [CreateMenuItemInput!]
+}
+
+input CreateFormBuilderInput {
+  accountId: String
+  formTitle: String
+  fields: [FieldInputType!]
+  isFormEnable: Boolean
+  createdBy: String
+  updatedBy: String
+}
+
+input FieldInputType {
+  id: String
+  label: String
+  required: Boolean
+  type: String
+}
+
+input FormBuildInput {
+  accountId: String
+  page: Int
+  limit: Int
+}
+
+input UpdateFormBuilderInput {
+  accountId: String
+  formTitle: String
+  fields: [FieldInputType!]
+  isFormEnable: Boolean
+  createdBy: String
+  updatedBy: String
+  _id: String!
 }
 
 type Subscription {

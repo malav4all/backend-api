@@ -6,7 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { UserModule } from './user/user.module';
 import { AssertAssingmentModuleModule } from './assert-asingment/assert-asingment.module';
 import { GeozoneModule } from './geozone/geozone.module';
-import { JourneyModule } from './journey/journey.module';
+import { RouteModule } from './routes/route.module';
 import { RedisModule } from './redis/redis.module';
 import { AlertModule } from './alert/alert.module';
 import { DeviceGroupModule } from './device-group/device-group.module';
@@ -58,7 +58,7 @@ import { FormBuilderModule } from './form-builder/form-builder.module';
     UserModule,
     AssertAssingmentModuleModule,
     GeozoneModule,
-    JourneyModule,
+    RouteModule,
     RedisModule,
     AlertModule,
     DeviceGroupModule,

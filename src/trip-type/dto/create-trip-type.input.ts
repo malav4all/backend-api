@@ -5,6 +5,9 @@ import GraphQLJSON from 'graphql-type-json';
 @InputType()
 export class CreateTripTypeInput {
   @Field({ nullable: true })
+  accountId: string;
+
+  @Field({ nullable: true })
   tripName: string;
 
   @Field({ nullable: true })
@@ -33,14 +36,21 @@ export class CreateTripTypeInput {
 
 @InputType()
 export class TripTypeInput {
+  @Field({ nullable: true })
+  accountId: string;
+
   @Field(() => Int, { nullable: true })
   page: typeof Int;
+
   @Field(() => Int, { nullable: true })
   limit: typeof Int;
 }
 
 @InputType()
 export class SearchTripTypeInput {
+  @Field({ nullable: true })
+  accountId: string;
+
   @Field({ nullable: true })
   search: string;
 

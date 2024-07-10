@@ -1,12 +1,11 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types, now } from 'mongoose';
-import { JourneyResponse } from '../dto/geozone.response';
+import { now } from 'mongoose';
 import { Column } from 'typeorm';
 
 @Schema({ timestamps: true })
 @ObjectType()
-export class Journey {
+export class Route {
   @Field({ nullable: true })
   _id: string;
 
@@ -16,23 +15,15 @@ export class Journey {
 
   @Field({ nullable: true })
   @Prop({ text: true })
-  journeyName: string;
+  routeName: string;
 
-  @Field(() => [JourneyResponse], { nullable: true })
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'Geozone' }] })
-  journeyData: JourneyResponse[];
+  @Field({ nullable: true })
+  @Prop({})
+  routeData: string;
 
   @Field({ nullable: true })
   @Prop()
   createdBy: string;
-
-  @Field(() => Date, { nullable: true })
-  @Prop()
-  startDate: Date;
-
-  @Field(() => Date, { nullable: true })
-  @Prop()
-  endDate: Date;
 
   @Field({ nullable: true })
   @Prop()
@@ -41,10 +32,6 @@ export class Journey {
   @Field({ nullable: true })
   @Prop()
   totalDuration: number;
-
-  @Field({ nullable: true })
-  @Prop()
-  imei: number;
 
   @Field({ nullable: true })
   @Prop({ default: now() })
@@ -57,4 +44,4 @@ export class Journey {
   updatedAt: Date;
 }
 
-export const JourneySchema = SchemaFactory.createForClass(Journey);
+export const RouteSchema = SchemaFactory.createForClass(Route);

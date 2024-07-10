@@ -1,9 +1,8 @@
-import { Journey } from './../../journey/entity/journey.entity';
 import { AssertAssingmentModuleEntity } from '@imz/assert-asingment/entities/assert-asingment.enitiy';
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { IsOptional } from 'class-validator';
-import { Document, Types } from 'mongoose';
+import { Types } from 'mongoose';
 
 @Schema({ timestamps: true })
 @ObjectType()

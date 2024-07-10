@@ -1,10 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import {
-  TripType,
-  TripTypeDocument,
-} from './entites/trip-type.entity';
+import { InjectConnection } from '@nestjs/mongoose';
+import { Connection, Model } from 'mongoose';
+import { TripType, TripTypeSchema } from './entites/trip-type.entity';
 import {
   CreateTripTypeInput,
   SearchTripTypeInput,
@@ -15,26 +12,49 @@ import { UpdateTripTypeInput } from './dto/update-trip-type';
 @Injectable()
 export class TripTypeService {
   constructor(
-    @InjectModel(TripType.name)
-    private TripTypeModel: Model<TripTypeDocument>
+    @InjectConnection()
+    private connection: Connection
   ) {}
 
-  async count() {
-    return await this.TripTypeModel.count().exec();
+  async getTenantModel<T>(
+    tenantId: string | undefined,
+    modelName: string,
+    schema: any
+  ): Promise<Model<T> | null> {
+    if (!tenantId || !tenantId.trim()) {
+      return null;
+    }
+    const tenantConnection = this.connection.useDb(
+      `tenant_${tenantId.trim()}`,
+      { useCache: true }
+    );
+    return tenantConnection.model(modelName, schema);
   }
 
   async findAll(input: TripTypeInput) {
     try {
+      const tripTypeModel = await this.getTenantModel<TripType>(
+        input.accountId,
+        TripType.name,
+        TripTypeSchema
+      );
+
+      if (!tripTypeModel) {
+        return { records: [], count: 0 }; // return empty results or handle as needed
+      }
       const { page, limit } = input;
       const skip = this.calculateSkip(Number(page), Number(limit));
 
-      const records = await this.TripTypeModel.find({})
+      const records = await tripTypeModel
+        .find({})
         .skip(skip)
         .limit(Number(limit))
         .lean()
         .exec();
 
-      return records;
+      const count = await tripTypeModel.count().lean().exec();
+
+      return { records, count };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
@@ -45,7 +65,15 @@ export class TripTypeService {
   }
 
   async create(payload: CreateTripTypeInput) {
-    const record = this.TripTypeModel.create({
+    const tripTypeModel = await this.getTenantModel<TripType>(
+      payload.accountId,
+      TripType.name,
+      TripTypeSchema
+    );
+    if (!tripTypeModel) {
+      return null; // or handle the case as needed
+    }
+    const record = tripTypeModel.create({
       ...payload,
     });
     return record;
@@ -53,17 +81,26 @@ export class TripTypeService {
 
   async searchIndustry(input: SearchTripTypeInput) {
     try {
+      const tripTypeModel = await this.getTenantModel<TripType>(
+        input.accountId,
+        TripType.name,
+        TripTypeSchema
+      );
+      if (!tripTypeModel) {
+        return { records: [], count: 0 }; // return empty results or handle as needed
+      }
       const { page, limit, search } = input;
       const skip = this.calculateSkip(Number(page), Number(limit));
       const query = this.buildSearchQuery(search);
 
-      const records = await this.TripTypeModel.find(query)
+      const records = await tripTypeModel
+        .find(query)
         .skip(skip)
         .limit(Number(limit))
         .lean()
         .exec();
 
-      const count = await this.TripTypeModel.countDocuments(query);
+      const count = await tripTypeModel.countDocuments(query);
 
       return { records, count };
     } catch (error) {
@@ -89,11 +126,17 @@ export class TripTypeService {
         ...payload,
         lastUpdated: new Date(),
       };
-      const record = await this.TripTypeModel.findByIdAndUpdate(
-        payload._id,
-        updatePayload,
-        { new: true }
-      ).exec();
+      const tripTypeModel = await this.getTenantModel<TripType>(
+        payload.accountId,
+        TripType.name,
+        TripTypeSchema
+      );
+      if (!tripTypeModel) {
+        return null; // or handle the case as needed
+      }
+      const record = await tripTypeModel
+        .findByIdAndUpdate(payload._id, updatePayload, { new: true })
+        .exec();
       return record;
     } catch (error) {
       throw new InternalServerErrorException(error.message);

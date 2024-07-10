@@ -1,16 +1,14 @@
-import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { TripType, TripTypeSchema } from './entites/trip-type.entity';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { TripTypeService } from './trip.service';
 import { TripTypeResolver } from './trip-type.resolver';
+import { TenantsMiddleware } from '@imz/helper/middleware/tenants.middleware';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([
-      { name: TripType.name, schema: TripTypeSchema },
-    ]),
-  ],
   providers: [TripTypeResolver, TripTypeService],
   exports: [TripTypeService],
 })
-export class TripTypeModule {}
+export class TripTypeModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(TenantsMiddleware).forRoutes(TripTypeResolver);
+  }
+}

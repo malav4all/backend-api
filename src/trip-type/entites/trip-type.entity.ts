@@ -15,6 +15,11 @@ export class TripType {
   @Field()
   @Prop({ text: true })
   @Column()
+  accountId: string;
+
+  @Field()
+  @Prop({ text: true })
+  @Column()
   tripName: string;
 
   @Field()
@@ -56,5 +61,4 @@ export class TripType {
   lastUpdated: Date;
 }
 
-export type TripTypeDocument = TripType & Document;
 export const TripTypeSchema = SchemaFactory.createForClass(TripType);
