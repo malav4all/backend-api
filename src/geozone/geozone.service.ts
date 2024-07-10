@@ -1,11 +1,11 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
-import { Geozone, GeozoneSchema } from './enitity/geozone.entity';
 import { Connection, Model } from 'mongoose';
 import { CreateGeoZoneInput, GeozoneInput } from './dto/create-geozone.input';
 import { UpdateGeozoneInput } from './dto/update-geozone.input';
 import axios from 'axios';
 import { generateUniqueID } from '@imz/helper/generateotp';
+import { Geozone, GeozoneSchema } from './enitity/geozone.entity';
 
 @Injectable()
 export class GeozoneService {
@@ -44,11 +44,20 @@ export class GeozoneService {
   }
 
   async getTenantModel<T>(
-    tenantId: string,
+    tenantId: string | undefined,
     modelName: string,
     schema: any
-  ): Promise<Model<T>> {
-    const tenantConnection = await this.connection.useDb(`tenant_${tenantId}`);
+  ): Promise<Model<T> | null> {
+    if (!tenantId || !tenantId.trim()) {
+      console.warn(
+        'Tenant ID is undefined or empty, skipping tenant-specific model creation'
+      );
+      return null;
+    }
+    const tenantConnection = this.connection.useDb(
+      `tenant_${tenantId.trim()}`,
+      { useCache: true }
+    );
     return tenantConnection.model(modelName, schema);
   }
 
@@ -60,11 +69,17 @@ export class GeozoneService {
         Geozone.name,
         GeozoneSchema
       );
+
+      if (!geoZoneModel) {
+        console.warn('Skipping create operation as tenantModel is null');
+        return null; // or handle the case as needed
+      }
+
       const existingCircleName = await geoZoneModel.findOne({
         name: payload.name,
       });
       if (existingCircleName) {
-        throw new Error('Record Already Exits');
+        throw new Error('Record Already Exists');
       }
 
       const record = await geoZoneModel.create({
@@ -73,7 +88,7 @@ export class GeozoneService {
       });
       return record;
     } catch (error) {
-      throw new Error(`Failed to create user: ${error.message}`);
+      throw new Error(`Failed to create geozone: ${error.message}`);
     }
   }
 
@@ -84,6 +99,12 @@ export class GeozoneService {
         Geozone.name,
         GeozoneSchema
       );
+
+      if (!geoZoneModel) {
+        console.warn('Skipping fetch operation as tenantModel is null');
+        return { records: [], count: 0 }; // return empty results or handle as needed
+      }
+
       const page = Number(input.page);
       const limit = Number(input.limit);
       const skip = page === -1 ? 0 : (page - 1) * limit;
@@ -108,6 +129,12 @@ export class GeozoneService {
         Geozone.name,
         GeozoneSchema
       );
+
+      if (!geoZoneModel) {
+        console.warn('Skipping update operation as tenantModel is null');
+        return null; // or handle as needed
+      }
+
       const updatePayload = {
         ...payload,
         updatedAt: new Date(),

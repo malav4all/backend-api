@@ -28,8 +28,9 @@ import { EntitesModule } from './entites/entites.module';
 import { UserAccessModule } from './user-access/user-access.module';
 import { DeviceModelModule } from './device-model/device-model.module';
 import { AddDeviceModule } from './add-device/add-device.module';
-
 import { MenuItemModule } from './menu-item/menu-item.module';
+import { FormBuilderModule } from './form-builder/form-builder.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -80,6 +81,7 @@ import { MenuItemModule } from './menu-item/menu-item.module';
     DeviceModelModule,
     AddDeviceModule,
     MenuItemModule,
+    FormBuilderModule,
   ],
   providers: [Upload],
   exports: [],

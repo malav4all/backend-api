@@ -1,6 +1,4 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { GeozoneSchema, Geozone } from './enitity/geozone.entity';
 import { GeozoneResolver } from './geozone.resolver';
 import { GeozoneService } from './geozone.service';
 import { TenantsMiddleware } from '@imz/helper/middleware/tenants.middleware';
