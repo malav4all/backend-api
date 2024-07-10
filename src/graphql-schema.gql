@@ -477,26 +477,6 @@ type AccountResponse {
   data: [Account!]
 }
 
-type TransitType {
-  _id: String!
-  transitName: String!
-  minBatteryPercentage: Float!
-  tripRate: Float!
-  gstPercentage: Float!
-  disableField: JSON
-  filtrationFelid: JSON
-  createdBy: String!
-  updatedBy: String!
-  lastUpdated: DateTime
-}
-
-type TransitTypeResponse {
-  paginatorInfo: PaginatorInfo
-  success: Float
-  message: String
-  data: [TransitType!]!
-}
-
 type TripInformationData {
   imei: [String!]
   vehicleNo: String
@@ -690,6 +670,26 @@ type UserAccessResponse {
   data: [UserAccess!]!
 }
 
+type TripType {
+  _id: String!
+  tripName: String!
+  minBatteryPercentage: Float!
+  tripRate: Float!
+  gstPercentage: Float!
+  disableField: JSON
+  filtrationFelid: JSON
+  createdBy: String!
+  updatedBy: String!
+  lastUpdated: DateTime
+}
+
+type TripTypeResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [TripType!]!
+}
+
 type DeviceModelValuesInput {
   key: String
   value: String!
@@ -860,10 +860,10 @@ type Mutation {
   deleteAccount(input: UpdateAccountInput!): AccountResponse!
   searchAccount(input: SearchAccountInput!): AccountResponse!
   fetchAccountModuleList(input: AccountInput!): AccountResponse!
-  createTransitType(input: CreateTransitTypeInput!): TransitTypeResponse!
-  transitTypeList(input: TransitTypeInput!): TransitTypeResponse!
-  searchTransitType(input: SearchTransitTypeInput!): TransitTypeResponse!
-  updateTransitType(input: UpdateTransitTypeInput!): TransitTypeResponse!
+  createTripType(input: CreateTripTypeInput!): TripTypeResponse!
+  tripTypeList(input: TripTypeInput!): TripTypeResponse!
+  searchTripType(input: SearchTripTypeInput!): TripTypeResponse!
+  updateTripType(input: UpdateTripTypeInput!): TripTypeResponse!
   createTrip(input: CreateTripInput!): TripResponse!
   tripList(input: TripInput!): TripResponse!
   searchTrip(input: SearchTripInput!): TripResponse!
@@ -1335,8 +1335,8 @@ input SearchAccountInput {
   limit: Int
 }
 
-input CreateTransitTypeInput {
-  transitName: String
+input CreateTripTypeInput {
+  tripName: String
   minBatteryPercentage: Float
   tripRate: Float
   gstPercentage: String
@@ -1346,19 +1346,19 @@ input CreateTransitTypeInput {
   updatedBy: String
 }
 
-input TransitTypeInput {
+input TripTypeInput {
   page: Int
   limit: Int
 }
 
-input SearchTransitTypeInput {
+input SearchTripTypeInput {
   search: String
   page: Int
   limit: Int
 }
 
-input UpdateTransitTypeInput {
-  transitName: String
+input UpdateTripTypeInput {
+  tripName: String
   minBatteryPercentage: Float
   tripRate: Float
   gstPercentage: String

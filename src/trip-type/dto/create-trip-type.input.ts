@@ -3,9 +3,9 @@ import { IsOptional } from 'class-validator';
 import GraphQLJSON from 'graphql-type-json';
 
 @InputType()
-export class CreateTransitTypeInput {
+export class CreateTripTypeInput {
   @Field({ nullable: true })
-  transitName: string;
+  tripName: string;
 
   @Field({ nullable: true })
   minBatteryPercentage: number;
@@ -32,7 +32,7 @@ export class CreateTransitTypeInput {
 }
 
 @InputType()
-export class TransitTypeInput {
+export class TripTypeInput {
   @Field(() => Int, { nullable: true })
   page: typeof Int;
   @Field(() => Int, { nullable: true })
@@ -40,7 +40,7 @@ export class TransitTypeInput {
 }
 
 @InputType()
-export class SearchTransitTypeInput {
+export class SearchTripTypeInput {
   @Field({ nullable: true })
   search: string;
 
