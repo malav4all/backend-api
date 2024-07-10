@@ -13,6 +13,7 @@ import {
 } from './dto/create-route.input';
 import { UpdateRouteInput } from './dto/update-route.input';
 import { Route, RouteSchema } from './entity/route.entity';
+import { generateUniqueID } from '@imz/helper/generateotp';
 
 @Injectable()
 export class RouteService {
@@ -22,21 +23,37 @@ export class RouteService {
   ) {}
 
   async getTenantModel<T>(
-    tenantId: string,
+    tenantId: string | undefined,
     modelName: string,
     schema: any
-  ): Promise<Model<T>> {
-    const tenantConnection = await this.connection.useDb(`tenant_${tenantId}`);
+  ): Promise<Model<T> | null> {
+    if (!tenantId || !tenantId.trim()) {
+      console.warn(
+        'Tenant ID is undefined or empty, skipping tenant-specific model creation'
+      );
+      return null;
+    }
+    const tenantConnection = this.connection.useDb(
+      `tenant_${tenantId.trim()}`,
+      { useCache: true }
+    );
     return tenantConnection.model(modelName, schema);
   }
 
   async create(payload: CreateRouteInput) {
     try {
+      const routeId = generateUniqueID('RT');
       const routeModel = await this.getTenantModel<Route>(
         payload.accountId,
         Route.name,
         RouteSchema
       );
+
+      if (!routeModel) {
+        console.warn('Skipping create operation as tenantModel is null');
+        return null; // or handle the case as needed
+      }
+
       const existingRecord = await routeModel.findOne({
         routeName: payload.routeName,
       });
@@ -46,12 +63,14 @@ export class RouteService {
 
       const record = await routeModel.create({
         ...payload,
+        routeId,
       });
       return record;
     } catch (error) {
       throw new Error(`Failed to create : ${error.message}`);
     }
   }
+
   async findAll(input: RouteInput) {
     try {
       const routeModel = await this.getTenantModel<Route>(
@@ -59,17 +78,50 @@ export class RouteService {
         Route.name,
         RouteSchema
       );
+
+      if (!routeModel) {
+        return { records: [], count: 0 };
+      }
+
       const page = Number(input.page);
       const limit = Number(input.limit);
       const skip = page === -1 ? 0 : (page - 1) * limit;
-      const records = await routeModel
-        .find({})
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .populate({ path: 'journeyData' })
-        .exec();
+
+      const aggregationPipeline: any = [
+        {
+          $sort: { createdAt: -1 },
+        },
+        {
+          $skip: skip,
+        },
+        {
+          $limit: limit,
+        },
+        {
+          $addFields: {
+            routesData: {
+              $map: {
+                input: '$routesData',
+                as: 'routeId',
+                in: { $toObjectId: '$$routeId' },
+              },
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: 'geozones',
+            localField: 'routesData',
+            foreignField: '_id',
+            as: 'routeDetails',
+          },
+        },
+      ];
+
+      const records = await routeModel.aggregate(aggregationPipeline).exec();
+
       const count = await routeModel.countDocuments().exec();
+
       return { records, count };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
@@ -83,6 +135,11 @@ export class RouteService {
         Route.name,
         RouteSchema
       );
+
+      if (!routeModel) {
+        return null; // or handle as needed
+      }
+
       const updatePayload = {
         ...payload,
         updatedAt: new Date(),
@@ -106,6 +163,12 @@ export class RouteService {
         Route.name,
         RouteSchema
       );
+
+      if (!routeModel) {
+        console.warn('Skipping searchRoute operation as tenantModel is null');
+        return { records: [], count: 0 }; // return empty results or handle as needed
+      }
+
       const page = Number(input.page) || 1;
       const limit = Number(input.limit) || 10;
       const skip = page === -1 ? 0 : (page - 1) * limit;
@@ -142,13 +205,11 @@ export class RouteService {
         .lean()
         .exec();
 
-      const formattedRecords = [];
-
       const count = await routeModel.countDocuments({
         $or: searchConditions,
       });
 
-      return { records: formattedRecords, count };
+      return { records, count };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }

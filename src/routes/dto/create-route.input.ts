@@ -5,11 +5,14 @@ export class CreateRouteInput {
   @Field({ nullable: true })
   accountId: string;
 
+  @Field({ nullable: true })
+  routeId: string;
+
   @Field(() => String, { nullable: true })
   routeName: string;
 
   @Field(() => [String], { nullable: true })
-  routeData: string[];
+  routesData: string[];
 
   @Field({ nullable: true })
   createdBy: string;

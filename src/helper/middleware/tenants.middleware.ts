@@ -16,10 +16,6 @@ export class TenantsMiddleware implements NestMiddleware {
       } else {
         console.warn('Tenant does not exist');
       }
-    } else {
-      console.warn(
-        'No tenant ID provided in the request headers or tenant ID is empty'
-      );
     }
 
     next();

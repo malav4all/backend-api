@@ -22,6 +22,7 @@ export class AlertService {
   private mqttClient: MqttClient;
   private pubSub: PubSub = new PubSub();
   private logger = new Logger('AlertService');
+
   constructor(
     @InjectConnection()
     private connection: Connection,
@@ -63,11 +64,20 @@ export class AlertService {
   }
 
   async getTenantModel<T>(
-    tenantId: string,
+    tenantId: string | undefined,
     modelName: string,
     schema: any
-  ): Promise<Model<T>> {
-    const tenantConnection = await this.connection.useDb(`tenant_${tenantId}`);
+  ): Promise<Model<T> | null> {
+    if (!tenantId || !tenantId.trim()) {
+      console.warn(
+        'Tenant ID is undefined or empty, skipping tenant-specific model creation'
+      );
+      return null;
+    }
+    const tenantConnection = this.connection.useDb(
+      `tenant_${tenantId.trim()}`,
+      { useCache: true }
+    );
     return tenantConnection.model(modelName, schema);
   }
 
@@ -78,11 +88,17 @@ export class AlertService {
         Alert.name,
         AlertSchema
       );
+
+      if (!alertModel) {
+        console.warn('Skipping create operation as tenantModel is null');
+        return null; // or handle the case as needed
+      }
+
       const existingRecord = await alertModel.findOne({
         alertName: payload.alertName,
       });
       if (existingRecord) {
-        throw new Error('Record Already Exits');
+        throw new Error('Record Already Exists');
       }
       const record = await alertModel.create(payload);
       const imeisToIterate =
@@ -98,7 +114,7 @@ export class AlertService {
 
       return record;
     } catch (error) {
-      throw new Error(`Failed to create : ${error.message}`);
+      throw new Error(`Failed to create: ${error.message}`);
     }
   }
 
@@ -109,6 +125,12 @@ export class AlertService {
         Alert.name,
         AlertSchema
       );
+
+      if (!alertModel) {
+        console.warn('Skipping search operation as tenantModel is null');
+        return { records: [], count: 0 }; // return empty results or handle as needed
+      }
+
       const page = Number(input.page) || 1;
       const limit = Number(input.limit) || 10;
       const skip = page === -1 ? 0 : (page - 1) * limit;
@@ -170,6 +192,12 @@ export class AlertService {
         Alert.name,
         AlertSchema
       );
+
+      if (!alertModel) {
+        console.warn('Skipping findAll operation as tenantModel is null');
+        return { records: [], count: 0 }; // return empty results or handle as needed
+      }
+
       const page = Number(input.page);
       const limit = Number(input.limit);
       const skip = page === -1 ? 0 : (page - 1) * limit;
@@ -194,6 +222,12 @@ export class AlertService {
         Alert.name,
         AlertSchema
       );
+
+      if (!alertModel) {
+        console.warn('Skipping update operation as tenantModel is null');
+        return null; // or handle as needed
+      }
+
       const updatePayload = {
         ...payload,
         updatedAt: new Date(),

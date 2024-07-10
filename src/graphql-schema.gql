@@ -261,8 +261,10 @@ type GeozoneResponse {
 type Route {
   _id: String
   accountId: String
+  routeId: String
   routeName: String
-  routeData: String
+  routeDetails: JSON
+  routesData: [String!]
   createdBy: String
   totalDistance: Float
   totalDuration: Float
@@ -1038,8 +1040,9 @@ input UpdateGeozoneInput {
 
 input CreateRouteInput {
   accountId: String
+  routeId: String
   routeName: String
-  routeData: [String!]
+  routesData: [String!]
   createdBy: String
   totalDistance: Float
   totalDuration: Float
@@ -1053,8 +1056,9 @@ input RouteInput {
 
 input UpdateRouteInput {
   accountId: String
+  routeId: String
   routeName: String
-  routeData: [String!]
+  routesData: [String!]
   createdBy: String
   totalDistance: Float
   totalDuration: Float

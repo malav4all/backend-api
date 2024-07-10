@@ -1,5 +1,6 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import GraphQLJSON from 'graphql-type-json';
 import { now } from 'mongoose';
 import { Column } from 'typeorm';
 
@@ -15,11 +16,18 @@ export class Route {
 
   @Field({ nullable: true })
   @Prop({ text: true })
-  routeName: string;
+  routeId: string;
 
   @Field({ nullable: true })
-  @Prop({})
-  routeData: string;
+  @Prop({ text: true })
+  routeName: string;
+
+  @Field(() => GraphQLJSON, { nullable: true })
+  routeDetails: typeof GraphQLJSON;
+
+  @Field(() => [String], { nullable: true })
+  @Prop()
+  routesData: string[];
 
   @Field({ nullable: true })
   @Prop()
