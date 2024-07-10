@@ -26,7 +26,10 @@ import { EntityTypeModule } from './entity-type/entity-type.module';
 import { EntitesModule } from './entites/entites.module';
 import { UserAccessModule } from './user-access/user-access.module';
 import { TripTypeModule } from './trip-type/trip-type.module';
+import { DeviceModelModule } from './device-model/device-model.module';
+import { AddDeviceModule } from './add-device/add-device.module';
 
+import { MenuItemModule } from './menu-item/menu-item.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -74,6 +77,9 @@ import { TripTypeModule } from './trip-type/trip-type.module';
     EntityTypeModule,
     EntitesModule,
     UserAccessModule,
+    DeviceModelModule,
+    AddDeviceModule,
+    MenuItemModule,
   ],
   providers: [Upload],
   exports: [],

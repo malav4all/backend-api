@@ -51,6 +51,12 @@ export class CreateUserInput {
 
   @Field({ nullable: true })
   createdBy: string;
+
+  @Field({ nullable: true })
+  roleName: string;
+
+  @Field({ nullable: true })
+  accountName: string;
 }
 
 @InputType()

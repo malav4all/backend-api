@@ -1,6 +1,5 @@
 import { InputType, Field, Int } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
-import GraphQLJSON from 'graphql-type-json';
 
 @InputType()
 export class DeviceOnboardingInput {
@@ -8,36 +7,22 @@ export class DeviceOnboardingInput {
   accountId: string;
 
   @Field({ nullable: true })
-  assetsType: string;
-
   @IsOptional()
-  @Field({ nullable: true })
-  description?: string;
-
-  @Field(() => GraphQLJSON, { nullable: true })
-  location: typeof GraphQLJSON;
-
-  @Field({ nullable: true })
-  deviceOnboardingName: string;
-
-  @Field({ nullable: true })
-  deviceOnboardingAccount: string;
-
-  @Field({ nullable: true })
-  deviceOnboardingUser: string;
+  location?: string;
 
   @Field(() => [String], { nullable: true })
   @IsOptional()
   deviceOnboardingSimNo?: string[];
 
   @Field({ nullable: true })
-  deviceOnboardingModel: string;
-
-  @Field({ nullable: true, defaultValue: 'Active' })
-  deviceOnboardingStatus: string;
+  deviceOnboardingIMEINumber: string;
 
   @Field({ nullable: true })
-  deviceOnboardingIMEINumber: string;
+  businessModel: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  accountTransferBy?: string;
 
   @Field({ nullable: true })
   createdBy: string;
@@ -45,22 +30,25 @@ export class DeviceOnboardingInput {
   @Field({ nullable: true })
   @IsOptional()
   updatedBy?: string;
-
-  @Field({ nullable: true })
-  @IsOptional()
-  tenantId?: string;
 }
 
 @InputType()
 export class DeviceOnboardingFetchInput {
+  @Field({ nullable: true })
+  accountId: string;
+
   @Field(() => Int, { nullable: true })
   page: typeof Int;
+
   @Field(() => Int, { nullable: true })
   limit: typeof Int;
 }
 
 @InputType()
 export class DeviceOnboardingSearchInput {
+  @Field({ nullable: true })
+  accountId: string;
+
   @Field({ nullable: true })
   search: string;
 
@@ -69,6 +57,36 @@ export class DeviceOnboardingSearchInput {
 
   @Field(() => Int, { nullable: true })
   limit: typeof Int;
+}
+
+@InputType()
+export class DeviceTransferInput {
+  @Field({ nullable: true })
+  fromAccountId: string;
+
+  @Field({ nullable: true })
+  imei: string;
+
+  @Field({ nullable: true })
+  toAccountId: string;
+
+  @Field({ nullable: true })
+  accountTransferBy: string;
+}
+
+@InputType()
+export class BulkDeviceOnboardingInput {
+  @Field({ nullable: true })
+  fromAccountId: string;
+
+  @Field(() => [String], { nullable: true })
+  imei: string[];
+
+  @Field({ nullable: true })
+  toAccountId: string;
+
+  @Field({ nullable: true })
+  accountTransferBy: string;
 }
 
 @InputType()

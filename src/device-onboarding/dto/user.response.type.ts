@@ -83,7 +83,7 @@ export class UserResponseType {
   @Prop({ type: Types.ObjectId, ref: 'Role' })
   roleId: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Column()
   @Prop({ type: Types.ObjectId, ref: 'Industry' })
   @IsOptional()

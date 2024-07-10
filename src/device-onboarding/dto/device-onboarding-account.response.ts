@@ -29,7 +29,7 @@ export class DeviceOnboardingAccountModuleResponse {
   @Column()
   accountName?: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop({ type: Types.ObjectId, ref: 'Industry' })
   industryType: DeviceOnboardingIndustryTypeResponse;
 

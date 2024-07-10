@@ -13,7 +13,7 @@ import axios from 'axios';
 import { UpdateUserInput } from './dto/update-user.input';
 import { UserDocument, User } from './entities/user.entity';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { EncodeDecode } from '@imz/helper';
 import * as jwt from 'jsonwebtoken';
 import { UAParser } from 'ua-parser-js';
@@ -38,47 +38,32 @@ export class UserService {
       const pipeline = [
         {
           $addFields: {
-            deviceGroupIdObj: { $toObjectId: '$deviceGroupId' },
+            roleId: { $toObjectId: '$roleId' },
+            accountId: { $toObjectId: '$accountId' },
           },
         },
         {
           $lookup: {
-            from: 'devicegroups',
-            localField: 'deviceGroupIdObj',
-            foreignField: '_id',
-            as: 'deviceGroup',
+            from: 'roles', // The collection to join with
+            localField: 'roleId', // The local field in the users collection
+            foreignField: '_id', // The foreign field in the roles collection
+            as: 'roleDetails', // The name for the new array field
           },
         },
         {
-          $unwind: {
-            path: '$deviceGroup',
-            preserveNullAndEmptyArrays: true,
-          },
+          $unwind: '$roleDetails', // Unwind the array to get an object
         },
         {
           $lookup: {
-            from: 'assertassingmentmoduleentities',
-            localField: 'deviceGroup.imeiData',
-            foreignField: '_id',
-            as: 'imeiData',
+            from: 'accounts', // The collection to join with
+            localField: 'accountId', // The local field in the users collection
+            foreignField: '_id', // The foreign field in the accounts collection
+            as: 'accountDetails', // The name for the new array field
           },
         },
         {
-          $lookup: {
-            from: 'journeys',
-            localField: 'deviceGroup.imeiData.journey',
-            foreignField: '_id',
-            as: 'journeyData',
-          },
+          $unwind: '$accountDetails', // Unwind the array to get an object
         },
-        // {
-        //   $lookup: {
-        //     from: 'accounts',
-        //     localField: 'accountID',
-        //     foreignField: '_id',
-        //     as: 'accountDetails',
-        //   },
-        // },
         {
           $project: {
             _id: 1,
@@ -90,26 +75,9 @@ export class UserService {
             createdBy: 1,
             roleId: 1,
             status: 1,
-            deviceGroup: {
-              _id: '$deviceGroup._id',
-              deviceGroupName: '$deviceGroup.deviceGroupName',
-              createdBy: '$deviceGroup.createdBy',
-              updateBy: '$deviceGroup.updateBy',
-              imeiData: {
-                $map: {
-                  input: '$imeiData',
-                  as: 'imei',
-                  in: {
-                    imei: '$$imei.imei',
-                    labelName: '$$imei.labelName',
-                    boxSet: '$$imei.boxSet',
-                    journey: '$$imei.journey',
-                    _id: '$$imei._id',
-                  },
-                },
-              },
-            },
-            // accountDetails: 1,
+            'roleDetails.name': 1, // Include the role name
+            'accountDetails._id': 1, // Include the account ID
+            'accountDetails.accountName': 1, // Include the account name
           },
         },
         {
@@ -123,8 +91,9 @@ export class UserService {
             createdBy: { $first: '$createdBy' },
             roleId: { $first: '$roleId' },
             status: { $first: '$status' },
-            deviceGroup: { $first: '$deviceGroup' },
-            accountDetails: { $first: '$accountDetails' }, // Group account details
+            roleName: { $first: '$roleDetails.name' }, // Add the role name
+            accountId: { $first: '$accountDetails._id' }, // Add the account ID
+            accountName: { $first: '$accountDetails.accountName' }, // Add the account name
           },
         },
       ];
@@ -346,29 +315,135 @@ export class UserService {
       const limit = Number(input.limit);
       const skip = page === -1 ? 0 : (page - 1) * limit;
 
-      const records = await this.UserModel.find({
-        $or: [
-          { firstName: { $regex: input.search, $options: 'i' } },
-          { email: { $regex: input.search, $options: 'i' } },
-          { roleId: { $regex: input.search, $options: 'i' } },
-          { mobileNumber: { $regex: input.search, $options: 'i' } },
-          { createdBy: { $regex: input.search, $options: 'i' } },
-        ],
-      })
+      const searchCriteria = input.search
+        ? {
+            $or: [
+              { firstName: { $regex: input.search, $options: 'i' } },
+              { email: { $regex: input.search, $options: 'i' } },
+              { mobileNumber: { $regex: input.search, $options: 'i' } },
+              { createdBy: { $regex: input.search, $options: 'i' } },
+              { 'roleDetails.name': { $regex: input.search, $options: 'i' } },
+              {
+                'accountDetails.accountName': {
+                  $regex: input.search,
+                  $options: 'i',
+                },
+              },
+            ],
+          }
+        : {};
+
+      const pipeline = [
+        {
+          $addFields: {
+            roleId: { $toObjectId: '$roleId' },
+            accountId: { $toObjectId: '$accountId' },
+          },
+        },
+        {
+          $lookup: {
+            from: 'roles',
+            localField: 'roleId',
+            foreignField: '_id',
+            as: 'roleDetails',
+          },
+        },
+        {
+          $unwind: { path: '$roleDetails', preserveNullAndEmptyArrays: true },
+        },
+        {
+          $lookup: {
+            from: 'accounts',
+            localField: 'accountId',
+            foreignField: '_id',
+            as: 'accountDetails',
+          },
+        },
+        {
+          $unwind: {
+            path: '$accountDetails',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $addFields: {
+            roleName: '$roleDetails.name',
+            accountName: '$accountDetails.accountName',
+          },
+        },
+        {
+          $match: searchCriteria,
+        },
+        {
+          $project: {
+            _id: 1,
+            firstName: 1,
+            lastName: 1,
+            userName: 1,
+            email: 1,
+            mobileNumber: 1,
+            createdBy: 1,
+            roleId: 1,
+            status: 1,
+            roleName: 1,
+            accountId: 1,
+            accountName: 1,
+          },
+        },
+      ];
+
+      const records = await this.UserModel.aggregate(pipeline)
         .skip(skip)
         .limit(limit)
-        .lean()
         .exec();
 
-      const count = await this.UserModel.countDocuments({
-        $or: [
-          { firstName: { $regex: input.search, $options: 'i' } },
-          { email: { $regex: input.search, $options: 'i' } },
-          { roleId: { $regex: input.search, $options: 'i' } },
-          { mobileNumber: { $regex: input.search, $options: 'i' } },
-          { createdBy: { $regex: input.search, $options: 'i' } },
-        ],
-      });
+      const countPipeline = [
+        {
+          $addFields: {
+            roleId: { $toObjectId: '$roleId' },
+            accountId: { $toObjectId: '$accountId' },
+          },
+        },
+        {
+          $lookup: {
+            from: 'roles',
+            localField: 'roleId',
+            foreignField: '_id',
+            as: 'roleDetails',
+          },
+        },
+        {
+          $unwind: { path: '$roleDetails', preserveNullAndEmptyArrays: true },
+        },
+        {
+          $lookup: {
+            from: 'accounts',
+            localField: 'accountId',
+            foreignField: '_id',
+            as: 'accountDetails',
+          },
+        },
+        {
+          $unwind: {
+            path: '$accountDetails',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $addFields: {
+            roleName: '$roleDetails.name',
+            accountName: '$accountDetails.accountName',
+          },
+        },
+        {
+          $match: searchCriteria,
+        },
+        { $count: 'total' },
+      ];
+
+      const countResult = await this.UserModel.aggregate(countPipeline);
+      const count = countResult[0]?.total || 0;
+
       return { records, count };
     } catch (error) {
       throw new InternalServerErrorException(error.message);

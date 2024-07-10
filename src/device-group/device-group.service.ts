@@ -1,4 +1,4 @@
-import { InjectConnection, InjectModel } from '@nestjs/mongoose';
+import { InjectConnection } from '@nestjs/mongoose';
 import { DeviceGroup, DeviceGroupSchema } from './entities/device-group.entity';
 import { Connection, Model } from 'mongoose';
 import {

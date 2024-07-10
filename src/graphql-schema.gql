@@ -84,7 +84,7 @@ type RoleResponseType {
 }
 
 type IndustryType {
-  _id: String!
+  _id: String
   name: String!
   code: [String!]!
   description: String!
@@ -100,7 +100,7 @@ type AccountResponseType {
   _id: String!
   accountLogo: String
   accountName: String!
-  industryType: IndustryType!
+  industryType: IndustryType
   accountPanNo: String
   accountGstNo: String
   parentId: String
@@ -141,6 +141,8 @@ type User {
   otp: String!
   parentUserId: String!
   status: String
+  roleName: String
+  accountName: String
 }
 
 type PaginatorInfo {
@@ -237,6 +239,7 @@ type AddressEntityType {
 
 type Geozone {
   _id: String!
+  locationId: String!
   accountId: String!
   name: String!
   description: String!
@@ -414,7 +417,7 @@ type Values {
 type Role {
   _id: String!
   name: String!
-  industryType: IndustryResponseType!
+  industryType: IndustryResponseType
   description: String!
   resources: [Values!]!
   isDelete: Boolean!
@@ -445,7 +448,7 @@ type Account {
   accountLogo: String
   accountId: String!
   accountName: String!
-  industryType: IndustryTypeResponse!
+  industryType: IndustryTypeResponse
   accountPanNo: String
   accountGstNo: String
   parentId: String
@@ -508,96 +511,16 @@ type TripResponse {
   data: [Trip!]!
 }
 
-type DeviceOnboardingIndustryTypeResponse {
-  _id: String!
-  name: String
-  code: String
-  description: String
-}
-
-type DataTypeValue {
-  key: String
-  value: String
-}
-
-type DeviceOnboardingAccountModuleResponse {
-  _id: String!
-  accountLogo: String
-  accountName: String!
-  industryType: DeviceOnboardingIndustryTypeResponse!
-  accountPanNo: String
-  accountGstNo: String
-  parentId: String
-  accountAadharNo: String
-  accountAddress: String!
-  accountState: String
-  accountCity: String
-  accountContactName: String!
-  accountContactEmail: String!
-  accountContactMobile: String
-  remarks: String
-  accountAuthMobile: [String!]
-  accountApiKey: String
-  accountConfiguration: [DataTypeValue!]!
-  accountCreatedBy: String
-  nodeSequence: Float
-  updatedBy: String
-  isDelete: Boolean
-}
-
-type DeviceOnboardingUserResponse {
-  _id: String!
-  firstName: String!
-  lastName: String!
-  email: String!
-  mobileNumber: Float!
-  userName: String!
-  avatar: String!
-  password: String!
-  active: Boolean!
-  createdBy: String!
-  createdAt: DateTime
-  updatedAt: DateTime
-  emailVerified: Boolean!
-  mobileVerified: Boolean!
-  parentAccountId: String!
-}
-
-type DeviceModelValuesInputResponse {
-  key: String
-  value: String!
-}
-
-type DeviceOnboardingDeviceModelResponse {
-  _id: String!
-  deviceModelName: String!
-  deviceModel: String!
-  deviceModelType: [String!]
-  deviceModelIpAddress: String!
-  deviceModelPortNumber: Float!
-  deviceModelSimCount: Float!
-  deviceModelNetworkType: String!
-  deviceModelParser: String!
-  deviceModelComands: [String!]
-  deviceModelConfig: [DeviceModelValuesInputResponse!]!
-  createdBy: String
-  updatedBy: String
-}
-
 type DeviceOnboarding {
   _id: String!
-  assetsType: String
-  description: String
-  deviceOnboardingName: String
-  deviceOnboardingAccount: DeviceOnboardingAccountModuleResponse
-  deviceOnboardingUser: DeviceOnboardingUserResponse
+  location: String
+  accountTransferBy: String
+  accountId: String
   deviceOnboardingSimNo: [String!]
-  deviceOnboardingModel: DeviceOnboardingDeviceModelResponse
-  deviceOnboardingStatus: String
   deviceOnboardingIMEINumber: String
+  businessModel: String
   createdBy: String
   updatedBy: String
-  tenantId: String
 }
 
 type DeviceOnboardingResponse {
@@ -655,28 +578,6 @@ type DeviceSimHistory {
   toDate: DateTime
   createdBy: String
   updatedBy: String
-}
-
-type UserResponseType {
-  _id: String!
-  firstName: String!
-  lastName: String!
-  email: String!
-  mobileNumber: Float!
-  userName: String!
-  avatar: String!
-  password: String!
-  active: Boolean!
-  createdBy: String!
-  createdAt: DateTime
-  updatedAt: DateTime
-  emailVerified: Boolean!
-  mobileVerified: Boolean!
-  accountId: String!
-  roleId: String!
-  industryType: String!
-  parentUserId: String!
-  mainParentId: String!
 }
 
 type DeviceOnboardingHistoryResponse {
@@ -789,9 +690,82 @@ type TripTypeResponse {
   data: [TripType!]!
 }
 
+type DeviceModelValuesInput {
+  key: String
+  value: String!
+}
+
+type DeviceModelCommandInput {
+  key: String
+  value: String!
+}
+
+type DeviceModel {
+  _id: String!
+  deviceId: String!
+  deviceModelName: String!
+  deviceModel: String!
+  deviceModelType: String
+  deviceModelIpAddress: String!
+  deviceModelPortNumber: Float!
+  deviceModelSimCount: Float!
+  deviceModelNetworkType: String!
+  deviceModelParser: String!
+  deviceModelCommands: [DeviceModelCommandInput!]
+  deviceModelConfig: [DeviceModelValuesInput!]!
+  isDelete: Boolean!
+  createdBy: String
+  updatedBy: String
+}
+
+type DeviceModelResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [DeviceModel!]
+}
+
+type AddDevice {
+  _id: String!
+  imei: String!
+  deviceModelCode: String!
+  deviceModelName: String!
+  deviceModelType: String!
+  deviceId: String!
+  createdBy: String!
+  updatedBy: String!
+}
+
+type AddDeviceResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [AddDevice!]!
+}
+
+type MenuItem {
+  _id: String
+  icon: String
+  activeIcon: String
+  text: String
+  link: String
+  pageName: String
+  visibleInSidebar: Boolean
+  accessToResource: [String!]
+  subMenu: [MenuItem!]
+}
+
+type MenuItemResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [MenuItem!]!
+}
+
 type Query {
   createUser(input: CreateUserInput!): UserResponse!
   fetchAccountList(input: AccountInput!): AccountResponse!
+  menuItemListAll(input: MenuItemInput!): MenuItemResponse!
 }
 
 input CreateUserInput {
@@ -812,9 +786,16 @@ input CreateUserInput {
   mainParentId: String
   status: String = "Active"
   createdBy: String
+  roleName: String
+  accountName: String
 }
 
 input AccountInput {
+  page: Int
+  limit: Int
+}
+
+input MenuItemInput {
   page: Int
   limit: Int
 }
@@ -887,10 +868,13 @@ type Mutation {
   tripList(input: TripInput!): TripResponse!
   searchTrip(input: SearchTripInput!): TripResponse!
   updateTrip(input: UpdateTripInput!): TripResponse!
-  filterRecordUerAccountId(input: DeviceOnboardingAccountIdInput!): [UserResponseType!]!
+  filterRecordAccountId(input: DeviceOnboardingAccountIdInput!): DeviceOnboardingResponse!
   createDeviceOnboarding(input: DeviceOnboardingInput!): DeviceOnboardingResponse!
   fetchDeviceOnboardingList(input: DeviceOnboardingFetchInput!): DeviceOnboardingResponse!
   updateDeviceOnboarding(input: UpdateDeviceOnboardingInput!): DeviceOnboardingResponse!
+  bulkUploadDeviceAssignment(input: [DeviceOnboardingInput!]!): DeviceOnboardingResponse!
+  deviceTransferOneToAnotherAccount(input: DeviceTransferInput!): DeviceOnboardingResponse!
+  bulkDeviceTransferOneToAnotherAccount(input: BulkDeviceOnboardingInput!): DeviceOnboardingResponse!
   createDeviceOnboardingHistory(input: DeviceOnboardingHistoryInput!): DeviceOnboardingHistoryResponse!
   fetchDeviceOnboardingHistoryList(input: DeviceOnboardingHistoryFetchInput!): DeviceOnboardingHistoryResponse!
   createDeviceSimHistory(input: DeviceSimHistoryInput!): DeviceSimHistoryResponse!
@@ -904,6 +888,18 @@ type Mutation {
   addEntitesType(input: CreateEntitesInput!): EntitesResponse!
   fetchEntitesType(input: EntitesTypeInput!): EntitesResponse!
   searchEntites(input: SearchEntitesInput!): EntitesResponse!
+  createDeviceModel(input: CreateDeviceModelInput!): DeviceModelResponse!
+  updateDeviceModel(input: UpdateDeviceModelInput!): DeviceModelResponse!
+  deleteDeviceModel(input: UpdateDeviceModelInput!): DeviceModelResponse!
+  searchDeviceModel(input: SearchDeviceModel!): DeviceModelResponse!
+  checkDeviceModelExistsRecord(input: checkDeviceModelInput!): DeviceModelResponse!
+  fetchDeviceModel(input: DeviceModelInput!): DeviceModelResponse!
+  addDeviceList(input: CreateAddDeviceInput!): AddDeviceResponse!
+  fetchDeviceList(input: AddDeviceInput!): AddDeviceResponse!
+  searchDeviceList(input: SearchAddDeviceInput!): AddDeviceResponse!
+  updateDeviceList(input: UpdateAddDeviceInput!): AddDeviceResponse!
+  bulkUploadDevice(input: [CreateAddDeviceInput!]!): AddDeviceResponse!
+  createMenuItem(input: CreateMenuItemInput!): MenuItemResponse!
 }
 
 input ChangePasswordInput {
@@ -939,6 +935,8 @@ input UpdateUserInput {
   mainParentId: String
   status: String = "Active"
   createdBy: String
+  roleName: String
+  accountName: String
   _id: String!
 }
 
@@ -992,6 +990,7 @@ input AssertAssingmentModuleInput {
 }
 
 input CreateGeoZoneInput {
+  locationId: String
   accountId: String
   name: String
   description: String
@@ -1035,6 +1034,7 @@ input GeozoneInput {
 }
 
 input UpdateGeozoneInput {
+  locationId: String
   accountId: String
   name: String
   description: String
@@ -1277,7 +1277,7 @@ input CreateAccountInput {
   accountId: String
   accountLogo: String
   accountName: String!
-  industryType: String!
+  industryType: String
   accountPanNo: String
   accountGstNo: String
   accountAadharNo: String
@@ -1432,42 +1432,45 @@ input DeviceOnboardingAccountIdInput {
 
 input DeviceOnboardingInput {
   accountId: String
-  assetsType: String
-  description: String
-  location: JSON
-  deviceOnboardingName: String
-  deviceOnboardingAccount: String
-  deviceOnboardingUser: String
+  location: String
   deviceOnboardingSimNo: [String!]
-  deviceOnboardingModel: String
-  deviceOnboardingStatus: String = "Active"
   deviceOnboardingIMEINumber: String
+  businessModel: String
+  accountTransferBy: String
   createdBy: String
   updatedBy: String
-  tenantId: String
 }
 
 input DeviceOnboardingFetchInput {
+  accountId: String
   page: Int
   limit: Int
 }
 
 input UpdateDeviceOnboardingInput {
   accountId: String
-  assetsType: String
-  description: String
-  location: JSON
-  deviceOnboardingName: String
-  deviceOnboardingAccount: String
-  deviceOnboardingUser: String
+  location: String
   deviceOnboardingSimNo: [String!]
-  deviceOnboardingModel: String
-  deviceOnboardingStatus: String = "Active"
   deviceOnboardingIMEINumber: String
+  businessModel: String
+  accountTransferBy: String
   createdBy: String
   updatedBy: String
-  tenantId: String
   _id: String!
+}
+
+input DeviceTransferInput {
+  fromAccountId: String
+  imei: String
+  toAccountId: String
+  accountTransferBy: String
+}
+
+input BulkDeviceOnboardingInput {
+  fromAccountId: String
+  imei: [String!]
+  toAccountId: String
+  accountTransferBy: String
 }
 
 input DeviceOnboardingHistoryInput {
@@ -1566,6 +1569,103 @@ input SearchEntitesInput {
   search: String
   page: Int
   limit: Int
+}
+
+input CreateDeviceModelInput {
+  deviceId: String
+  deviceModelName: String!
+  deviceModel: String!
+  deviceModelType: String
+  deviceModelIpAddress: String!
+  deviceModelPortNumber: Float!
+  deviceModelSimCount: Float!
+  deviceModelNetworkType: String!
+  deviceModelParser: String!
+  deviceModelCommands: [CreateDeviceModelCommandInput!]
+  deviceModelConfig: [CreateDeviceModelValuesInput!]
+  isDelete: Boolean = false
+  createdBy: String
+  updatedBy: String
+}
+
+input CreateDeviceModelCommandInput {
+  key: String
+  value: String!
+}
+
+input CreateDeviceModelValuesInput {
+  key: String
+  value: String!
+}
+
+input UpdateDeviceModelInput {
+  deviceId: String
+  deviceModelName: String
+  deviceModel: String
+  deviceModelType: String
+  deviceModelIpAddress: String
+  deviceModelPortNumber: Float
+  deviceModelSimCount: Float
+  deviceModelNetworkType: String
+  deviceModelParser: String
+  deviceModelCommands: [CreateDeviceModelCommandInput!]
+  deviceModelConfig: [CreateDeviceModelValuesInput!]
+  isDelete: Boolean = false
+  createdBy: String
+  updatedBy: String
+  _id: String!
+}
+
+input SearchDeviceModel {
+  search: String
+  page: Int
+  limit: Int
+}
+
+input checkDeviceModelInput {
+  deviceModelName: String
+}
+
+input DeviceModelInput {
+  page: Int
+  limit: Int
+}
+
+input CreateAddDeviceInput {
+  imei: String
+  deviceModelCode: String
+  createdBy: String
+  updatedBy: String
+}
+
+input AddDeviceInput {
+  page: Int
+  limit: Int
+}
+
+input SearchAddDeviceInput {
+  search: String
+  page: Int
+  limit: Int
+}
+
+input UpdateAddDeviceInput {
+  imei: String
+  deviceModelCode: String
+  createdBy: String
+  updatedBy: String
+  _id: String!
+}
+
+input CreateMenuItemInput {
+  icon: String!
+  activeIcon: String!
+  text: String!
+  link: String!
+  pageName: String!
+  visibleInSidebar: Boolean!
+  accessToResource: [String!]
+  subMenu: [CreateMenuItemInput!]
 }
 
 type Subscription {

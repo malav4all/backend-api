@@ -5,7 +5,7 @@ import { Document } from 'mongoose';
 
 @ObjectType()
 export class IndustryType {
-  @Field()
+  @Field({ nullable: true })
   @ObjectIdColumn()
   _id: string;
 
