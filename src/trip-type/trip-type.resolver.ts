@@ -1,24 +1,24 @@
 import { Resolver, Mutation, Args } from '@nestjs/graphql';
 import { InternalServerErrorException, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@imz/user/guard';
-import { TransitTypeResponse } from './dto/response';
-import { TransitTypeService } from './transit.service';
+import { TripTypeResponse } from './dto/response';
+import { TripTypeService } from './trip.service';
 import {
-  CreateTransitTypeInput,
-  SearchTransitTypeInput,
-  TransitTypeInput,
-} from './dto/create-transit-type.input';
-import { UpdateTransitTypeInput } from './dto/update-transit-type';
+  CreateTripTypeInput,
+  SearchTripTypeInput,
+  TripTypeInput,
+} from './dto/create-trip-type.input';
+import { UpdateTripTypeInput } from './dto/update-trip-type';
 
-@Resolver(() => TransitTypeResponse)
-export class TransitTypeResolver {
-  constructor(private readonly transitTypeService: TransitTypeService) {}
+@Resolver(() => TripTypeResponse)
+export class TripTypeResolver {
+  constructor(private readonly tripTypeService: TripTypeService) {}
 
   @UseGuards(new AuthGuard())
-  @Mutation(() => TransitTypeResponse)
-  async createTransitType(@Args('input') input: CreateTransitTypeInput) {
+  @Mutation(() => TripTypeResponse)
+  async createTripType(@Args('input') input: CreateTripTypeInput) {
     try {
-      const record = await this.transitTypeService.create(input);
+      const record = await this.tripTypeService.create(input);
       return {
         success: record ? 1 : 0,
         message: record
@@ -31,18 +31,18 @@ export class TransitTypeResolver {
   }
 
   @UseGuards(new AuthGuard())
-  @Mutation(() => TransitTypeResponse)
-  async transitTypeList(@Args('input') input: TransitTypeInput) {
+  @Mutation(() => TripTypeResponse)
+  async tripTypeList(@Args('input') input: TripTypeInput) {
     try {
-      const res = await this.transitTypeService.findAll(input);
-      const count = await this.transitTypeService.count();
+      const { records, count } = await this.tripTypeService.findAll(input);
+
       return {
         paginatorInfo: {
           count,
         },
         success: 1,
-        message: 'Transit Type list available.',
-        data: res,
+        message: 'Trip Type list available.',
+        data: records,
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
@@ -50,10 +50,10 @@ export class TransitTypeResolver {
   }
 
   @UseGuards(new AuthGuard())
-  @Mutation(() => TransitTypeResponse)
-  async searchTransitType(@Args('input') input: SearchTransitTypeInput) {
+  @Mutation(() => TripTypeResponse)
+  async searchTripType(@Args('input') input: SearchTripTypeInput) {
     try {
-      const { records, count } = await this.transitTypeService.searchIndustry(
+      const { records, count } = await this.tripTypeService.searchIndustry(
         input
       );
       return {
@@ -70,10 +70,10 @@ export class TransitTypeResolver {
   }
 
   @UseGuards(new AuthGuard())
-  @Mutation(() => TransitTypeResponse)
-  async updateTransitType(@Args('input') input: UpdateTransitTypeInput) {
+  @Mutation(() => TripTypeResponse)
+  async updateTripType(@Args('input') input: UpdateTripTypeInput) {
     try {
-      const record = await this.transitTypeService.update(input);
+      const record = await this.tripTypeService.update(input);
       return {
         success: record ? 1 : 0,
         message: record

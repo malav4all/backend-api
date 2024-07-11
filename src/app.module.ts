@@ -6,7 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { UserModule } from './user/user.module';
 import { AssertAssingmentModuleModule } from './assert-asingment/assert-asingment.module';
 import { GeozoneModule } from './geozone/geozone.module';
-import { JourneyModule } from './journey/journey.module';
+import { RouteModule } from './routes/route.module';
 import { RedisModule } from './redis/redis.module';
 import { AlertModule } from './alert/alert.module';
 import { DeviceGroupModule } from './device-group/device-group.module';
@@ -17,7 +17,6 @@ import { RoleModule } from './role/role.module';
 import { TenantsModule } from './tenants/tenants.module';
 import { AccountModule } from './account/account.module';
 import { Upload } from './helper/comman/scalar/Upload.scalar';
-import { TransitTypeModule } from './transit-type/transit-type.module';
 import { TripModuleModule } from './trip-module/trip-module.module';
 import { DeviceOnboardingModule } from './device-onboarding/device-onboarding.module';
 import { DeviceSimHistoryModule } from './history/device-sim-history/device-sim-history.module';
@@ -26,11 +25,13 @@ import { LoginActivityModule } from './login-activity/login-activity.module';
 import { EntityTypeModule } from './entity-type/entity-type.module';
 import { EntitesModule } from './entites/entites.module';
 import { UserAccessModule } from './user-access/user-access.module';
+import { TripTypeModule } from './trip-type/trip-type.module';
 import { DeviceModelModule } from './device-model/device-model.module';
 import { AddDeviceModule } from './add-device/add-device.module';
-
 import { MenuItemModule } from './menu-item/menu-item.module';
 import { LocationTypeModule } from './location-type/location-type.module';
+import { FormBuilderModule } from './form-builder/form-builder.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -58,7 +59,7 @@ import { LocationTypeModule } from './location-type/location-type.module';
     UserModule,
     AssertAssingmentModuleModule,
     GeozoneModule,
-    JourneyModule,
+    RouteModule,
     RedisModule,
     AlertModule,
     DeviceGroupModule,
@@ -69,7 +70,7 @@ import { LocationTypeModule } from './location-type/location-type.module';
     AccountModule,
     TenantsModule,
     InfluxDbModule,
-    TransitTypeModule,
+    TripTypeModule,
     TripModuleModule,
     DeviceOnboardingModule,
     DeviceSimHistoryModule,
@@ -82,6 +83,7 @@ import { LocationTypeModule } from './location-type/location-type.module';
     AddDeviceModule,
     MenuItemModule,
     LocationTypeModule,
+    FormBuilderModule,
   ],
   providers: [Upload],
   exports: [],

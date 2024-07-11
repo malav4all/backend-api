@@ -45,7 +45,7 @@ export class AccountService {
   }
 
   async create(payload: CreateAccountInput, getLoggedInUserDetail: any) {
-    const uniqueInfluxBucketName = generateUniqueID();
+    const uniqueInfluxBucketName = generateUniqueID('IMZ');
     let accountPayload;
 
     accountPayload = {

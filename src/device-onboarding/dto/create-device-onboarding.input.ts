@@ -21,6 +21,10 @@ export class DeviceOnboardingInput {
   businessModel: string;
 
   @Field({ nullable: true })
+  @IsOptional()
+  accountTransferBy?: string;
+
+  @Field({ nullable: true })
   createdBy: string;
 
   @Field({ nullable: true })
@@ -53,6 +57,36 @@ export class DeviceOnboardingSearchInput {
 
   @Field(() => Int, { nullable: true })
   limit: typeof Int;
+}
+
+@InputType()
+export class DeviceTransferInput {
+  @Field({ nullable: true })
+  fromAccountId: string;
+
+  @Field({ nullable: true })
+  imei: string;
+
+  @Field({ nullable: true })
+  toAccountId: string;
+
+  @Field({ nullable: true })
+  accountTransferBy: string;
+}
+
+@InputType()
+export class BulkDeviceOnboardingInput {
+  @Field({ nullable: true })
+  fromAccountId: string;
+
+  @Field(() => [String], { nullable: true })
+  imei: string[];
+
+  @Field({ nullable: true })
+  toAccountId: string;
+
+  @Field({ nullable: true })
+  accountTransferBy: string;
 }
 
 @InputType()

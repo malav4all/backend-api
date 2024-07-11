@@ -1,14 +1,15 @@
 import { ObjectType, Field } from '@nestjs/graphql';
 import { PaginatorInfo } from '@imz/helper';
-import { TransitType } from '../entites/transit-type.entity';
+import { Route } from '../entity/route.entity';
+
 @ObjectType()
-export class TransitTypeResponse {
+export class RouteResponseData {
   @Field(() => PaginatorInfo, { nullable: true })
   paginatorInfo: PaginatorInfo;
   @Field({ nullable: true })
   success: number;
   @Field({ nullable: true })
   message: string;
-  @Field(() => [TransitType])
-  data: [TransitType];
+  @Field(() => [Route])
+  data: [Route];
 }

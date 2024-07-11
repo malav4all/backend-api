@@ -1,24 +1,21 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
 
 @InputType()
-export class CreateJourneyInput {
+export class CreateRouteInput {
   @Field({ nullable: true })
   accountId: string;
 
+  @Field({ nullable: true })
+  routeId: string;
+
   @Field(() => String, { nullable: true })
-  journeyName: string;
+  routeName: string;
 
   @Field(() => [String], { nullable: true })
-  journeyData: string[];
+  routesData: string[];
 
   @Field({ nullable: true })
   createdBy: string;
-
-  @Field(() => Date)
-  startDate: Date;
-
-  @Field(() => Date)
-  endDate: Date;
 
   @Field({ nullable: true })
   totalDistance: number;
@@ -28,7 +25,7 @@ export class CreateJourneyInput {
 }
 
 @InputType()
-export class JourneyInput {
+export class RouteInput {
   @Field({ nullable: true })
   accountId: string;
 
@@ -38,8 +35,9 @@ export class JourneyInput {
   @Field(() => Int, { nullable: true })
   limit: typeof Int;
 }
+
 @InputType()
-export class SearchJourneysInput {
+export class SearchRouteInput {
   @Field({ nullable: true })
   accountId: string;
 

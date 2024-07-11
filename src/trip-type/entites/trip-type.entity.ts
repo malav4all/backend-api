@@ -7,7 +7,7 @@ import GraphQLJSON from 'graphql-type-json';
 @Schema({ timestamps: true })
 @ObjectType()
 @Entity()
-export class TransitType {
+export class TripType {
   @Field()
   @ObjectIdColumn()
   _id: string;
@@ -15,7 +15,12 @@ export class TransitType {
   @Field()
   @Prop({ text: true })
   @Column()
-  transitName: string;
+  accountId: string;
+
+  @Field()
+  @Prop({ text: true })
+  @Column()
+  tripName: string;
 
   @Field()
   @Prop({ text: true })
@@ -56,5 +61,4 @@ export class TransitType {
   lastUpdated: Date;
 }
 
-export type TransitTypeDocument = TransitType & Document;
-export const TransitTypeSchema = SchemaFactory.createForClass(TransitType);
+export const TripTypeSchema = SchemaFactory.createForClass(TripType);

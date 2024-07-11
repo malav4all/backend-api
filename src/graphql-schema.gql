@@ -141,6 +141,8 @@ type User {
   otp: String!
   parentUserId: String!
   status: String
+  roleName: String
+  accountName: String
 }
 
 type PaginatorInfo {
@@ -256,63 +258,25 @@ type GeozoneResponse {
   data: [Geozone!]!
 }
 
-type PropertyTypeEntityResponse {
-  name: String
-}
-
-type GeoJsonGeometryEntityResponse {
-  type: String!
-  coordinates: [Float!]!
-  radius: Float!
-}
-
-type GeoJsonEntityResponse {
-  type: String!
-  geometry: GeoJsonGeometryEntityResponse!
-  properties: PropertyTypeEntityResponse
-}
-
-type AddressEntityTypeResponse {
-  zipCode: String
-  country: String
-  state: String
-  area: String
-  city: String
-  district: String
-}
-
-type JourneyResponse {
-  _id: String
-  name: String
-  description: String
-  locationType: String
-  mobileNumber: String
-  address: AddressEntityTypeResponse
-  geoCodeData: GeoJsonEntityResponse
-  finalAddress: String
-  createdBy: String
-}
-
-type Journey {
+type Route {
   _id: String
   accountId: String
-  journeyName: String
-  journeyData: [JourneyResponse!]
+  routeId: String
+  routeName: String
+  routeDetails: JSON
+  routesData: [String!]
   createdBy: String
-  startDate: DateTime
-  endDate: DateTime
   totalDistance: Float
   totalDuration: Float
-  imei: Float
   createdAt: DateTime
   updatedAt: DateTime
 }
 
-type JourneyResponseData {
+type RouteResponseData {
   paginatorInfo: PaginatorInfo
   success: Float
   message: String
-  data: [Journey!]!
+  data: [Route!]!
 }
 
 type AlertEntityConfig {
@@ -475,26 +439,6 @@ type AccountResponse {
   data: [Account!]
 }
 
-type TransitType {
-  _id: String!
-  transitName: String!
-  minBatteryPercentage: Float!
-  tripRate: Float!
-  gstPercentage: Float!
-  disableField: JSON
-  filtrationFelid: JSON
-  createdBy: String!
-  updatedBy: String!
-  lastUpdated: DateTime
-}
-
-type TransitTypeResponse {
-  paginatorInfo: PaginatorInfo
-  success: Float
-  message: String
-  data: [TransitType!]!
-}
-
 type TripInformationData {
   imei: [String!]
   vehicleNo: String
@@ -532,6 +476,7 @@ type TripResponse {
 type DeviceOnboarding {
   _id: String!
   location: String
+  accountTransferBy: String
   accountId: String
   deviceOnboardingSimNo: [String!]
   deviceOnboardingIMEINumber: String
@@ -595,28 +540,6 @@ type DeviceSimHistory {
   toDate: DateTime
   createdBy: String
   updatedBy: String
-}
-
-type UserResponseType {
-  _id: String!
-  firstName: String!
-  lastName: String!
-  email: String!
-  mobileNumber: Float!
-  userName: String!
-  avatar: String!
-  password: String!
-  active: Boolean!
-  createdBy: String!
-  createdAt: DateTime
-  updatedAt: DateTime
-  emailVerified: Boolean!
-  mobileVerified: Boolean!
-  accountId: String!
-  roleId: String!
-  industryType: String
-  parentUserId: String!
-  mainParentId: String!
 }
 
 type DeviceOnboardingHistoryResponse {
@@ -709,6 +632,27 @@ type UserAccessResponse {
   data: [UserAccess!]!
 }
 
+type TripType {
+  _id: String!
+  accountId: String!
+  tripName: String!
+  minBatteryPercentage: Float!
+  tripRate: Float!
+  gstPercentage: Float!
+  disableField: JSON
+  filtrationFelid: JSON
+  createdBy: String!
+  updatedBy: String!
+  lastUpdated: DateTime
+}
+
+type TripTypeResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [TripType!]!
+}
+
 type DeviceModelValuesInput {
   key: String
   value: String!
@@ -794,6 +738,31 @@ type LocationTypeResponse {
   data: [LocationType!]!
 }
 
+type FieldInputEntity {
+  id: String
+  label: String
+  required: Boolean
+  type: String
+}
+
+type FormBuilder {
+  _id: String!
+  accountId: String
+  formTitle: String
+  fields: [FieldInputEntity!]
+  createdBy: String
+  isFormEnable: Boolean
+  updatedBy: String
+  lastUpdated: DateTime
+}
+
+type FormBuilderResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [FormBuilder!]!
+}
+
 type Query {
   createUser(input: CreateUserInput!): UserResponse!
   fetchAccountList(input: AccountInput!): AccountResponse!
@@ -818,6 +787,8 @@ input CreateUserInput {
   mainParentId: String
   status: String = "Active"
   createdBy: String
+  roleName: String
+  accountName: String
 }
 
 input AccountInput {
@@ -855,10 +826,10 @@ type Mutation {
   addGeozone(input: CreateGeoZoneInput!): GeozoneResponse!
   listGeozone(input: GeozoneInput!): GeozoneResponse!
   updateGeozone(input: UpdateGeozoneInput!): GeozoneResponse!
-  addJourney(input: CreateJourneyInput!): JourneyResponseData!
-  fetchJourney(input: JourneyInput!): JourneyResponseData!
-  updateJourney(input: UpdateJourneyInput!): JourneyResponseData!
-  searchJourneys(input: SearchJourneysInput!): JourneyResponseData!
+  addRoute(input: CreateRouteInput!): RouteResponseData!
+  fetchRoute(input: RouteInput!): RouteResponseData!
+  updateRoute(input: UpdateRouteInput!): RouteResponseData!
+  searchRoute(input: SearchRouteInput!): RouteResponseData!
   addAlert(input: CreateAlertInputType!): AlertResponseData!
   fetchAlert(input: AlertInput!): AlertResponseData!
   updateAlert(input: UpdateAlertInput!): AlertResponseData!
@@ -889,19 +860,21 @@ type Mutation {
   deleteAccount(input: UpdateAccountInput!): AccountResponse!
   searchAccount(input: SearchAccountInput!): AccountResponse!
   fetchAccountModuleList(input: AccountInput!): AccountResponse!
-  createTransitType(input: CreateTransitTypeInput!): TransitTypeResponse!
-  transitTypeList(input: TransitTypeInput!): TransitTypeResponse!
-  searchTransitType(input: SearchTransitTypeInput!): TransitTypeResponse!
-  updateTransitType(input: UpdateTransitTypeInput!): TransitTypeResponse!
+  createTripType(input: CreateTripTypeInput!): TripTypeResponse!
+  tripTypeList(input: TripTypeInput!): TripTypeResponse!
+  searchTripType(input: SearchTripTypeInput!): TripTypeResponse!
+  updateTripType(input: UpdateTripTypeInput!): TripTypeResponse!
   createTrip(input: CreateTripInput!): TripResponse!
   tripList(input: TripInput!): TripResponse!
   searchTrip(input: SearchTripInput!): TripResponse!
   updateTrip(input: UpdateTripInput!): TripResponse!
-  filterRecordUerAccountId(input: DeviceOnboardingAccountIdInput!): [UserResponseType!]!
+  filterRecordAccountId(input: DeviceOnboardingAccountIdInput!): DeviceOnboardingResponse!
   createDeviceOnboarding(input: DeviceOnboardingInput!): DeviceOnboardingResponse!
   fetchDeviceOnboardingList(input: DeviceOnboardingFetchInput!): DeviceOnboardingResponse!
   updateDeviceOnboarding(input: UpdateDeviceOnboardingInput!): DeviceOnboardingResponse!
   bulkUploadDeviceAssignment(input: [DeviceOnboardingInput!]!): DeviceOnboardingResponse!
+  deviceTransferOneToAnotherAccount(input: DeviceTransferInput!): DeviceOnboardingResponse!
+  bulkDeviceTransferOneToAnotherAccount(input: BulkDeviceOnboardingInput!): DeviceOnboardingResponse!
   createDeviceOnboardingHistory(input: DeviceOnboardingHistoryInput!): DeviceOnboardingHistoryResponse!
   fetchDeviceOnboardingHistoryList(input: DeviceOnboardingHistoryFetchInput!): DeviceOnboardingHistoryResponse!
   createDeviceSimHistory(input: DeviceSimHistoryInput!): DeviceSimHistoryResponse!
@@ -931,6 +904,9 @@ type Mutation {
   fetchLocationType(input: LocationTypeInput!): LocationTypeResponse!
   updateLocationType(input: UpdateLocationTypeInput!): LocationTypeResponse!
   searchLocationTypes(input: SearchLocationsInput!): LocationTypeResponse!
+  addFormBuilder(input: CreateFormBuilderInput!): FormBuilderResponse!
+  fetchFormBuilder(input: FormBuildInput!): FormBuilderResponse!
+  updateFormBuilder(input: UpdateFormBuilderInput!): FormBuilderResponse!
 }
 
 input ChangePasswordInput {
@@ -966,6 +942,8 @@ input UpdateUserInput {
   mainParentId: String
   status: String = "Active"
   createdBy: String
+  roleName: String
+  accountName: String
   _id: String!
 }
 
@@ -1076,36 +1054,34 @@ input UpdateGeozoneInput {
   _id: String!
 }
 
-input CreateJourneyInput {
+input CreateRouteInput {
   accountId: String
-  journeyName: String
-  journeyData: [String!]
+  routeId: String
+  routeName: String
+  routesData: [String!]
   createdBy: String
-  startDate: DateTime!
-  endDate: DateTime!
   totalDistance: Float
   totalDuration: Float
 }
 
-input JourneyInput {
+input RouteInput {
   accountId: String
   page: Int
   limit: Int
 }
 
-input UpdateJourneyInput {
+input UpdateRouteInput {
   accountId: String
-  journeyName: String
-  journeyData: [String!]
+  routeId: String
+  routeName: String
+  routesData: [String!]
   createdBy: String
-  startDate: DateTime
-  endDate: DateTime
   totalDistance: Float
   totalDuration: Float
   _id: String!
 }
 
-input SearchJourneysInput {
+input SearchRouteInput {
   accountId: String
   search: String!
   page: Int
@@ -1360,8 +1336,9 @@ input SearchAccountInput {
   limit: Int
 }
 
-input CreateTransitTypeInput {
-  transitName: String
+input CreateTripTypeInput {
+  accountId: String
+  tripName: String
   minBatteryPercentage: Float
   tripRate: Float
   gstPercentage: String
@@ -1371,19 +1348,22 @@ input CreateTransitTypeInput {
   updatedBy: String
 }
 
-input TransitTypeInput {
+input TripTypeInput {
+  accountId: String
   page: Int
   limit: Int
 }
 
-input SearchTransitTypeInput {
+input SearchTripTypeInput {
+  accountId: String
   search: String
   page: Int
   limit: Int
 }
 
-input UpdateTransitTypeInput {
-  transitName: String
+input UpdateTripTypeInput {
+  accountId: String
+  tripName: String
   minBatteryPercentage: Float
   tripRate: Float
   gstPercentage: String
@@ -1461,6 +1441,7 @@ input DeviceOnboardingInput {
   deviceOnboardingSimNo: [String!]
   deviceOnboardingIMEINumber: String
   businessModel: String
+  accountTransferBy: String
   createdBy: String
   updatedBy: String
 }
@@ -1477,9 +1458,24 @@ input UpdateDeviceOnboardingInput {
   deviceOnboardingSimNo: [String!]
   deviceOnboardingIMEINumber: String
   businessModel: String
+  accountTransferBy: String
   createdBy: String
   updatedBy: String
   _id: String!
+}
+
+input DeviceTransferInput {
+  fromAccountId: String
+  imei: String
+  toAccountId: String
+  accountTransferBy: String
+}
+
+input BulkDeviceOnboardingInput {
+  fromAccountId: String
+  imei: [String!]
+  toAccountId: String
+  accountTransferBy: String
 }
 
 input DeviceOnboardingHistoryInput {
@@ -1701,6 +1697,38 @@ input SearchLocationsInput {
   search: String
   page: Int
   limit: Int
+}
+
+input CreateFormBuilderInput {
+  accountId: String
+  formTitle: String
+  fields: [FieldInputType!]
+  isFormEnable: Boolean
+  createdBy: String
+  updatedBy: String
+}
+
+input FieldInputType {
+  id: String
+  label: String
+  required: Boolean
+  type: String
+}
+
+input FormBuildInput {
+  accountId: String
+  page: Int
+  limit: Int
+}
+
+input UpdateFormBuilderInput {
+  accountId: String
+  formTitle: String
+  fields: [FieldInputType!]
+  isFormEnable: Boolean
+  createdBy: String
+  updatedBy: String
+  _id: String!
 }
 
 type Subscription {

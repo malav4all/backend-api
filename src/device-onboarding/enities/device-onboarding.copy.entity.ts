@@ -22,6 +22,12 @@ export class DeviceOnboarding {
   @Column()
   accountId: string;
 
+  @Field({ nullable: true })
+  @Column()
+  @Prop({ text: true })
+  @IsOptional()
+  accountTransferBy?: string;
+
   @Field(() => [String], { nullable: true })
   @Prop()
   @Column()

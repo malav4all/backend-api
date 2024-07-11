@@ -3,14 +3,15 @@ import { DeviceOnboardingResponse } from './dto/response';
 import { InternalServerErrorException, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@imz/user/guard';
 import {
+  BulkDeviceOnboardingInput,
   DeviceOnboardingAccountIdInput,
   DeviceOnboardingFetchInput,
   DeviceOnboardingInput,
+  DeviceTransferInput,
 } from './dto/create-device-onboarding.input';
 import { DeviceOnboardingService } from './device-onboarding.service';
 import { UpdateDeviceOnboardingInput } from './dto/update-device-onboarding.input';
 import { UserResponseType } from './dto/user.response.type';
-import { Request } from 'express';
 
 @Resolver(() => DeviceOnboardingResponse)
 export class DeviceOnboardingResolver {
@@ -19,15 +20,21 @@ export class DeviceOnboardingResolver {
   ) {}
 
   @UseGuards(new AuthGuard())
-  @Mutation(() => [UserResponseType])
-  async filterRecordUerAccountId(
+  @Mutation(() => DeviceOnboardingResponse)
+  async filterRecordAccountId(
     @Args('input') input: DeviceOnboardingAccountIdInput
   ) {
     try {
-      const record = await this.deviceOnboardingService.filterRecord(
+      const record = await this.deviceOnboardingService.filterRecordByAccountId(
         input.accountId
       );
-      return record;
+      return {
+        success: record ? 1 : 0,
+        message: record
+          ? 'Record created.'
+          : 'Record not created. Please try again.',
+        data: record,
+      };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
@@ -100,6 +107,44 @@ export class DeviceOnboardingResolver {
         message: record
           ? 'Record uploaded.'
           : 'Assert Record not uploaded. Please try again.',
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  // @UseGuards(new AuthGuard())
+  @Mutation(() => DeviceOnboardingResponse)
+  async deviceTransferOneToAnotherAccount(
+    @Args('input')
+    input: DeviceTransferInput
+  ) {
+    try {
+      const { message } = await this.deviceOnboardingService.transferData(
+        input
+      );
+      return {
+        success: 0,
+        message,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @UseGuards(new AuthGuard())
+  @Mutation(() => DeviceOnboardingResponse)
+  async bulkDeviceTransferOneToAnotherAccount(
+    @Args('input')
+    input: BulkDeviceOnboardingInput
+  ) {
+    try {
+      const { message } = await this.deviceOnboardingService.bulkTransferData(
+        input
+      );
+      return {
+        success: 0,
+        message,
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);

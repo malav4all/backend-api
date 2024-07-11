@@ -1,8 +1,9 @@
-import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { DeviceGroupService } from './device-group.service';
-import { DeviceGroupResolver } from './device-group.resolver';
 import { DeviceGroup, DeviceGroupSchema } from './entities/device-group.entity';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { DeviceGroupResolver } from './device-group.resolver';
+import { DeviceGroupService } from './device-group.service';
+import { TenantsMiddleware } from '@imz/helper/middleware/tenants.middleware';
 
 @Module({
   imports: [
@@ -13,4 +14,8 @@ import { DeviceGroup, DeviceGroupSchema } from './entities/device-group.entity';
   providers: [DeviceGroupService, DeviceGroupResolver],
   exports: [DeviceGroupService],
 })
-export class DeviceGroupModule {}
+export class DeviceGroupModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(TenantsMiddleware).forRoutes(DeviceGroupResolver);
+  }
+}
