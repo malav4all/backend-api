@@ -45,7 +45,7 @@ export class DeviceOnboardingResolver {
     };
   }
 
-  // @UseGuards(new AuthGuard())
+  @UseGuards(new AuthGuard())
   @Mutation(() => DeviceOnboardingResponse)
   async fetchDeviceOnboardingList(
     @Args('input') input: DeviceOnboardingFetchInput

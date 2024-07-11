@@ -30,6 +30,7 @@ import { DeviceModelModule } from './device-model/device-model.module';
 import { AddDeviceModule } from './add-device/add-device.module';
 
 import { MenuItemModule } from './menu-item/menu-item.module';
+import { LocationTypeModule } from './location-type/location-type.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -80,6 +81,7 @@ import { MenuItemModule } from './menu-item/menu-item.module';
     DeviceModelModule,
     AddDeviceModule,
     MenuItemModule,
+    LocationTypeModule,
   ],
   providers: [Upload],
   exports: [],

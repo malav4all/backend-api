@@ -1,17 +1,20 @@
-import { Field, InputType, Int } from '@nestjs/graphql';
+import { Field, InputType, Int, ID } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
 import { ObjectID, ObjectIdColumn } from 'typeorm';
 
 @InputType()
 export class CreateDeviceGroupInput {
-  @Field({ nullable: true })
-  accountId: string;
-
   @Field(() => String, { nullable: true })
   deviceGroupName: string;
 
-  @Field(() => [String], { nullable: true })
+  @Field(() => [ID], { nullable: true })
   imeiData: string[];
+
+  @Field(() => ID, { nullable: true })
+  tenantId: string;
+
+  @Field(() => ID, { nullable: true })
+  accountId: string;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -26,6 +29,9 @@ export class CreateDeviceGroupInput {
 export class DeviceGroupInput {
   @Field({ nullable: true })
   accountId: string;
+
+  @Field({ nullable: true })
+  tenantId: string;
 
   @Field(() => Int, { nullable: true })
   page: typeof Int;
@@ -43,22 +49,7 @@ export class SearchDeviceGroupInput {
   accountId: string;
 
   @Field({ nullable: true })
-  search: string;
-
-  @Field(() => Int, { nullable: true })
-  page: typeof Int;
-
-  @Field(() => Int, { nullable: true })
-  limit: typeof Int;
-}
-
-@InputType()
-export class SearchImeiDataInput {
-  @Field({ nullable: true })
-  accountId: string;
-
-  @Field(() => String, { nullable: true })
-  id: string;
+  tenantId: string;
 
   @Field({ nullable: true })
   search: string;

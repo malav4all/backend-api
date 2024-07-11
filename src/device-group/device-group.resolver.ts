@@ -6,7 +6,6 @@ import {
   CreateDeviceGroupInput,
   DeviceGroupInput,
   SearchDeviceGroupInput,
-  SearchImeiDataInput,
 } from './dto/create-device-group.input';
 import { DeviceGroupResponse } from './dto/response';
 import { UpdateDeviceGroupInput } from './dto/update-device-group.input';
@@ -95,27 +94,6 @@ export class DeviceGroupResolver {
     try {
       const { count, records } =
         await this.deviceGroupService.fetchDeviceGroupById(input);
-      const success = records.length > 0 ? 1 : 0;
-      return {
-        paginatorInfo: {
-          count,
-        },
-        success: success,
-        message: success ? 'list available.' : 'No data found.',
-        data: records,
-      };
-    } catch (error: any) {
-      throw new InternalServerErrorException(error.message);
-    }
-  }
-
-  @UseGuards(new AuthGuard())
-  @Mutation(() => DeviceGroupResponse)
-  async searchDeviceImeiData(@Args('input') input: SearchImeiDataInput) {
-    try {
-      const { count, records } = await this.deviceGroupService.searchImeiData(
-        input
-      );
       const success = records.length > 0 ? 1 : 0;
       return {
         paginatorInfo: {

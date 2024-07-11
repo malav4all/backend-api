@@ -84,7 +84,7 @@ type RoleResponseType {
 }
 
 type IndustryType {
-  _id: String!
+  _id: String
   name: String!
   code: [String!]!
   description: String!
@@ -100,7 +100,7 @@ type AccountResponseType {
   _id: String!
   accountLogo: String
   accountName: String!
-  industryType: IndustryType!
+  industryType: IndustryType
   accountPanNo: String
   accountGstNo: String
   parentId: String
@@ -415,7 +415,7 @@ type Values {
 type Role {
   _id: String!
   name: String!
-  industryType: IndustryResponseType!
+  industryType: IndustryResponseType
   description: String!
   resources: [Values!]!
   isDelete: Boolean!
@@ -446,7 +446,7 @@ type Account {
   accountLogo: String
   accountId: String!
   accountName: String!
-  industryType: IndustryTypeResponse!
+  industryType: IndustryTypeResponse
   accountPanNo: String
   accountGstNo: String
   parentId: String
@@ -614,7 +614,7 @@ type UserResponseType {
   mobileVerified: Boolean!
   accountId: String!
   roleId: String!
-  industryType: String!
+  industryType: String
   parentUserId: String!
   mainParentId: String!
 }
@@ -762,9 +762,42 @@ type AddDeviceResponse {
   data: [AddDevice!]!
 }
 
+type MenuItem {
+  _id: String
+  icon: String
+  activeIcon: String
+  text: String
+  link: String
+  pageName: String
+  visibleInSidebar: Boolean
+  accessToResource: [String!]
+  subMenu: [MenuItem!]
+}
+
+type MenuItemResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [MenuItem!]!
+}
+
+type LocationType {
+  _id: String!
+  type: String!
+  createdBy: String!
+}
+
+type LocationTypeResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [LocationType!]!
+}
+
 type Query {
   createUser(input: CreateUserInput!): UserResponse!
   fetchAccountList(input: AccountInput!): AccountResponse!
+  menuItemListAll(input: MenuItemInput!): MenuItemResponse!
 }
 
 input CreateUserInput {
@@ -788,6 +821,11 @@ input CreateUserInput {
 }
 
 input AccountInput {
+  page: Int
+  limit: Int
+}
+
+input MenuItemInput {
   page: Int
   limit: Int
 }
@@ -830,7 +868,6 @@ type Mutation {
   searchDeviceGroup(input: SearchDeviceGroupInput!): DeviceGroupResponse!
   updateDeviceGroup(input: UpdateDeviceGroupInput!): DeviceGroupResponse!
   fetchDeviceGroupById(input: DeviceGroupInput!): DeviceGroupResponse!
-  searchDeviceImeiData(input: SearchImeiDataInput!): DeviceGroupResponse!
   createIndustry(input: CreateIndustryInput!): IndustryResponse!
   industryListAll(input: IndustryInput!): IndustryResponse!
   searchIndustry(input: SearchIndustryInput!): IndustryResponse!
@@ -889,6 +926,11 @@ type Mutation {
   searchDeviceList(input: SearchAddDeviceInput!): AddDeviceResponse!
   updateDeviceList(input: UpdateAddDeviceInput!): AddDeviceResponse!
   bulkUploadDevice(input: [CreateAddDeviceInput!]!): AddDeviceResponse!
+  createMenuItem(input: CreateMenuItemInput!): MenuItemResponse!
+  addLocationType(input: CreateLocationTypeInput!): LocationTypeResponse!
+  fetchLocationType(input: LocationTypeInput!): LocationTypeResponse!
+  updateLocationType(input: UpdateLocationTypeInput!): LocationTypeResponse!
+  searchLocationTypes(input: SearchLocationsInput!): LocationTypeResponse!
 }
 
 input ChangePasswordInput {
@@ -1127,15 +1169,17 @@ input SearchAlertInput {
 }
 
 input CreateDeviceGroupInput {
-  accountId: String
   deviceGroupName: String
-  imeiData: [String!]
+  imeiData: [ID!]
+  tenantId: ID
+  accountId: ID
   createdBy: String
   updatedBy: String
 }
 
 input DeviceGroupInput {
   accountId: String
+  tenantId: String
   page: Int
   limit: Int
   id: String
@@ -1143,26 +1187,20 @@ input DeviceGroupInput {
 
 input SearchDeviceGroupInput {
   accountId: String
+  tenantId: String
   search: String
   page: Int
   limit: Int
 }
 
 input UpdateDeviceGroupInput {
-  accountId: String
   deviceGroupName: String
-  imeiData: [String!]
+  imeiData: [ID!]
+  tenantId: ID
+  accountId: ID
   createdBy: String
   updatedBy: String
   _id: String!
-}
-
-input SearchImeiDataInput {
-  accountId: String
-  id: String
-  search: String
-  page: Int
-  limit: Int
 }
 
 input CreateIndustryInput {
@@ -1264,7 +1302,7 @@ input CreateAccountInput {
   accountId: String
   accountLogo: String
   accountName: String!
-  industryType: String!
+  industryType: String
   accountPanNo: String
   accountGstNo: String
   accountAadharNo: String
@@ -1626,6 +1664,43 @@ input UpdateAddDeviceInput {
   createdBy: String
   updatedBy: String
   _id: String!
+}
+
+input CreateMenuItemInput {
+  icon: String!
+  activeIcon: String!
+  text: String!
+  link: String!
+  pageName: String!
+  visibleInSidebar: Boolean!
+  accessToResource: [String!]
+  subMenu: [CreateMenuItemInput!]
+}
+
+input CreateLocationTypeInput {
+  accountId: String
+  type: String!
+  createdBy: String!
+}
+
+input LocationTypeInput {
+  accountId: String
+  page: Int
+  limit: Int
+}
+
+input UpdateLocationTypeInput {
+  accountId: String
+  type: String
+  createdBy: String
+  _id: String!
+}
+
+input SearchLocationsInput {
+  accountId: String
+  search: String
+  page: Int
+  limit: Int
 }
 
 type Subscription {
