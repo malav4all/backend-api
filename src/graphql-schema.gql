@@ -69,7 +69,6 @@ type DeviceGroup {
   _id: String
   accountId: String!
   deviceGroupName: String!
-  imeiData: [AssertAssingmentModuleEntity!]
   createdBy: String
   updateBy: String
 }
@@ -838,7 +837,6 @@ type Mutation {
   fetchDeviceGroup(input: DeviceGroupInput!): DeviceGroupResponse!
   searchDeviceGroup(input: SearchDeviceGroupInput!): DeviceGroupResponse!
   updateDeviceGroup(input: UpdateDeviceGroupInput!): DeviceGroupResponse!
-  fetchDeviceGroupById(input: DeviceGroupInput!): DeviceGroupResponse!
   createIndustry(input: CreateIndustryInput!): IndustryResponse!
   industryListAll(input: IndustryInput!): IndustryResponse!
   searchIndustry(input: SearchIndustryInput!): IndustryResponse!
@@ -1146,24 +1144,19 @@ input SearchAlertInput {
 
 input CreateDeviceGroupInput {
   deviceGroupName: String
-  imeiData: [ID!]
-  tenantId: ID
-  accountId: ID
+  accountId: String
   createdBy: String
   updatedBy: String
 }
 
 input DeviceGroupInput {
   accountId: String
-  tenantId: String
   page: Int
   limit: Int
-  id: String
 }
 
 input SearchDeviceGroupInput {
   accountId: String
-  tenantId: String
   search: String
   page: Int
   limit: Int
@@ -1171,9 +1164,7 @@ input SearchDeviceGroupInput {
 
 input UpdateDeviceGroupInput {
   deviceGroupName: String
-  imeiData: [ID!]
-  tenantId: ID
-  accountId: ID
+  accountId: String
   createdBy: String
   updatedBy: String
   _id: String!

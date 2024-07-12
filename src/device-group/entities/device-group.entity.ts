@@ -18,13 +18,6 @@ export class DeviceGroup {
   @Prop({ text: true })
   deviceGroupName: string;
 
-  @IsOptional()
-  @Field(() => [AssertAssingmentModuleEntity], { nullable: true })
-  @Prop({
-    type: [{ type: Types.ObjectId, ref: 'AssertAssingmentModuleEntity' }],
-  })
-  imeiData: [AssertAssingmentModuleEntity];
-
   @Field({ nullable: true })
   @Prop({ text: true })
   @IsOptional()

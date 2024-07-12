@@ -1,6 +1,6 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Column, Entity, ObjectIdColumn, Index } from 'typeorm';
+import { Column, Entity, ObjectIdColumn } from 'typeorm';
 
 @Schema({ timestamps: true })
 @ObjectType()
@@ -21,6 +21,4 @@ export class LocationType {
   createdBy: string;
 }
 
-export type LocationTypeDocument = LocationType & Document;
 export const LocationTypeSchema = SchemaFactory.createForClass(LocationType);
-LocationTypeSchema.index({ type: 'text' });

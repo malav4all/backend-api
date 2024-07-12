@@ -14,7 +14,7 @@ import { UpdateLocationTypeInput } from './dto/update-location-type.input';
 export class LocationTypeResolver {
   constructor(private readonly locationTypeService: LocationTypeService) {}
 
-  // @UseGuards(new AuthGuard())
+  @UseGuards(new AuthGuard())
   @Mutation(() => LocationTypeResponse)
   async addLocationType(@Args('input') input: CreateLocationTypeInput) {
     try {
@@ -30,7 +30,7 @@ export class LocationTypeResolver {
     }
   }
 
-  // @UseGuards(new AuthGuard())
+  @UseGuards(new AuthGuard())
   @Mutation(() => LocationTypeResponse)
   async fetchLocationType(@Args('input') input: LocationTypeInput) {
     try {
