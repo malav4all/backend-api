@@ -48,7 +48,7 @@ import { FormBuilderModule } from './form-builder/form-builder.module';
     GraphQLModule.forRoot({
       playground: true,
       installSubscriptionHandlers: true,
-      autoSchemaFile: join(process.cwd(), 'src/graphql-schema.gql'),
+      autoSchemaFile: join(process.cwd(), 'src/graphql-schema-file.gql'),
       context: ({ req }) => ({ headers: req?.headers }),
       subscriptions: {
         'subscriptions-transport-ws': {

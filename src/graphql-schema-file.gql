@@ -588,22 +588,23 @@ type EntityTypeResponse {
 
 type Entites {
   _id: String!
-  accountId: String!
-  name: String!
-  type: String!
-  address: String!
-  city: String!
-  state: String!
-  area: String!
-  district: String!
-  pinCode: String!
-  contactName: String!
-  contactEmail: String!
-  contactPhone: String!
-  gstIn: String!
-  aadharCardNo: String!
-  createdBy: String!
-  updatedBy: String!
+  accountId: String
+  tripTypeList: [String!]
+  name: String
+  type: String
+  address: String
+  city: String
+  state: String
+  area: String
+  district: String
+  pinCode: String
+  contactName: String
+  contactEmail: String
+  contactPhone: String
+  gstIn: String
+  aadharCardNo: String
+  createdBy: String
+  updatedBy: String
 }
 
 type EntitesResponse {
@@ -616,7 +617,7 @@ type EntitesResponse {
 type UserAccess {
   _id: String!
   accountId: String!
-  userId: String!
+  userId: JSON
   deviceGroup: [String!]!
   entites: [String!]!
   devicesImei: [String!]!
@@ -814,6 +815,7 @@ type Mutation {
   verifyOtp(input: VerifyOtpInput!): OtpResponse!
   sendOtp(input: OtpInput!): OtpSendResponse!
   verifyOtpLogin(input: VerifyOtpInput!): OtpLoginResponse!
+  fetchUserAccountWise(input: AccountIdInput!): UserResponse!
   createAssertAssingmentModule(input: CreateAssertAssingmentModuleInput!): AssertAssingmentModuleResponse!
   updateAssertAssingmentModule(input: UpdateAssertAssingmentModuleInput!): AssertAssingmentModuleResponse!
   deleteAssertAssingmentModule(input: UpdateAssertAssingmentModuleInput!): AssertAssingmentModuleResponse!
@@ -880,12 +882,15 @@ type Mutation {
   loginActivityListAll(input: LoginActivityFetchInput!): LoginActivityResponse!
   logoutUser(input: LogoutInput!): String!
   searchLoginActivity(input: SearchLoginActivityInput!): LoginActivityResponse!
-  addEntityType(input: CreateUserAccessInput!): UserAccessResponse!
-  fetchEntityType(input: UserAccessInput!): UserAccessResponse!
-  searchEntity(input: SearchUserAccessInput!): UserAccessResponse!
+  addEntityType(input: CreateEntityTypeInput!): EntityTypeResponse!
+  fetchEntityType(input: EntityTypeInput!): EntityTypeResponse!
+  searchEntity(input: SearchEntityInput!): EntityTypeResponse!
   addEntitesType(input: CreateEntitesInput!): EntitesResponse!
   fetchEntitesType(input: EntitesTypeInput!): EntitesResponse!
   searchEntites(input: SearchEntitesInput!): EntitesResponse!
+  addUserAccess(input: CreateUserAccessInput!): UserAccessResponse!
+  fetchUserAccess(input: UserAccessInput!): UserAccessResponse!
+  searchUserAccess(input: SearchUserAccessInput!): UserAccessResponse!
   createDeviceModel(input: CreateDeviceModelInput!): DeviceModelResponse!
   updateDeviceModel(input: UpdateDeviceModelInput!): DeviceModelResponse!
   deleteDeviceModel(input: UpdateDeviceModelInput!): DeviceModelResponse!
@@ -958,6 +963,10 @@ input OtpInput {
 input VerifyOtpInput {
   mobileNumber: Float!
   otp: String
+}
+
+input AccountIdInput {
+  accountId: String
 }
 
 input CreateAssertAssingmentModuleInput {
@@ -1513,24 +1522,21 @@ input SearchLoginActivityInput {
   limit: Int
 }
 
-input CreateUserAccessInput {
-  accountId: String
-  userId: String
-  deviceGroup: [String!]
-  entites: [String!]
-  devicesImei: [String!]
-  createdBy: String
-  updatedBy: String
+input CreateEntityTypeInput {
+  accountId: String!
+  name: String!
+  description: String!
+  createdBy: String!
 }
 
-input UserAccessInput {
-  accountId: String
+input EntityTypeInput {
+  accountId: String!
   page: Int
   limit: Int
 }
 
-input SearchUserAccessInput {
-  accountId: String
+input SearchEntityInput {
+  accountId: String!
   search: String
   page: Int
   limit: Int
@@ -1538,10 +1544,11 @@ input SearchUserAccessInput {
 
 input CreateEntitesInput {
   accountId: String!
-  name: String!
-  type: String!
-  address: String!
-  city: String!
+  tripTypeList: [String!]
+  name: String
+  type: String
+  address: String
+  city: String
   state: String!
   area: String!
   district: String!
@@ -1562,6 +1569,29 @@ input EntitesTypeInput {
 
 input SearchEntitesInput {
   accountId: String!
+  search: String
+  page: Int
+  limit: Int
+}
+
+input CreateUserAccessInput {
+  accountId: String
+  userId: JSON
+  deviceGroup: [String!]
+  entites: [String!]
+  devicesImei: [String!]
+  createdBy: String
+  updatedBy: String
+}
+
+input UserAccessInput {
+  accountId: String
+  page: Int
+  limit: Int
+}
+
+input SearchUserAccessInput {
+  accountId: String
   search: String
   page: Int
   limit: Int

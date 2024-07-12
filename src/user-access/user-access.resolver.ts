@@ -15,7 +15,7 @@ export class UserAccessResolver {
 
   @UseGuards(new AuthGuard())
   @Mutation(() => UserAccessResponse)
-  async addEntityType(@Args('input') input: CreateUserAccessInput) {
+  async addUserAccess(@Args('input') input: CreateUserAccessInput) {
     try {
       const record = await this.userAccessService.create(input);
       return {
@@ -31,7 +31,7 @@ export class UserAccessResolver {
 
   @UseGuards(new AuthGuard())
   @Mutation(() => UserAccessResponse)
-  async fetchEntityType(@Args('input') input: UserAccessInput) {
+  async fetchUserAccess(@Args('input') input: UserAccessInput) {
     try {
       const { count, records } = await this.userAccessService.findAll(input);
       return {
@@ -48,7 +48,7 @@ export class UserAccessResolver {
   }
 
   @Mutation(() => UserAccessResponse)
-  async searchEntity(@Args('input') input: SearchUserAccessInput) {
+  async searchUserAccess(@Args('input') input: SearchUserAccessInput) {
     try {
       const { records, count } = await this.userAccessService.searchLocations(
         input

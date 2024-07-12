@@ -16,13 +16,20 @@ export class EntityTypeService {
   ) {}
 
   async getTenantModel<T>(
-    tenantId: string,
+    tenantId: string | undefined,
     modelName: string,
     schema: any
-  ): Promise<Model<T>> {
-    const tenantConnection = await this.connection.useDb(`tenant_${tenantId}`, {
-      useCache: true,
-    });
+  ): Promise<Model<T> | null> {
+    if (!tenantId || !tenantId.trim()) {
+      console.warn(
+        'Tenant ID is undefined or empty, skipping tenant-specific model creation'
+      );
+      return null;
+    }
+    const tenantConnection = await this.connection.useDb(
+      `tenant_${tenantId.trim()}`,
+      { useCache: true }
+    );
     return tenantConnection.model(modelName, schema);
   }
 
@@ -34,11 +41,16 @@ export class EntityTypeService {
         EntityTypeSchema
       );
 
+      if (!deviceOnboardingTenant) {
+        console.warn('Skipping create operation as tenantModel is null');
+        return null; // or handle the case as needed
+      }
+
       const existingRecord = await deviceOnboardingTenant.findOne({
         name: payload.name,
       });
       if (existingRecord) {
-        throw new Error('Record Already Exits');
+        throw new Error('Record Already Exists');
       }
 
       const record = await deviceOnboardingTenant.create({
@@ -46,7 +58,7 @@ export class EntityTypeService {
       });
       return record;
     } catch (error) {
-      throw new Error(`Failed to create : ${error.message}`);
+      throw new Error(`Failed to create: ${error.message}`);
     }
   }
 
@@ -57,6 +69,10 @@ export class EntityTypeService {
         EntityType.name,
         EntityTypeSchema
       );
+
+      if (!deviceOnboardingTenant) {
+        return { records: [], count: 0 };
+      }
 
       const page = Number(input.page);
       const limit = Number(input.limit);
@@ -82,6 +98,10 @@ export class EntityTypeService {
         EntityType.name,
         EntityTypeSchema
       );
+
+      if (!deviceOnboardingTenant) {
+        return { records: [], count: 0 };
+      }
 
       const page = Number(input.page);
       const limit = Number(input.limit);

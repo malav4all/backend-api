@@ -10,82 +10,87 @@ export class Entites {
   @ObjectIdColumn()
   _id: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
   accountId: string;
 
-  @Field()
+  @Field(() => [String], { nullable: true })
+  @Prop({ text: true })
+  @Column()
+  tripTypeList: string[];
+
+  @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
   name: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
   type: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
   address: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
   city: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
   state: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
   area: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop({ text: true })
-  @Column()
+  @Column({ nullable: true })
   district: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
   pinCode: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
   contactName: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
   contactEmail: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
   contactPhone: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
   gstIn: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
   aadharCardNo: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
   createdBy: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
   updatedBy: string;

@@ -5,16 +5,19 @@ export class CreateEntitesInput {
   @Field(() => String)
   accountId: string;
 
-  @Field(() => String)
+  @Field(() => [String], { nullable: true })
+  tripTypeList: string[];
+
+  @Field(() => String, { nullable: true })
   name: string;
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   type: string;
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   address: string;
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   city: string;
 
   @Field(() => String)

@@ -8,6 +8,7 @@ import {
   SearchUsersInput,
   OtpInput,
   VerifyOtpInput,
+  AccountIdInput,
 } from './dto/create-user.input';
 import { UserResponse } from './dto/response';
 import { LoginResponse } from './dto/login.response';
@@ -26,7 +27,7 @@ import _ from 'lodash';
 export class UserResolver {
   constructor(private readonly userService: UserService) {}
 
-  // @UseGuards(new AuthGuard())
+  @UseGuards(new AuthGuard())
   @Query(() => UserResponse)
   async createUser(@Args('input') input: CreateUserInput) {
     try {
@@ -248,6 +249,20 @@ export class UserResolver {
         success: isOtpValid ? 1 : 0,
         message: isOtpValid ? 'Otp verify Successful' : 'Otp is incorrect',
         data,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Mutation(() => UserResponse)
+  async fetchUserAccountWise(@Args('input') input: AccountIdInput) {
+    try {
+      const res = await this.userService.fetchAccountIdUser(input);
+      return {
+        success: res ? 1 : 0,
+        message: res ? 'List Available' : 'Not Avaiable',
+        data: res,
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);

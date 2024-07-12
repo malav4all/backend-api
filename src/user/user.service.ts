@@ -8,6 +8,7 @@ import {
   SearchUsersInput,
   OtpInput,
   VerifyOtpInput,
+  AccountIdInput,
 } from './dto/create-user.input';
 import axios from 'axios';
 import { UpdateUserInput } from './dto/update-user.input';
@@ -39,7 +40,6 @@ export class UserService {
         {
           $addFields: {
             roleId: { $toObjectId: '$roleId' },
-            accountId: { $toObjectId: '$accountId' },
           },
         },
         {
@@ -57,7 +57,7 @@ export class UserService {
           $lookup: {
             from: 'accounts', // The collection to join with
             localField: 'accountId', // The local field in the users collection
-            foreignField: '_id', // The foreign field in the accounts collection
+            foreignField: 'accountId', // The foreign field in the accounts collection
             as: 'accountDetails', // The name for the new array field
           },
         },
@@ -337,7 +337,6 @@ export class UserService {
         {
           $addFields: {
             roleId: { $toObjectId: '$roleId' },
-            accountId: { $toObjectId: '$accountId' },
           },
         },
         {
@@ -355,7 +354,7 @@ export class UserService {
           $lookup: {
             from: 'accounts',
             localField: 'accountId',
-            foreignField: '_id',
+            foreignField: 'accountId',
             as: 'accountDetails',
           },
         },
@@ -572,6 +571,16 @@ export class UserService {
       }
 
       return { isOtpValid: false, data: '' };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async fetchAccountIdUser(payload: AccountIdInput): Promise<any> {
+    try {
+      const { accountId } = payload;
+      const user = await this.UserModel.find({ accountId }).lean().exec();
+      return user;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }

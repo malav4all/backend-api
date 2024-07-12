@@ -1,13 +1,14 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
+import GraphQLJSON from 'graphql-type-json';
 
 @InputType()
 export class CreateUserAccessInput {
   @Field({ nullable: true })
   accountId: string;
 
-  @Field({ nullable: true })
-  userId: string;
+  @Field(() => GraphQLJSON, { nullable: true })
+  userId: typeof GraphQLJSON;
 
   @Field(() => [String], { nullable: true })
   deviceGroup: string[];

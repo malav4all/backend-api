@@ -104,6 +104,12 @@ export class OtpInput {
 }
 
 @InputType()
+export class AccountIdInput {
+  @Field({ nullable: true })
+  accountId: string;
+}
+
+@InputType()
 export class VerifyOtpInput {
   @Field()
   mobileNumber: number;

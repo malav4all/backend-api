@@ -1,5 +1,6 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import GraphQLJSON from 'graphql-type-json';
 import { Column, Entity, ObjectIdColumn, Index } from 'typeorm';
 
 @Schema({ timestamps: true })
@@ -15,10 +16,9 @@ export class UserAccess {
   @Column()
   accountId: string;
 
-  @Field()
-  @Prop({ text: true })
+  @Field(() => GraphQLJSON, { nullable: true })
   @Column()
-  userId: string;
+  userId: typeof GraphQLJSON;
 
   @Field(() => [String])
   @Prop({ text: true })
