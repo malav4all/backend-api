@@ -1,9 +1,9 @@
+import { ObjectType, Field } from '@nestjs/graphql';
 import { PaginatorInfo } from '@imz/helper';
-import { Field, ObjectType } from '@nestjs/graphql';
-import { DeviceGroup } from '../entities/device-group.entity';
+import { LocationType } from '../entity/location-type.entity';
 
 @ObjectType()
-export class DeviceGroupResponse {
+export class LocationTypeResponse {
   @Field(() => PaginatorInfo, { nullable: true })
   paginatorInfo: PaginatorInfo;
 
@@ -13,6 +13,6 @@ export class DeviceGroupResponse {
   @Field({ nullable: true })
   message: string;
 
-  @Field(() => [DeviceGroup], { nullable: true })
-  data: DeviceGroup[];
+  @Field(() => [LocationType])
+  data: [LocationType];
 }

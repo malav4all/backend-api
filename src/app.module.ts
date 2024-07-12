@@ -29,6 +29,7 @@ import { TripTypeModule } from './trip-type/trip-type.module';
 import { DeviceModelModule } from './device-model/device-model.module';
 import { AddDeviceModule } from './add-device/add-device.module';
 import { MenuItemModule } from './menu-item/menu-item.module';
+import { LocationTypeModule } from './location-type/location-type.module';
 import { FormBuilderModule } from './form-builder/form-builder.module';
 
 @Module({
@@ -81,6 +82,7 @@ import { FormBuilderModule } from './form-builder/form-builder.module';
     DeviceModelModule,
     AddDeviceModule,
     MenuItemModule,
+    LocationTypeModule,
     FormBuilderModule,
   ],
   providers: [Upload],

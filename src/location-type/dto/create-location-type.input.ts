@@ -1,25 +1,19 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
-import { IsOptional } from 'class-validator';
 
 @InputType()
-export class CreateDeviceGroupInput {
-  @Field(() => String, { nullable: true })
-  deviceGroupName: string;
-
+export class CreateLocationTypeInput {
   @Field({ nullable: true })
   accountId: string;
 
-  @Field({ nullable: true })
-  @IsOptional()
-  createdBy?: string;
+  @Field(() => String)
+  type: string;
 
-  @Field({ nullable: true })
-  @IsOptional()
-  updatedBy?: string;
+  @Field(() => String)
+  createdBy: string;
 }
 
 @InputType()
-export class DeviceGroupInput {
+export class LocationTypeInput {
   @Field({ nullable: true })
   accountId: string;
 
@@ -31,7 +25,7 @@ export class DeviceGroupInput {
 }
 
 @InputType()
-export class SearchDeviceGroupInput {
+export class SearchLocationsInput {
   @Field({ nullable: true })
   accountId: string;
 

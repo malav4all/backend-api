@@ -4,7 +4,7 @@ import { DeviceGroupService } from './device-group.service';
 import { TenantsMiddleware } from '@imz/helper/middleware/tenants.middleware';
 
 @Module({
-  providers: [DeviceGroupResolver, DeviceGroupService],
+  providers: [DeviceGroupService, DeviceGroupResolver],
   exports: [DeviceGroupService],
 })
 export class DeviceGroupModule implements NestModule {

@@ -69,7 +69,6 @@ type DeviceGroup {
   _id: String
   accountId: String!
   deviceGroupName: String!
-  imeiData: [AssertAssingmentModuleEntity!]
   createdBy: String
   updateBy: String
 }
@@ -725,6 +724,19 @@ type MenuItemResponse {
   data: [MenuItem!]!
 }
 
+type LocationType {
+  _id: String!
+  type: String!
+  createdBy: String!
+}
+
+type LocationTypeResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [LocationType!]!
+}
+
 type FieldInputEntity {
   id: String
   label: String
@@ -825,8 +837,6 @@ type Mutation {
   fetchDeviceGroup(input: DeviceGroupInput!): DeviceGroupResponse!
   searchDeviceGroup(input: SearchDeviceGroupInput!): DeviceGroupResponse!
   updateDeviceGroup(input: UpdateDeviceGroupInput!): DeviceGroupResponse!
-  fetchDeviceGroupById(input: DeviceGroupInput!): DeviceGroupResponse!
-  searchDeviceImeiData(input: SearchImeiDataInput!): DeviceGroupResponse!
   createIndustry(input: CreateIndustryInput!): IndustryResponse!
   industryListAll(input: IndustryInput!): IndustryResponse!
   searchIndustry(input: SearchIndustryInput!): IndustryResponse!
@@ -888,6 +898,10 @@ type Mutation {
   updateDeviceList(input: UpdateAddDeviceInput!): AddDeviceResponse!
   bulkUploadDevice(input: [CreateAddDeviceInput!]!): AddDeviceResponse!
   createMenuItem(input: CreateMenuItemInput!): MenuItemResponse!
+  addLocationType(input: CreateLocationTypeInput!): LocationTypeResponse!
+  fetchLocationType(input: LocationTypeInput!): LocationTypeResponse!
+  updateLocationType(input: UpdateLocationTypeInput!): LocationTypeResponse!
+  searchLocationTypes(input: SearchLocationsInput!): LocationTypeResponse!
   addFormBuilder(input: CreateFormBuilderInput!): FormBuilderResponse!
   fetchFormBuilder(input: FormBuildInput!): FormBuilderResponse!
   updateFormBuilder(input: UpdateFormBuilderInput!): FormBuilderResponse!
@@ -1129,9 +1143,8 @@ input SearchAlertInput {
 }
 
 input CreateDeviceGroupInput {
-  accountId: String
   deviceGroupName: String
-  imeiData: [String!]
+  accountId: String
   createdBy: String
   updatedBy: String
 }
@@ -1140,7 +1153,6 @@ input DeviceGroupInput {
   accountId: String
   page: Int
   limit: Int
-  id: String
 }
 
 input SearchDeviceGroupInput {
@@ -1151,20 +1163,11 @@ input SearchDeviceGroupInput {
 }
 
 input UpdateDeviceGroupInput {
-  accountId: String
   deviceGroupName: String
-  imeiData: [String!]
+  accountId: String
   createdBy: String
   updatedBy: String
   _id: String!
-}
-
-input SearchImeiDataInput {
-  accountId: String
-  id: String
-  search: String
-  page: Int
-  limit: Int
 }
 
 input CreateIndustryInput {
@@ -1659,6 +1662,32 @@ input CreateMenuItemInput {
   visibleInSidebar: Boolean!
   accessToResource: [String!]
   subMenu: [CreateMenuItemInput!]
+}
+
+input CreateLocationTypeInput {
+  accountId: String
+  type: String!
+  createdBy: String!
+}
+
+input LocationTypeInput {
+  accountId: String
+  page: Int
+  limit: Int
+}
+
+input UpdateLocationTypeInput {
+  accountId: String
+  type: String
+  createdBy: String
+  _id: String!
+}
+
+input SearchLocationsInput {
+  accountId: String
+  search: String
+  page: Int
+  limit: Int
 }
 
 input CreateFormBuilderInput {

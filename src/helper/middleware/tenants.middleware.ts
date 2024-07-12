@@ -9,7 +9,6 @@ export class TenantsMiddleware implements NestMiddleware {
   async use(req: Request, res: Response, next: NextFunction) {
     const tenantId = req.headers['x-tenant-id']?.toString();
     if (tenantId && tenantId.trim()) {
-      console.log(`Tenant ID: ${tenantId}`);
       const tenantExists = await this.tenantsService.getTenantById(tenantId);
       if (tenantExists) {
         req['x-tenant-id'] = tenantId;
