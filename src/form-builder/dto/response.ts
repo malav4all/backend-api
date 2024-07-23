@@ -6,10 +6,13 @@ import { FormBuilder } from '../entity/form-builder.entity';
 export class FormBuilderResponse {
   @Field(() => PaginatorInfo, { nullable: true })
   paginatorInfo: PaginatorInfo;
+
   @Field({ nullable: true })
   success: number;
+
   @Field({ nullable: true })
   message: string;
+
   @Field(() => [FormBuilder])
   data: [FormBuilder];
 }

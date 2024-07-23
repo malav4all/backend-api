@@ -174,33 +174,89 @@ export class UserService {
 
   async login(payload: LoginUserInput) {
     const inputUser: any = payload;
+    console.log('asdfhk');
+    console.log({ inputUser });
     try {
-      let user: any = await this.UserModel.findOne({
-        email: inputUser.email,
-      })
-        .populate([{ path: 'accountId' }, { path: 'roleId' }])
-        .lean()
-        .exec();
-      if (user) {
+      const user = await this.UserModel.aggregate([
+        {
+          $match: {
+            email: inputUser.email,
+            // password: inputUser.password,
+          },
+        },
+        {
+          $lookup: {
+            from: 'accounts',
+            localField: 'accountId',
+            foreignField: 'accountId',
+            as: 'account',
+          },
+        },
+        {
+          $unwind: {
+            path: '$account',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $addFields: {
+            roleIdObject: { $toObjectId: '$roleId' },
+          },
+        },
+        {
+          $lookup: {
+            from: 'roles',
+            localField: 'roleIdObject',
+            foreignField: '_id',
+            as: 'role',
+          },
+        },
+        {
+          $unwind: {
+            path: '$role',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            firstName: 1,
+            email: 1,
+            password: 1,
+            accountId: '$account',
+            roleId: '$role',
+          },
+        },
+      ]).exec();
+
+      if (user && user.length > 0) {
+        const userData = user[0];
         const isPasswordValid = await this.verifyPassword(
-          user,
+          userData,
           inputUser.password
         );
         if (isPasswordValid) {
-          const accessToken = await this.generateAccessToken(user);
-          user = {
-            _id: user._id,
+          const accessToken = await this.generateAccessToken(userData);
+
+          // // Fetch the menu items based on the user's role
+          // const menuItems = await this.getMenuItemsForRole(userData.roleId._id);
+          // console.log({ menuItems });
+
+          const responseUser = {
+            _id: userData._id,
             accessToken,
-            name: user.firstName,
-            email: user.email,
-            account: user.accountId,
-            roleId: user.roleId,
+            name: userData.firstName,
+            email: userData.email,
+            account: userData.accountId,
+            roleId: userData.roleId,
+            // sidebar: menuItems,
           };
-          this.logger.verbose(`User Login Successfully:::${user.name}`);
+
+          this.logger.verbose(`User Login Successfully:::${responseUser.name}`);
           return {
-            data: { user },
+            data: { user: responseUser },
             success: 1,
-            message: `Welcome ${user.name}`,
+            message: `Welcome ${responseUser.name}`,
           };
         } else {
           this.logger.error('Please enter the correct password!');

@@ -18,6 +18,7 @@ export class UserAccess {
 
   @Field(() => GraphQLJSON, { nullable: true })
   @Column()
+  @Prop({ type: typeof GraphQLJSON })
   userId: typeof GraphQLJSON;
 
   @Field(() => [String])
