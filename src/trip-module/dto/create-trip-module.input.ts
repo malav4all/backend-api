@@ -1,4 +1,4 @@
-import { Field, InputType, Int } from '@nestjs/graphql';
+import { Field, Float, InputType, Int } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
 import GraphQLJSON from 'graphql-type-json';
 
@@ -101,4 +101,16 @@ export class SearchTripInput {
 
   @Field(() => Int, { nullable: true })
   limit: typeof Int;
+}
+
+@InputType()
+export class BatteryCheckInput {
+  @Field({ nullable: true })
+  accountId: string;
+
+  @Field()
+  terminalId: string;
+
+  @Field(() => Float)
+  threshold: number;
 }

@@ -4,6 +4,7 @@ import { AuthGuard } from '@imz/user/guard';
 import { TripResponse } from './dto/response';
 import { TripService } from './trip-module.service';
 import {
+  BatteryCheckInput,
   CreateTripInput,
   SearchTripInput,
   TripIDInput,
@@ -96,5 +97,12 @@ export class TripResolver {
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
+  }
+
+  @Mutation(() => [{ success: Boolean, message: String }])
+  async checkBattery(
+    @Args('input') input: BatteryCheckInput
+  ): Promise<{ success: boolean; message: string }> {
+    return this.tripService.checkBatteryPercentage(input);
   }
 }
