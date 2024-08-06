@@ -472,6 +472,11 @@ type TripResponse {
   data: [Trip!]!
 }
 
+type BatteryResponse {
+  success: Boolean
+  message: String
+}
+
 type DeviceOnboarding {
   _id: String!
   location: String
@@ -882,6 +887,7 @@ type Mutation {
   searchTrip(input: SearchTripInput!): TripResponse!
   fetchTripById(input: TripIDInput!): TripResponse!
   updateTrip(input: UpdateTripInput!): TripResponse!
+  checkBattery(input: BatteryCheckInput!): BatteryResponse!
   filterRecordAccountId(input: DeviceOnboardingAccountIdInput!): DeviceOnboardingResponse!
   createDeviceOnboarding(input: DeviceOnboardingInput!): DeviceOnboardingResponse!
   fetchDeviceOnboardingList(input: DeviceOnboardingFetchInput!): DeviceOnboardingResponse!
@@ -1451,6 +1457,12 @@ input UpdateTripInput {
   createdBy: String
   updatedBy: String
   _id: String!
+}
+
+input BatteryCheckInput {
+  accountId: String
+  terminalId: String!
+  threshold: Float!
 }
 
 input DeviceOnboardingAccountIdInput {

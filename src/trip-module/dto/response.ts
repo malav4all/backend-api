@@ -13,3 +13,12 @@ export class TripResponse {
   @Field(() => [Trip])
   data: [Trip];
 }
+
+@ObjectType()
+export class BatteryResponse {
+  @Field({ nullable: true })
+  success: boolean;
+
+  @Field({ nullable: true })
+  message: string;
+}

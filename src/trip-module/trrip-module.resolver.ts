@@ -1,7 +1,7 @@
 import { Resolver, Mutation, Args } from '@nestjs/graphql';
 import { InternalServerErrorException, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@imz/user/guard';
-import { TripResponse } from './dto/response';
+import { BatteryResponse, TripResponse } from './dto/response';
 import { TripService } from './trip-module.service';
 import {
   BatteryCheckInput,
@@ -99,7 +99,7 @@ export class TripResolver {
     }
   }
 
-  @Mutation(() => [{ success: Boolean, message: String }])
+  @Mutation(() => BatteryResponse)
   async checkBattery(
     @Args('input') input: BatteryCheckInput
   ): Promise<{ success: boolean; message: string }> {
