@@ -738,20 +738,13 @@ type LocationTypeResponse {
   data: [LocationType!]!
 }
 
-type FieldInputEntity {
-  id: String
-  label: String
-  required: Boolean
-  type: String
-}
-
 type FormBuilder {
   _id: String!
+  formId: String
   accountId: String
   formTitle: String
-  fields: [FieldInputEntity!]
+  fields: JSON
   createdBy: String
-  isFormEnable: Boolean
   updatedBy: String
   lastUpdated: DateTime
 }
@@ -1721,19 +1714,13 @@ input SearchLocationsInput {
 }
 
 input CreateFormBuilderInput {
+  formId: String
   accountId: String
-  formTitle: String
-  fields: [FieldInputType!]
-  isFormEnable: Boolean
+  name: String
+  description: String
+  fields: JSON
   createdBy: String
   updatedBy: String
-}
-
-input FieldInputType {
-  id: String
-  label: String
-  required: Boolean
-  type: String
 }
 
 input FormBuildInput {
@@ -1743,10 +1730,11 @@ input FormBuildInput {
 }
 
 input UpdateFormBuilderInput {
+  formId: String
   accountId: String
-  formTitle: String
-  fields: [FieldInputType!]
-  isFormEnable: Boolean
+  name: String
+  description: String
+  fields: JSON
   createdBy: String
   updatedBy: String
   _id: String!

@@ -3,21 +3,6 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import GraphQLJSON from 'graphql-type-json';
 import { Column, Entity, ObjectIdColumn } from 'typeorm';
 
-@ObjectType()
-export class FieldInputEntity {
-  @Field({ nullable: true })
-  id: string;
-
-  @Field({ nullable: true })
-  label: string;
-
-  @Field(() => Boolean, { nullable: true })
-  required: boolean;
-
-  @Field({ nullable: true })
-  type: string;
-}
-
 @Schema({ timestamps: true })
 @ObjectType()
 @Entity()
@@ -25,6 +10,11 @@ export class FormBuilder {
   @Field()
   @ObjectIdColumn()
   _id: string;
+
+  @Field({ nullable: true })
+  @Prop({ text: true })
+  @Column()
+  formId: string;
 
   @Field({ nullable: true })
   @Prop({ text: true })
@@ -37,19 +27,14 @@ export class FormBuilder {
   formTitle: string;
 
   @Column()
-  @Prop({ text: true })
-  @Field(() => [FieldInputEntity], { nullable: true })
-  fields: [FieldInputEntity];
+  @Field(() => GraphQLJSON, { nullable: true })
+  @Prop({ type: typeof GraphQLJSON })
+  fields: typeof GraphQLJSON;
 
   @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
   createdBy: string;
-
-  @Field(() => Boolean, { nullable: true })
-  @Prop({ text: true })
-  @Column()
-  isFormEnable: boolean;
 
   @Field({ nullable: true })
   @Prop({ text: true })

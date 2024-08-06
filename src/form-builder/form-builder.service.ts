@@ -35,7 +35,7 @@ export class FormBuilderService {
         FormBuilderSchema
       );
       const existingRecord = await formBuilderModel.findOne({
-        deviceGroupformTitleName: payload.formTitle,
+        formId: payload.formId,
       });
       if (existingRecord) {
         throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
