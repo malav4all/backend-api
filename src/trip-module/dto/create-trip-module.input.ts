@@ -80,6 +80,15 @@ export class TripInput {
 }
 
 @InputType()
+export class TripIDInput {
+  @Field({ nullable: true })
+  accountId: string;
+
+  @Field({ nullable: true })
+  tripId: string;
+}
+
+@InputType()
 export class SearchTripInput {
   @Field({ nullable: true })
   accountId: string;

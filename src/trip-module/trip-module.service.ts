@@ -5,6 +5,7 @@ import { Trip, TripSchema } from './entity/trip-module.entity';
 import {
   CreateTripInput,
   SearchTripInput,
+  TripIDInput,
   TripInput,
 } from './dto/create-trip-module.input';
 import { UpdateTripInput } from './dto/update-trip-module.update';
@@ -108,6 +109,25 @@ export class TripService {
       const count = await tripModel.countDocuments(query);
 
       return { records, count };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async getTripDetailById(input: TripIDInput) {
+    try {
+      const tripModel = await this.getTenantModel<Trip>(
+        input.accountId,
+        Trip.name,
+        TripSchema
+      );
+
+      const records = await tripModel
+        .findOne({ tripId: input.tripId })
+        .lean()
+        .exec();
+
+      return records;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }

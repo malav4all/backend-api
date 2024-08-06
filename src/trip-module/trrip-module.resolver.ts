@@ -6,6 +6,7 @@ import { TripService } from './trip-module.service';
 import {
   CreateTripInput,
   SearchTripInput,
+  TripIDInput,
   TripInput,
 } from './dto/create-trip-module.input';
 import { UpdateTripInput } from './dto/update-trip-module.update';
@@ -60,6 +61,21 @@ export class TripResolver {
         success: 1,
         message: 'Search list available.',
         data: records,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @UseGuards(new AuthGuard())
+  @Mutation(() => TripResponse)
+  async fetchTripById(@Args('input') input: TripIDInput) {
+    try {
+      const record = await this.tripService.getTripDetailById(input);
+      return {
+        success: 1,
+        message: 'Search list available.',
+        data: record,
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
