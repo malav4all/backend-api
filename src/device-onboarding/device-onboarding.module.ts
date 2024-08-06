@@ -9,6 +9,7 @@ import { DeviceOnboarding } from './enities/device-onboarding.enities';
 import { MongooseModule } from '@nestjs/mongoose';
 import { DeviceOnboardingCopySchema } from './enities/device-onboarding.copy.entity';
 import { RedisService } from '@imz/redis/redis.service';
+import { InfluxdbService } from '@imz/influx-db/influx-db-.service';
 
 @Module({
   imports: [
@@ -19,7 +20,12 @@ import { RedisService } from '@imz/redis/redis.service';
     DeviceSimHistoryModule,
     UserModule,
   ],
-  providers: [DeviceOnboardingResolver, DeviceOnboardingService, RedisService],
+  providers: [
+    DeviceOnboardingResolver,
+    DeviceOnboardingService,
+    RedisService,
+    InfluxdbService,
+  ],
   exports: [DeviceOnboardingService],
 })
 export class DeviceOnboardingModule implements NestModule {

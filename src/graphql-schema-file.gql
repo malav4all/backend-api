@@ -491,6 +491,26 @@ type DeviceOnboardingResponse {
   data: [DeviceOnboarding!]
 }
 
+type DeviceOfflineGraphData {
+  success: Float!
+  series: [Float!]!
+  labels: [String!]!
+}
+
+type XAxis {
+  categories: [String!]!
+}
+
+type SeriesData {
+  name: String!
+  data: [Float!]!
+}
+
+type DeviceLineGraphData {
+  xaxis: XAxis!
+  series: [SeriesData!]!
+}
+
 type ValueAccountModule {
   key: String
   value: String
@@ -860,6 +880,7 @@ type Mutation {
   createTrip(input: CreateTripInput!): TripResponse!
   tripList(input: TripInput!): TripResponse!
   searchTrip(input: SearchTripInput!): TripResponse!
+  fetchTripById(input: TripIDInput!): TripResponse!
   updateTrip(input: UpdateTripInput!): TripResponse!
   filterRecordAccountId(input: DeviceOnboardingAccountIdInput!): DeviceOnboardingResponse!
   createDeviceOnboarding(input: DeviceOnboardingInput!): DeviceOnboardingResponse!
@@ -868,6 +889,9 @@ type Mutation {
   bulkUploadDeviceAssignment(input: [DeviceOnboardingInput!]!): DeviceOnboardingResponse!
   deviceTransferOneToAnotherAccount(input: DeviceTransferInput!): DeviceOnboardingResponse!
   bulkDeviceTransferOneToAnotherAccount(input: BulkDeviceOnboardingInput!): DeviceOnboardingResponse!
+  offlineDeviceGraph(input: DeviceOnboardingAccountIdInput!): DeviceOfflineGraphData!
+  onlineDeviceGraph(input: DeviceOnboardingAccountIdInput!): DeviceOfflineGraphData!
+  lineGraphDeviceData(input: DeviceOnboardingAccountIdInput!): DeviceLineGraphData!
   createDeviceOnboardingHistory(input: DeviceOnboardingHistoryInput!): DeviceOnboardingHistoryResponse!
   fetchDeviceOnboardingHistoryList(input: DeviceOnboardingHistoryFetchInput!): DeviceOnboardingHistoryResponse!
   createDeviceSimHistory(input: DeviceSimHistoryInput!): DeviceSimHistoryResponse!
@@ -1403,6 +1427,11 @@ input SearchTripInput {
   search: String
   page: Int
   limit: Int
+}
+
+input TripIDInput {
+  accountId: String
+  tripId: String
 }
 
 input UpdateTripInput {
