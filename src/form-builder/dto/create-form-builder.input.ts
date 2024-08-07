@@ -3,8 +3,8 @@ import GraphQLJSON from 'graphql-type-json';
 
 @InputType()
 export class CreateFormBuilderInput {
-  @Field({ nullable: true })
-  formId: string;
+  @Field(() => Int, { nullable: true })
+  formId: number;
 
   @Field({ nullable: true })
   accountId: string;
@@ -16,13 +16,15 @@ export class CreateFormBuilderInput {
   description: string;
 
   @Field(() => GraphQLJSON, { nullable: true })
-  fields: typeof GraphQLJSON;
+  content: typeof GraphQLJSON;
 
   @Field({ nullable: true })
   createdBy?: string;
 
   @Field({ nullable: true })
   updatedBy?: string;
+  @Field({ nullable: true })
+  published?: boolean;
 }
 
 @InputType()

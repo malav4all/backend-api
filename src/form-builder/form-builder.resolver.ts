@@ -23,10 +23,10 @@ export class FormBuilderResolver {
         message: record
           ? 'Record created.'
           : 'Record not created. Please try again.',
-        data: record,
+        data: record ? [record] : [],
       };
     } catch (error) {
-      throw new InternalServerErrorException(error.message);
+      throw new InternalServerErrorException('Failed to create record.');
     }
   }
 
