@@ -62,22 +62,27 @@ export class Trip {
   @Field(() => [TripInformationData], { nullable: true })
   tripData: [TripInformationData];
 
+  @Prop({ type: typeof GraphQLJSON })
   @Column()
-  @Field(() => GraphQLJSON, { nullable: true })
-  journey: typeof GraphQLJSON;
+  @Field(() => GraphQLJSON)
+  route: typeof GraphQLJSON;
 
+  @Prop({ type: typeof GraphQLJSON })
   @Column()
-  @Field(() => GraphQLJSON, { nullable: true })
+  @Field(() => GraphQLJSON)
   alertConfig: typeof GraphQLJSON;
 
+  @Prop({ type: typeof GraphQLJSON })
   @Column()
-  @Field(() => GraphQLJSON, { nullable: true })
+  @Field(() => GraphQLJSON)
   startPoint: typeof GraphQLJSON;
 
+  @Prop({ type: typeof GraphQLJSON })
   @Column()
-  @Field(() => GraphQLJSON, { nullable: true })
+  @Field(() => GraphQLJSON)
   endPoint: typeof GraphQLJSON;
 
+  @Prop({ type: typeof GraphQLJSON })
   @Column()
   @Field(() => GraphQLJSON, { nullable: true })
   metaData: typeof GraphQLJSON;
@@ -92,10 +97,15 @@ export class Trip {
   @Column()
   createdBy: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
   updatedBy: string;
+
+  @Field({ nullable: true })
+  @Prop({ text: true })
+  @Column()
+  createdAt: string;
 
   @Field({ nullable: true })
   @Prop()
