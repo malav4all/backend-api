@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
 import { InternalServerErrorException } from '@nestjs/common';
@@ -23,6 +23,7 @@ import { RedisService } from '@imz/redis/redis.service';
 import { InfluxdbService } from '@imz/influx-db/influx-db-.service';
 import * as async from 'async';
 import { DeviceLineGraphData } from './dto/response';
+import { convertUTCToIST } from '@imz/helper/generateotp';
 
 @Injectable()
 export class DeviceOnboardingService {
@@ -212,7 +213,9 @@ export class DeviceOnboardingService {
     }
   }
 
-  async getOfflineGraphData(input: DeviceOnboardingAccountIdInput) {
+  async getOfflineGraphData(
+    input: DeviceOnboardingAccountIdInput
+  ): Promise<any> {
     try {
       const deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
         input.accountId,
@@ -222,21 +225,21 @@ export class DeviceOnboardingService {
       const devices = await deviceOnboardingModel.find().lean().exec();
 
       const now = new Date();
-      const oneHourAgo = new Date(
-        now.getTime() - 1 * 60 * 60 * 1000
-      ).toISOString();
-      const twoHoursAgo = new Date(
-        now.getTime() - 2 * 60 * 60 * 1000
-      ).toISOString();
-      const threeHoursAgo = new Date(
-        now.getTime() - 3 * 60 * 60 * 1000
-      ).toISOString();
+      const oneHourAgo = convertUTCToIST(
+        new Date(now.getTime() - 1 * 60 * 60 * 1000).toISOString()
+      );
+      const twoHoursAgo = convertUTCToIST(
+        new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString()
+      );
+      const threeHoursAgo = convertUTCToIST(
+        new Date(now.getTime() - 3 * 60 * 60 * 1000).toISOString()
+      );
 
-      let oneHourOfflineCount = 0;
-      let twoHoursOfflineCount = 0;
-      let threeHoursOfflineCount = 0;
-      let disconnectedCount = 0;
-      let neverConnectedCount = 0;
+      let oneHourOfflineCount: any = 0;
+      let twoHoursOfflineCount: any = 0;
+      let threeHoursOfflineCount: any = 0;
+      let disconnectedCount: any = 0;
+      let neverConnectedCount: any = 0;
 
       // Define the batch size
       const batchSize = 1000;
@@ -253,8 +256,8 @@ export class DeviceOnboardingService {
           batch.map(async (device) => {
             const imei = device.deviceOnboardingIMEINumber;
             const fluxQuery = `
-              from(bucket: "IMZ765352")
-                |> range(start: ${threeHoursAgo}) // Checking data from the last 30 days
+              from(bucket: "IMZ113343")
+                |> range(start: ${threeHoursAgo}) // Checking data from the last 3 hours
                 |> filter(fn: (r) => r["_measurement"] == "track")
                 |> filter(fn: (r) => r["Terminal_ID"] == "${imei}")
                 |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
@@ -269,7 +272,7 @@ export class DeviceOnboardingService {
               for await (const { values } of queryResults) {
                 const timestamp = values[2]; // Assuming the timestamp is the third element
                 if (timestamp) {
-                  lastReportedTime = timestamp;
+                  lastReportedTime = convertUTCToIST(timestamp);
                   break;
                 }
               }
@@ -304,25 +307,20 @@ export class DeviceOnboardingService {
       return {
         series: [
           oneHourOfflineCount,
-          twoHoursOfflineCount,
-          threeHoursOfflineCount,
+          threeHoursOfflineCount + twoHoursOfflineCount,
           disconnectedCount,
           neverConnectedCount,
         ],
-        labels: [
-          '1 hour Offline',
-          '2 hours Offline',
-          '3 hours Offline',
-          'Disconnected',
-          'Malfunction',
-        ],
+        labels: ['Since 1 hour', 'since 3 hour', 'Disconnected', 'Malfunction'],
       };
     } catch (error: any) {
-      throw Error(error.message);
+      throw new BadRequestException(error.message);
     }
   }
 
-  async getOnlineGraphData(input: DeviceOnboardingAccountIdInput) {
+  async getOnlineGraphData(
+    input: DeviceOnboardingAccountIdInput
+  ): Promise<{ series: number[]; labels: string[] }> {
     try {
       const deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
         input.accountId,
@@ -353,7 +351,7 @@ export class DeviceOnboardingService {
           batch.map(async (device) => {
             const imei = device.deviceOnboardingIMEINumber;
             const fluxQuery = `
-              from(bucket: "IMZ765352")
+              from(bucket: "IMZ113343")
                 |> range(start: ${oneHourAgo}) // Checking data from the last 1 hour
                 |> filter(fn: (r) => r["_measurement"] == "track")
                 |> filter(fn: (r) => r["Terminal_ID"] == "${imei}")
@@ -366,10 +364,9 @@ export class DeviceOnboardingService {
               let lastReportedTime: string | null = null;
 
               for await (const { values } of queryResults) {
-                console.log(values);
                 const timestamp = values[2]; // Assuming the timestamp is the third element
                 if (timestamp) {
-                  lastReportedTime = timestamp;
+                  lastReportedTime = convertUTCToIST(timestamp);
                   break;
                 }
               }
@@ -378,7 +375,8 @@ export class DeviceOnboardingService {
                 const lastReportedDate = new Date(
                   lastReportedTime
                 ).toISOString();
-                if (lastReportedDate >= oneHourAgo) {
+                const oneHourAgoIST = convertUTCToIST(oneHourAgo);
+                if (lastReportedDate >= oneHourAgoIST) {
                   onlineCount++;
                 }
               }
@@ -397,9 +395,10 @@ export class DeviceOnboardingService {
         labels: ['Online'],
       };
     } catch (error: any) {
-      throw Error(error.message);
+      throw new BadRequestException(error.message);
     }
   }
+
   async getHourlyOnlineOfflineData(
     input: DeviceOnboardingAccountIdInput
   ): Promise<DeviceLineGraphData> {
@@ -422,16 +421,18 @@ export class DeviceOnboardingService {
 
       // Check for each hour in the last few hours
       for (let i = 0; i <= currentHour; i++) {
-        const hourStart = new Date(
+        const hourStartUTC = new Date(
           now.getTime() - (i + 1) * 60 * 60 * 1000
         ).toISOString();
-        const hourEnd = new Date(
+        const hourEndUTC = new Date(
           now.getTime() - i * 60 * 60 * 1000
         ).toISOString();
+        const hourStartIST = convertUTCToIST(hourStartUTC);
+        const hourEndIST = convertUTCToIST(hourEndUTC);
 
         const fluxQuery = `
-          from(bucket: "IMZ765352")
-            |> range(start: ${hourStart}, stop: ${hourEnd})
+          from(bucket: "IMZ113343")
+            |> range(start: ${hourStartIST}, stop: ${hourEndIST})
             |> filter(fn: (r) => r["_measurement"] == "track")
             |> keep(columns: ["_time"])
         `;
@@ -474,7 +475,7 @@ export class DeviceOnboardingService {
         ],
       };
     } catch (error: any) {
-      throw Error(error.message);
+      throw new BadRequestException(error.message);
     }
   }
 

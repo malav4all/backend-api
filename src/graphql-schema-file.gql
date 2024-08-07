@@ -764,11 +764,14 @@ type LocationTypeResponse {
 }
 
 type FormBuilder {
-  _id: String!
-  formId: String
+  _id: String
+  formId: Float
   accountId: String
+  name: String
+  published: Boolean
+  description: String
   formTitle: String
-  fields: JSON
+  content: JSON
   createdBy: String
   updatedBy: String
   lastUpdated: DateTime
@@ -778,7 +781,7 @@ type FormBuilderResponse {
   paginatorInfo: PaginatorInfo
   success: Float
   message: String
-  data: [FormBuilder!]!
+  data: [FormBuilder!]
 }
 
 type Query {
@@ -1755,13 +1758,14 @@ input SearchLocationsInput {
 }
 
 input CreateFormBuilderInput {
-  formId: String
+  formId: Int
   accountId: String
   name: String
   description: String
-  fields: JSON
+  content: JSON
   createdBy: String
   updatedBy: String
+  published: Boolean
 }
 
 input FormBuildInput {
@@ -1771,14 +1775,14 @@ input FormBuildInput {
 }
 
 input UpdateFormBuilderInput {
-  formId: String
+  formId: Float!
   accountId: String
   name: String
   description: String
-  fields: JSON
+  content: JSON
   createdBy: String
   updatedBy: String
-  _id: String!
+  published: Boolean
 }
 
 type Subscription {
