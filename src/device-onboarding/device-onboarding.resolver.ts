@@ -1,5 +1,9 @@
 import { Args, Mutation, Resolver, Query, Context } from '@nestjs/graphql';
-import { DeviceOnboardingResponse } from './dto/response';
+import {
+  DeviceLineGraphData,
+  DeviceOfflineGraphData,
+  DeviceOnboardingResponse,
+} from './dto/response';
 import { InternalServerErrorException, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@imz/user/guard';
 import {
@@ -145,6 +149,64 @@ export class DeviceOnboardingResolver {
       return {
         success: 0,
         message,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  // @UseGuards(new AuthGuard())
+  @Mutation(() => DeviceOfflineGraphData)
+  async offlineDeviceGraph(
+    @Args('input')
+    input: DeviceOnboardingAccountIdInput
+  ) {
+    try {
+      const record = await this.deviceOnboardingService.getOfflineGraphData(
+        input
+      );
+      return {
+        success: 1,
+        series: record.series,
+        labels: record.labels,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  // @UseGuards(new AuthGuard())
+  @Mutation(() => DeviceOfflineGraphData)
+  async onlineDeviceGraph(
+    @Args('input')
+    input: DeviceOnboardingAccountIdInput
+  ) {
+    try {
+      const record = await this.deviceOnboardingService.getOnlineGraphData(
+        input
+      );
+      return {
+        success: 1,
+        series: record.series,
+        labels: record.labels,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  // @UseGuards(new AuthGuard())
+  @Mutation(() => DeviceLineGraphData)
+  async lineGraphDeviceData(
+    @Args('input')
+    input: DeviceOnboardingAccountIdInput
+  ): Promise<DeviceLineGraphData> {
+    try {
+      const record =
+        await this.deviceOnboardingService.getHourlyOnlineOfflineData(input);
+      return {
+        xaxis: record.xaxis,
+        series: record.series,
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
