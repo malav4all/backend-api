@@ -1,4 +1,4 @@
-import { ObjectType, Field } from '@nestjs/graphql';
+import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
 import { PaginatorInfo } from '@imz/helper';
 import { DeviceOnboarding } from '../enities/device-onboarding.enities';
 
@@ -47,4 +47,40 @@ export class DeviceLineGraphData {
 
   @Field(() => [SeriesData])
   series: SeriesData[];
+}
+
+@ObjectType()
+class DeviceOnlineStatus {
+  @Field()
+  name: string;
+
+  @Field()
+  imei: string;
+
+  @Field()
+  status: string;
+
+  @Field()
+  lastPing: string;
+
+  @Field(() => Float)
+  latitude: number;
+
+  @Field(() => Float)
+  longitude: number;
+}
+
+@ObjectType()
+export class DeviceOnlineOfflineCount {
+  @Field(() => Int)
+  totalDeviceCount: number;
+
+  @Field(() => Int)
+  online: number;
+
+  @Field(() => Int)
+  offline: number;
+
+  @Field(() => [DeviceOnlineStatus])
+  data: DeviceOnlineStatus[];
 }

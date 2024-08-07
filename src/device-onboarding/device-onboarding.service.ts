@@ -24,6 +24,7 @@ import { InfluxdbService } from '@imz/influx-db/influx-db-.service';
 import * as async from 'async';
 import { DeviceLineGraphData } from './dto/response';
 import { convertUTCToIST } from '@imz/helper/generateotp';
+import { DeviceStatus } from '@imz/helper/comman/influx-db/response';
 
 @Injectable()
 export class DeviceOnboardingService {
@@ -259,7 +260,7 @@ export class DeviceOnboardingService {
               from(bucket: "IMZ113343")
                 |> range(start: ${threeHoursAgo}) // Checking data from the last 3 hours
                 |> filter(fn: (r) => r["_measurement"] == "track")
-                |> filter(fn: (r) => r["Terminal_ID"] == "${imei}")
+                |> filter(fn: (r) => r["imei"] == "${imei}")
                 |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
             `;
 
@@ -354,7 +355,7 @@ export class DeviceOnboardingService {
               from(bucket: "IMZ113343")
                 |> range(start: ${oneHourAgo}) // Checking data from the last 1 hour
                 |> filter(fn: (r) => r["_measurement"] == "track")
-                |> filter(fn: (r) => r["Terminal_ID"] == "${imei}")
+                |> filter(fn: (r) => r["imei"] == "${imei}")
             `;
 
             try {
@@ -473,6 +474,116 @@ export class DeviceOnboardingService {
             data: offlineCounts.reverse(),
           },
         ],
+      };
+    } catch (error: any) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  async getDeviceOnlineOfflineCounts(input: DeviceOnboardingAccountIdInput) {
+    try {
+      const deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
+        input.accountId,
+        DeviceOnboarding.name,
+        DeviceOnboardingSchema
+      );
+      const devices = await deviceOnboardingModel.find().lean().exec();
+      const totalDeviceCount = devices.length;
+
+      const now = new Date();
+      const oneHourAgo = new Date(
+        now.getTime() - 1 * 60 * 60 * 1000
+      ).toISOString();
+      const threeHoursAgo = new Date(
+        now.getTime() - 3 * 60 * 60 * 1000
+      ).toISOString();
+
+      let onlineCount = 0;
+      let offlineCount = 0;
+      const deviceStatuses: any = [];
+
+      // Define the batch size
+      const batchSize = 1000;
+
+      // Split devices into batches
+      const batches = [];
+      for (let i = 0; i < devices.length; i += batchSize) {
+        batches.push(devices.slice(i, i + batchSize));
+      }
+
+      // Process batches concurrently
+      await async.eachLimit(batches, 10, async (batch) => {
+        await Promise.all(
+          batch.map(async (device) => {
+            const imei = device.deviceOnboardingIMEINumber;
+            const fluxQuery = `
+            from(bucket: "IMZ113343")
+              |> range(start: ${threeHoursAgo}, stop: now()) // Checking data from the last 3 hours
+              |> filter(fn: (r) => r["_measurement"] == "track")
+              |> filter(fn: (r) => r["imei"] == "${imei}")
+              |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+              |> sort(columns: ["_time"], desc: true)
+              |> limit(n: 1)
+          `;
+
+            try {
+              const queryResults = await this.influxDbService.executeQuery(
+                fluxQuery
+              );
+              let lastReportedTime: string | null = null;
+              let latitude: number | null = null;
+              let longitude: number | null = null;
+
+              for await (const { values } of queryResults) {
+                lastReportedTime = convertUTCToIST(values[2]); // Adjust this index if necessary
+                latitude = Number(values[50]); // Adjust these indices if necessary
+                longitude = Number(values[52]); // Adjust these indices if necessary
+                break;
+              }
+
+              const status =
+                lastReportedTime &&
+                new Date(lastReportedTime).toISOString() >= oneHourAgo
+                  ? 'online'
+                  : 'offline';
+              if (status === 'online') {
+                onlineCount++;
+              } else {
+                offlineCount++;
+              }
+
+              deviceStatuses.push({
+                name: input.accountId,
+                imei,
+                status,
+                lastPing: lastReportedTime || 'N/A',
+                latitude: latitude || 0,
+                longitude: longitude || 0,
+              });
+            } catch (error) {
+              console.error(
+                `Error executing query for IMEI ${imei}:`,
+                error.message
+              );
+              offlineCount++;
+              deviceStatuses.push({
+                name: input.accountId,
+                imei,
+                status: 'offline',
+                lastPing: 'N/A',
+                latitude: 0,
+                longitude: 0,
+              });
+            }
+          })
+        );
+      });
+
+      return {
+        totalDeviceCount,
+        online: onlineCount,
+        offline: offlineCount,
+        data: deviceStatuses,
       };
     } catch (error: any) {
       throw new BadRequestException(error.message);

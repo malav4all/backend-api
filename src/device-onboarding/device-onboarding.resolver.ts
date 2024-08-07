@@ -3,6 +3,7 @@ import {
   DeviceLineGraphData,
   DeviceOfflineGraphData,
   DeviceOnboardingResponse,
+  DeviceOnlineOfflineCount,
 } from './dto/response';
 import { InternalServerErrorException, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@imz/user/guard';
@@ -207,6 +208,26 @@ export class DeviceOnboardingResolver {
       return {
         xaxis: record.xaxis,
         series: record.series,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  // @UseGuards(new AuthGuard())
+  @Mutation(() => DeviceOnlineOfflineCount)
+  async getOnlineOfflineCount(
+    @Args('input')
+    input: DeviceOnboardingAccountIdInput
+  ): Promise<DeviceOnlineOfflineCount> {
+    try {
+      const record =
+        await this.deviceOnboardingService.getDeviceOnlineOfflineCounts(input);
+      return {
+        totalDeviceCount: record.totalDeviceCount,
+        online: record.online,
+        offline: record.offline,
+        data: record.data,
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);

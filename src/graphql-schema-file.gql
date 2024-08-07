@@ -454,14 +454,15 @@ type Trip {
   tripStartDate: String
   tripEndDate: String
   tripData: [TripInformationData!]
-  journey: JSON
-  alertConfig: JSON
-  startPoint: JSON
-  endPoint: JSON
+  route: JSON!
+  alertConfig: JSON!
+  startPoint: JSON!
+  endPoint: JSON!
   metaData: JSON
   accessAccount: [String!]
   createdBy: String!
-  updatedBy: String!
+  updatedBy: String
+  createdAt: String
   lastUpdated: DateTime
 }
 
@@ -516,6 +517,22 @@ type DeviceLineGraphData {
   series: [SeriesData!]!
 }
 
+type DeviceOnlineStatus {
+  name: String!
+  imei: String!
+  status: String!
+  lastPing: String!
+  latitude: Float!
+  longitude: Float!
+}
+
+type DeviceOnlineOfflineCount {
+  totalDeviceCount: Int!
+  online: Int!
+  offline: Int!
+  data: [DeviceOnlineStatus!]!
+}
+
 type ValueAccountModule {
   key: String
   value: String
@@ -564,6 +581,33 @@ type DeviceSimHistory {
   toDate: DateTime
   createdBy: String
   updatedBy: String
+}
+
+type AlertResponseType {
+  event: String
+  lat: String
+  imei: String
+  label: String
+  lng: String
+  mode: String
+  source: String
+  message: String
+  time: String
+}
+
+type DeviceStatusResponse {
+  time: String!
+  imei: String!
+  label: String!
+  lat: String!
+  lng: String!
+  status: String!
+}
+
+type CoordinatesTypeResponse {
+  latitude: String
+  longitude: String
+  time: String
 }
 
 type DeviceOnboardingHistoryResponse {
@@ -660,7 +704,7 @@ type UserAccessResponse {
 type TripType {
   _id: String!
   accountId: String!
-  tripName: String!
+  tripName: String
   minBatteryPercentage: Float!
   tripRate: Float!
   gstPercentage: Float!
@@ -901,6 +945,7 @@ type Mutation {
   offlineDeviceGraph(input: DeviceOnboardingAccountIdInput!): DeviceOfflineGraphData!
   onlineDeviceGraph(input: DeviceOnboardingAccountIdInput!): DeviceOfflineGraphData!
   lineGraphDeviceData(input: DeviceOnboardingAccountIdInput!): DeviceLineGraphData!
+  getOnlineOfflineCount(input: DeviceOnboardingAccountIdInput!): DeviceOnlineOfflineCount!
   createDeviceOnboardingHistory(input: DeviceOnboardingHistoryInput!): DeviceOnboardingHistoryResponse!
   fetchDeviceOnboardingHistoryList(input: DeviceOnboardingHistoryFetchInput!): DeviceOnboardingHistoryResponse!
   createDeviceSimHistory(input: DeviceSimHistoryInput!): DeviceSimHistoryResponse!
@@ -1376,6 +1421,7 @@ input CreateTripTypeInput {
 
 input TripTypeInput {
   accountId: String
+  tripId: String
   page: Int
   limit: Int
 }
@@ -1409,7 +1455,7 @@ input CreateTripInput {
   tripStartDate: String
   tripEndDate: String
   tripData: [TripInformationDetail!]
-  journey: JSON
+  route: JSON
   alertConfig: JSON
   startPoint: JSON
   endPoint: JSON
@@ -1452,7 +1498,7 @@ input UpdateTripInput {
   tripStartDate: String
   tripEndDate: String
   tripData: [TripInformationDetail!]
-  journey: JSON
+  route: JSON
   alertConfig: JSON
   startPoint: JSON
   endPoint: JSON
