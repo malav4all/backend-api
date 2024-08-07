@@ -13,6 +13,6 @@ export class FormBuilderResponse {
   @Field({ nullable: true })
   message: string;
 
-  @Field(() => [FormBuilder])
-  data: [FormBuilder];
+  @Field(() => [FormBuilder], { nullable: true })
+  data: FormBuilder[];
 }

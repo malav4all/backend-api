@@ -472,6 +472,11 @@ type TripResponse {
   data: [Trip!]!
 }
 
+type BatteryResponse {
+  success: Boolean
+  message: String
+}
+
 type DeviceOnboarding {
   _id: String!
   location: String
@@ -489,6 +494,26 @@ type DeviceOnboardingResponse {
   success: Float
   message: String
   data: [DeviceOnboarding!]
+}
+
+type DeviceOfflineGraphData {
+  success: Float!
+  series: [Float!]!
+  labels: [String!]!
+}
+
+type XAxis {
+  categories: [String!]!
+}
+
+type SeriesData {
+  name: String!
+  data: [Float!]!
+}
+
+type DeviceLineGraphData {
+  xaxis: XAxis!
+  series: [SeriesData!]!
 }
 
 type ValueAccountModule {
@@ -738,20 +763,13 @@ type LocationTypeResponse {
   data: [LocationType!]!
 }
 
-type FieldInputEntity {
-  id: String
-  label: String
-  required: Boolean
-  type: String
-}
-
 type FormBuilder {
   _id: String!
+  formId: String
   accountId: String
   formTitle: String
-  fields: [FieldInputEntity!]
+  fields: JSON
   createdBy: String
-  isFormEnable: Boolean
   updatedBy: String
   lastUpdated: DateTime
 }
@@ -867,7 +885,9 @@ type Mutation {
   createTrip(input: CreateTripInput!): TripResponse!
   tripList(input: TripInput!): TripResponse!
   searchTrip(input: SearchTripInput!): TripResponse!
+  fetchTripById(input: TripIDInput!): TripResponse!
   updateTrip(input: UpdateTripInput!): TripResponse!
+  checkBattery(input: BatteryCheckInput!): BatteryResponse!
   filterRecordAccountId(input: DeviceOnboardingAccountIdInput!): DeviceOnboardingResponse!
   createDeviceOnboarding(input: DeviceOnboardingInput!): DeviceOnboardingResponse!
   fetchDeviceOnboardingList(input: DeviceOnboardingFetchInput!): DeviceOnboardingResponse!
@@ -875,6 +895,9 @@ type Mutation {
   bulkUploadDeviceAssignment(input: [DeviceOnboardingInput!]!): DeviceOnboardingResponse!
   deviceTransferOneToAnotherAccount(input: DeviceTransferInput!): DeviceOnboardingResponse!
   bulkDeviceTransferOneToAnotherAccount(input: BulkDeviceOnboardingInput!): DeviceOnboardingResponse!
+  offlineDeviceGraph(input: DeviceOnboardingAccountIdInput!): DeviceOfflineGraphData!
+  onlineDeviceGraph(input: DeviceOnboardingAccountIdInput!): DeviceOfflineGraphData!
+  lineGraphDeviceData(input: DeviceOnboardingAccountIdInput!): DeviceLineGraphData!
   createDeviceOnboardingHistory(input: DeviceOnboardingHistoryInput!): DeviceOnboardingHistoryResponse!
   fetchDeviceOnboardingHistoryList(input: DeviceOnboardingHistoryFetchInput!): DeviceOnboardingHistoryResponse!
   createDeviceSimHistory(input: DeviceSimHistoryInput!): DeviceSimHistoryResponse!
@@ -1412,6 +1435,11 @@ input SearchTripInput {
   limit: Int
 }
 
+input TripIDInput {
+  accountId: String
+  tripId: String
+}
+
 input UpdateTripInput {
   accountId: String
   tripId: String
@@ -1429,6 +1457,12 @@ input UpdateTripInput {
   createdBy: String
   updatedBy: String
   _id: String!
+}
+
+input BatteryCheckInput {
+  accountId: String
+  terminalId: String!
+  threshold: Float!
 }
 
 input DeviceOnboardingAccountIdInput {
@@ -1721,19 +1755,13 @@ input SearchLocationsInput {
 }
 
 input CreateFormBuilderInput {
+  formId: String
   accountId: String
-  formTitle: String
-  fields: [FieldInputType!]
-  isFormEnable: Boolean
+  name: String
+  description: String
+  fields: JSON
   createdBy: String
   updatedBy: String
-}
-
-input FieldInputType {
-  id: String
-  label: String
-  required: Boolean
-  type: String
 }
 
 input FormBuildInput {
@@ -1743,10 +1771,11 @@ input FormBuildInput {
 }
 
 input UpdateFormBuilderInput {
+  formId: String
   accountId: String
-  formTitle: String
-  fields: [FieldInputType!]
-  isFormEnable: Boolean
+  name: String
+  description: String
+  fields: JSON
   createdBy: String
   updatedBy: String
   _id: String!

@@ -1,6 +1,6 @@
 // src/influxdb/influxdb.service.ts
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { InfluxDB } from '@influxdata/influxdb-client';
+import { InfluxDB, QueryApi } from '@influxdata/influxdb-client';
 import axios from 'axios';
 import { OrgsAPI, BucketsAPI } from '@influxdata/influxdb-client-apis';
 
@@ -8,13 +8,30 @@ import { OrgsAPI, BucketsAPI } from '@influxdata/influxdb-client-apis';
 export class InfluxdbService implements OnModuleInit {
   private influxDB: InfluxDB;
   private influxUrl: string;
+  private queryApi: QueryApi;
   private logger = new Logger('InfluxDb');
 
   constructor() {
-    const url = process.env.INFLUXDB_URL;
-    const token = process.env.INFLUXDB_TOKEN;
-    this.influxUrl = url;
-    this.influxDB = new InfluxDB({ url, token });
+    this.initializeInfluxDB();
+  }
+
+  initializeInfluxDB() {
+    try {
+      const url = process.env.INFLUXDB_URL;
+      const token = process.env.INFLUXDB_TOKEN;
+      const org = process.env.INFLUXDB_ORG || 'my-org';
+
+      if (!url || !token) {
+        throw new Error('InfluxDB URL and Token must be defined');
+      }
+
+      this.influxUrl = url;
+      this.influxDB = new InfluxDB({ url, token });
+      this.queryApi = this.influxDB.getQueryApi(org);
+    } catch (error) {
+      this.logger.error('Error initializing InfluxDB:', error.message);
+      throw error;
+    }
   }
 
   async onModuleInit() {
@@ -55,6 +72,18 @@ export class InfluxdbService implements OnModuleInit {
       });
     } catch (error) {
       console.error('Error creating bucket:', error);
+    }
+  }
+
+  executeQuery(fluxQuery: string) {
+    try {
+      if (!this.queryApi) {
+        throw new Error('Query API is not initialized.');
+      }
+      return this.queryApi.iterateRows(fluxQuery);
+    } catch (error) {
+      this.logger.error('Error executing query:', error.message);
+      throw error;
     }
   }
 }
