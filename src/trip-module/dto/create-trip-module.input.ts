@@ -88,6 +88,9 @@ export class TripInput {
   @Field({ nullable: true })
   accountId: string;
 
+  @Field({ nullable: true })
+  status: string;
+
   @Field(() => Int, { nullable: true })
   page: typeof Int;
 
