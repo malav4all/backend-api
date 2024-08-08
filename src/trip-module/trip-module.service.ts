@@ -77,17 +77,22 @@ export class TripService {
         TripSchema
       );
 
-      const { page, limit } = input;
+      const { page, limit, status } = input;
       const skip = this.calculateSkip(Number(page), Number(limit));
 
+      const filter: any = {};
+      if (status) {
+        filter.status = status;
+      }
+
       const records = await tripModel
-        .find({})
+        .find(filter)
         .skip(skip)
         .limit(Number(limit))
         .lean()
         .exec();
 
-      const count = await tripModel.countDocuments();
+      const count = await tripModel.countDocuments(filter);
       return { records, count };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
