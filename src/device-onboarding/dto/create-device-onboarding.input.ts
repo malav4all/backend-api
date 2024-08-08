@@ -42,6 +42,9 @@ export class DeviceOnboardingFetchInput {
 
   @Field(() => Int, { nullable: true })
   limit: typeof Int;
+
+  @Field({ nullable: true })
+  location: string;
 }
 
 @InputType()

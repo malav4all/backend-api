@@ -876,4 +876,38 @@ export class DeviceOnboardingService {
 
     return Array.from(uniqueImeis);
   }
+  async findAllWithLocation(input: DeviceOnboardingFetchInput) {
+    try {
+      let deviceOnboardingModel;
+
+      if (input.accountId) {
+        deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
+          input.accountId,
+          DeviceOnboarding.name,
+          DeviceOnboardingSchema
+        );
+      } else {
+        deviceOnboardingModel = this.DeviceOnboardingCopyModel;
+      }
+
+      const { page, limit, location } = input;
+      const skip = this.calculateSkip(Number(page), Number(limit));
+
+      const query = location ? { location } : {};
+
+      const records = await deviceOnboardingModel
+        .find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit))
+        .exec();
+
+      const count = await deviceOnboardingModel.countDocuments(query).exec();
+      return { records, count };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `FindAll operation failed: ${error.message}`
+      );
+    }
+  }
 }

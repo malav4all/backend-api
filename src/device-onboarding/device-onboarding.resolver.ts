@@ -119,7 +119,7 @@ export class DeviceOnboardingResolver {
     }
   }
 
-  // @UseGuards(new AuthGuard())
+  @UseGuards(new AuthGuard())
   @Mutation(() => DeviceOnboardingResponse)
   async deviceTransferOneToAnotherAccount(
     @Args('input')
@@ -246,6 +246,27 @@ export class DeviceOnboardingResolver {
         success: 1,
         imeiList,
         message: 'IMEI list fetched successfully.',
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @UseGuards(new AuthGuard())
+  @Mutation(() => DeviceOnboardingResponse)
+  async fetchDeviceOnboardingListWithLocation(
+    @Args('input') input: DeviceOnboardingFetchInput
+  ) {
+    try {
+      const { records, count } =
+        await this.deviceOnboardingService.findAllWithLocation(input);
+      return {
+        paginatorInfo: {
+          count: count,
+        },
+        success: 1,
+        message: 'Device Onboarding list with location available.',
+        data: records,
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
