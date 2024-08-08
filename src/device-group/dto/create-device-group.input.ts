@@ -9,6 +9,9 @@ export class CreateDeviceGroupInput {
   @Field({ nullable: true })
   accountId: string;
 
+  @Field(() => [String], { nullable: true })
+  imeiData: string[];
+
   @Field({ nullable: true })
   @IsOptional()
   createdBy?: string;

@@ -1,8 +1,6 @@
-import { AssertAssingmentModuleEntity } from '@imz/assert-asingment/entities/assert-asingment.enitiy';
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { IsOptional } from 'class-validator';
-import { Types } from 'mongoose';
 
 @Schema({ timestamps: true })
 @ObjectType()
@@ -17,6 +15,11 @@ export class DeviceGroup {
   @Field()
   @Prop({ text: true })
   deviceGroupName: string;
+
+  @IsOptional()
+  @Field(() => [String], { nullable: true })
+  @Prop({})
+  imeiData: string[];
 
   @Field({ nullable: true })
   @Prop({ text: true })

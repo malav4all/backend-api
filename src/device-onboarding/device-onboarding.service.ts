@@ -226,21 +226,20 @@ export class DeviceOnboardingService {
       const devices = await deviceOnboardingModel.find().lean().exec();
 
       const now = new Date();
-      const oneHourAgo = convertUTCToIST(
-        new Date(now.getTime() - 1 * 60 * 60 * 1000).toISOString()
-      );
-      const twoHoursAgo = convertUTCToIST(
-        new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString()
-      );
-      const threeHoursAgo = convertUTCToIST(
-        new Date(now.getTime() - 3 * 60 * 60 * 1000).toISOString()
-      );
+      const oneHourAgo = new Date(now.getTime() - 1 * 60 * 60 * 1000);
+      const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+      const threeHoursAgo = new Date(now.getTime() - 3 * 60 * 60 * 1000);
 
-      let oneHourOfflineCount: any = 0;
-      let twoHoursOfflineCount: any = 0;
-      let threeHoursOfflineCount: any = 0;
-      let disconnectedCount: any = 0;
-      let neverConnectedCount: any = 0;
+      const nowIST = new Date(convertUTCToIST(now));
+      const oneHourAgoIST = new Date(convertUTCToIST(oneHourAgo));
+      const twoHoursAgoIST = new Date(convertUTCToIST(twoHoursAgo));
+      const threeHoursAgoIST = new Date(convertUTCToIST(threeHoursAgo));
+
+      let oneHourOfflineCount = 0;
+      let twoHoursOfflineCount = 0;
+      let threeHoursOfflineCount = 0;
+      let disconnectedCount = 0;
+      let neverConnectedCount = 0;
 
       // Define the batch size
       const batchSize = 1000;
@@ -258,10 +257,12 @@ export class DeviceOnboardingService {
             const imei = device.deviceOnboardingIMEINumber;
             const fluxQuery = `
               from(bucket: "IMZ113343")
-                |> range(start: ${threeHoursAgo}) // Checking data from the last 3 hours
+                |> range(start: 0, stop: now()) // Check data for the last 30 days to ensure we get the last reported time
                 |> filter(fn: (r) => r["_measurement"] == "track")
                 |> filter(fn: (r) => r["imei"] == "${imei}")
                 |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+                |> sort(columns: ["_time"], desc: true)
+                |> limit(n: 1)
             `;
 
             try {
@@ -271,7 +272,7 @@ export class DeviceOnboardingService {
               let lastReportedTime: string | null = null;
 
               for await (const { values } of queryResults) {
-                const timestamp = values[2]; // Assuming the timestamp is the third element
+                const timestamp = values[4]; // Assuming the timestamp is the third element
                 if (timestamp) {
                   lastReportedTime = convertUTCToIST(timestamp);
                   break;
@@ -279,26 +280,23 @@ export class DeviceOnboardingService {
               }
 
               if (!lastReportedTime) {
+                // No data has ever been reported for this device
                 neverConnectedCount++;
               } else {
-                const lastReportedDate = new Date(
-                  lastReportedTime
-                ).toISOString();
-                if (lastReportedDate < threeHoursAgo) {
+                const lastReportedDate = new Date(lastReportedTime);
+
+                // Compare the last reported time with the current time ranges
+                if (lastReportedDate < threeHoursAgoIST) {
                   disconnectedCount++;
-                } else if (lastReportedDate < twoHoursAgo) {
+                } else if (lastReportedDate < twoHoursAgoIST) {
                   threeHoursOfflineCount++;
-                } else if (lastReportedDate < oneHourAgo) {
+                } else if (lastReportedDate < oneHourAgoIST) {
                   twoHoursOfflineCount++;
                 } else {
                   oneHourOfflineCount++;
                 }
               }
             } catch (error) {
-              console.error(
-                `Error executing query for IMEI ${imei}:`,
-                error.message
-              );
               neverConnectedCount++;
             }
           })
@@ -517,14 +515,14 @@ export class DeviceOnboardingService {
           batch.map(async (device) => {
             const imei = device.deviceOnboardingIMEINumber;
             const fluxQuery = `
-            from(bucket: "IMZ113343")
-              |> range(start: ${threeHoursAgo}, stop: now()) // Checking data from the last 3 hours
-              |> filter(fn: (r) => r["_measurement"] == "track")
-              |> filter(fn: (r) => r["imei"] == "${imei}")
-              |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
-              |> sort(columns: ["_time"], desc: true)
-              |> limit(n: 1)
-          `;
+              from(bucket: "IMZ113343")
+                |> range(start: ${oneHourAgo}, stop: now())
+                |> filter(fn: (r) => r["_measurement"] == "track")
+                |> filter(fn: (r) => r["imei"] == "${imei}")
+                |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+                |> sort(columns: ["_time"], desc: true)
+                |> limit(n: 1)
+            `;
 
             try {
               const queryResults = await this.influxDbService.executeQuery(
@@ -541,25 +539,54 @@ export class DeviceOnboardingService {
                 break;
               }
 
-              const status =
+              if (
                 lastReportedTime &&
                 new Date(lastReportedTime).toISOString() >= oneHourAgo
-                  ? 'online'
-                  : 'offline';
-              if (status === 'online') {
+              ) {
                 onlineCount++;
+                deviceStatuses.push({
+                  name: input.accountId,
+                  imei,
+                  status: 'online',
+                  lastPing: lastReportedTime || 'N/A',
+                  latitude: latitude || 0,
+                  longitude: longitude || 0,
+                });
               } else {
-                offlineCount++;
-              }
+                // Additional query to get the last available data packet if no data is found in the last one hour
+                const lastPacketQuery = `
+                from(bucket: "IMZ113343")
+                  |> range(start: 0, stop: now())
+                  |> filter(fn: (r) => r["_measurement"] == "track")
+                  |> filter(fn: (r) => r["imei"] == "${imei}")
+                  |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+                  |> sort(columns: ["_time"], desc: true)
+                  |> limit(n: 1)
+              `;
 
-              deviceStatuses.push({
-                name: input.accountId,
-                imei,
-                status,
-                lastPing: lastReportedTime || 'N/A',
-                latitude: latitude || 0,
-                longitude: longitude || 0,
-              });
+                const lastPacketResults =
+                  await this.influxDbService.executeQuery(lastPacketQuery);
+                let lastPacketReportedTime: string | null = null;
+                let lastPacketLatitude: number | null = null;
+                let lastPacketLongitude: number | null = null;
+
+                for await (const { values } of lastPacketResults) {
+                  lastPacketReportedTime = convertUTCToIST(values[4]); // Adjust this index if necessary
+                  lastPacketLatitude = Number(values[89]); // Adjust these indices if necessary
+                  lastPacketLongitude = Number(values[91]); // Adjust these indices if necessary
+                  break;
+                }
+
+                offlineCount++;
+                deviceStatuses.push({
+                  name: input.accountId,
+                  imei,
+                  status: 'offline',
+                  lastPing: lastPacketReportedTime || 'N/A',
+                  latitude: lastPacketLatitude || 0,
+                  longitude: lastPacketLongitude || 0,
+                });
+              }
             } catch (error) {
               console.error(
                 `Error executing query for IMEI ${imei}:`,
@@ -797,5 +824,90 @@ export class DeviceOnboardingService {
       transferredImeis,
       failedImeis,
     };
+  }
+
+  async getImeiList(input: DeviceOnboardingAccountIdInput): Promise<string[]> {
+    const deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
+      input.accountId,
+      DeviceOnboarding.name,
+      DeviceOnboardingSchema
+    );
+
+    // First, fetch the list of devices from DeviceOnboarding
+    const devices = await deviceOnboardingModel.find().lean().exec();
+    const imeis = devices.map((device) => device.deviceOnboardingIMEINumber);
+
+    // Perform the aggregation to find matching device groups
+    const records = await deviceOnboardingModel
+      .aggregate([
+        {
+          $lookup: {
+            from: 'devicegroups',
+            let: { imei: '$deviceOnboardingIMEINumber' },
+            pipeline: [
+              { $match: { $expr: { $in: ['$$imei', '$imeiData'] } } },
+              { $project: { imeiData: 1 } },
+            ],
+            as: 'matchedGroups',
+          },
+        },
+        {
+          $match: {
+            'matchedGroups.0': { $exists: false }, // Match documents where matchedGroups array is empty
+          },
+        },
+        {
+          $project: {
+            deviceOnboardingIMEINumber: 1,
+          },
+        },
+      ])
+      .exec();
+
+    // If no matching device groups are found, return the original list of IMEIs
+    if (records.length === 0) {
+      return imeis;
+    }
+
+    // Extract unique IMEIs from the matched records
+    const uniqueImeis = new Set(
+      records.map((item) => item.deviceOnboardingIMEINumber)
+    );
+
+    return Array.from(uniqueImeis);
+  }
+  async findAllWithLocation(input: DeviceOnboardingFetchInput) {
+    try {
+      let deviceOnboardingModel;
+
+      if (input.accountId) {
+        deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
+          input.accountId,
+          DeviceOnboarding.name,
+          DeviceOnboardingSchema
+        );
+      } else {
+        deviceOnboardingModel = this.DeviceOnboardingCopyModel;
+      }
+
+      const { page, limit, location } = input;
+      const skip = this.calculateSkip(Number(page), Number(limit));
+
+      const query = location ? { location } : {};
+
+      const records = await deviceOnboardingModel
+        .find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit))
+        .exec();
+
+      const count = await deviceOnboardingModel.countDocuments(query).exec();
+      return { records, count };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `FindAll operation failed: ${error.message}`
+      );
+    }
   }
 }

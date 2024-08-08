@@ -20,7 +20,7 @@ export class TripInformationDetail {
 @InputType()
 class AlertMedium {
   @Field(() => String, { nullable: true })
-  contact: string;
+  value: string;
 
   @Field(() => Boolean)
   isEnable: boolean;

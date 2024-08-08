@@ -75,6 +75,8 @@ export class UserService {
             createdBy: 1,
             roleId: 1,
             status: 1,
+            deviceGroup: 1,
+            imeiList: 1,
             'roleDetails.name': 1, // Include the role name
             'accountDetails._id': 1, // Include the account ID
             'accountDetails.accountName': 1, // Include the account name
