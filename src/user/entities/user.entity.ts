@@ -7,6 +7,7 @@ import { DeviceGroup } from '@imz/device-group/entities/device-group.entity';
 import { IndustryType } from '../dto/industry.response.type';
 import { RoleResponseType } from '../dto/role.response';
 import { AccountResponseType } from '../dto/account.response.type';
+import GraphQLJSON from 'graphql-type-json';
 
 @Schema({ timestamps: true })
 @ObjectType()
@@ -51,6 +52,16 @@ export class User {
   @Prop()
   @Column()
   password: string;
+
+  @Field(() => GraphQLJSON, { nullable: true })
+  @Prop({ type: typeof GraphQLJSON })
+  @Column()
+  deviceGroup: typeof GraphQLJSON;
+
+  @Field(() => [String], { nullable: true })
+  @Prop()
+  @Column()
+  imeiList: string[];
 
   @Field({ defaultValue: false })
   @Prop()

@@ -4,6 +4,7 @@ import {
   DeviceOfflineGraphData,
   DeviceOnboardingResponse,
   DeviceOnlineOfflineCount,
+  ImeiListResponse,
 } from './dto/response';
 import { InternalServerErrorException, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@imz/user/guard';
@@ -228,6 +229,23 @@ export class DeviceOnboardingResolver {
         online: record.online,
         offline: record.offline,
         data: record.data,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  // @UseGuards(new AuthGuard())
+  @Mutation(() => ImeiListResponse)
+  async getImeiList(
+    @Args('input') input: DeviceOnboardingAccountIdInput
+  ): Promise<ImeiListResponse> {
+    try {
+      const imeiList = await this.deviceOnboardingService.getImeiList(input);
+      return {
+        success: 1,
+        imeiList,
+        message: 'IMEI list fetched successfully.',
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);

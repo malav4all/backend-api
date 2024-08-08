@@ -84,3 +84,15 @@ export class DeviceOnlineOfflineCount {
   @Field(() => [DeviceOnlineStatus])
   data: DeviceOnlineStatus[];
 }
+
+@ObjectType()
+export class ImeiListResponse {
+  @Field()
+  success: number;
+
+  @Field(() => [String])
+  imeiList: string[];
+
+  @Field()
+  message: string;
+}

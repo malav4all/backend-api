@@ -1,4 +1,5 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
+import GraphQLJSON from 'graphql-type-json';
 @InputType()
 export class CreateUserInput {
   @Field({ nullable: true })
@@ -33,6 +34,12 @@ export class CreateUserInput {
 
   @Field({ nullable: true })
   accountId: string;
+
+  @Field(() => GraphQLJSON, { nullable: true })
+  deviceGroup: typeof GraphQLJSON;
+
+  @Field(() => [String], { nullable: true })
+  imeiList: string[];
 
   @Field({ nullable: true })
   roleId: string;

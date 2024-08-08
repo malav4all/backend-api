@@ -48,7 +48,7 @@ export function generateTripID() {
   return result;
 }
 
-export function convertUTCToIST(dateStr: string): string {
+export function convertUTCToIST(dateStr: any): string {
   const date = new Date(dateStr);
   const utcOffset = date.getTime() + date.getTimezoneOffset() * 60000;
   const istOffset = 5.5 * 60 * 60 * 1000; // IST offset in milliseconds
