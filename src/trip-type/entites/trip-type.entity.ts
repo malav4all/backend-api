@@ -17,7 +17,7 @@ export class TripType {
   @Column()
   accountId: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
   tripName: string;

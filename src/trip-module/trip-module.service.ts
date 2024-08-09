@@ -78,7 +78,7 @@ export class TripService {
         .limit(Number(limit))
         .lean()
         .exec();
-
+      console.log({ records });
       const count = await tripModel.countDocuments();
       return { records, count };
     } catch (error) {

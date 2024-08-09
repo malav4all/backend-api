@@ -18,6 +18,15 @@ export class TripInformationDetail {
 }
 
 @InputType()
+class AlertMedium {
+  @Field(() => String, { nullable: true })
+  contact: string;
+
+  @Field(() => Boolean)
+  isEnable: boolean;
+}
+
+@InputType()
 export class CreateTripInput {
   @Field({ nullable: true })
   accountId: string;
@@ -44,10 +53,17 @@ export class CreateTripInput {
   tripData: [TripInformationDetail];
 
   @Field(() => GraphQLJSON, { nullable: true })
-  journey: typeof GraphQLJSON;
+  route: typeof GraphQLJSON;
 
   @Field(() => GraphQLJSON, { nullable: true })
-  alertConfig: typeof GraphQLJSON;
+  alertConfig: {
+    subscribedAlerts: string[];
+    alertMedium: {
+      sms: AlertMedium;
+      whatsapp: AlertMedium;
+      email: AlertMedium;
+    };
+  };
 
   @Field(() => GraphQLJSON, { nullable: true })
   startPoint: typeof GraphQLJSON;

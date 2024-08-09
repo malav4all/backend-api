@@ -34,12 +34,12 @@ export class FormBuilderService {
         FormBuilder.name,
         FormBuilderSchema
       );
-      const existingRecord = await formBuilderModel.findOne({
-        deviceGroupformTitleName: payload.formTitle,
-      });
-      if (existingRecord) {
-        throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
-      }
+      // const existingRecord = await formBuilderModel.findOne({
+      //   deviceGroupformTitleName: payload.formTitle,
+      // });
+      // if (existingRecord) {
+      //   throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+      // }
       const record = await formBuilderModel.create({ ...payload });
       return record;
     } catch (error) {
