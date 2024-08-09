@@ -934,7 +934,7 @@ export class DeviceOnboardingService {
             |> range(start: ${hourStartIST}, stop: ${hourEndIST})
             |> filter(fn: (r) => r["_measurement"] == "track")
             |> filter(fn: (r) => r["imei"] == "${input.imei}")
-            |> keep(columns: ["_time", "batteryPercentage"])
+            |> filter(fn: (r) => r["_field"] == "batteryPercentage")
         `;
 
         try {
@@ -946,13 +946,14 @@ export class DeviceOnboardingService {
           let count = 0;
 
           for await (const { values } of queryResults) {
-            if (values && values[3]) {
-              sum += Number(values[3]);
+            if (values && values[6]) {
+              const batteryPercentage = parseFloat(values[5]);
+              sum += batteryPercentage;
               count++;
             }
           }
-
-          batteryPercentages[i] = count > 0 ? sum / count : 0;
+          const dataValue = sum / count;
+          batteryPercentages[i] = count > 0 ? dataValue.toFixed(0) : 0;
         } catch (error) {
           console.error(`Error executing query for hour ${i}:`, error.message);
           batteryPercentages[i] = 0;
@@ -999,7 +1000,7 @@ export class DeviceOnboardingService {
             |> range(start: ${hourStartIST}, stop: ${hourEndIST})
             |> filter(fn: (r) => r["_measurement"] == "track")
             |> filter(fn: (r) => r["imei"] == "${input.imei}")
-            |> keep(columns: ["_time", "speed"])
+            |> filter(fn: (r) => r["_field"] == "speed")
         `;
 
         try {
@@ -1011,13 +1012,14 @@ export class DeviceOnboardingService {
           let count = 0;
 
           for await (const { values } of queryResults) {
-            if (values && values[3]) {
-              sum += Number(values[3]);
+            if (values && values[5]) {
+              const speedValue = parseFloat(values[5]);
+              sum += speedValue;
               count++;
             }
           }
-
-          speed[i] = count > 0 ? sum / count : 0;
+          const speedCount = sum / count;
+          speed[i] = count > 0 ? speedCount.toFixed(0) : 0;
         } catch (error) {
           console.error(`Error executing query for hour ${i}:`, error.message);
           speed[i] = 0;
