@@ -914,9 +914,9 @@ export class DeviceOnboardingService {
     try {
       const now = new Date();
       const startTime = new Date(now.getTime() - 24 * 60 * 60 * 1000); // 24 hours ago
-      const categories = Array.from({ length: 25 }, (_, i) => i.toString());
+      const categories = Array.from({ length: 24 }, (_, i) => i.toString());
 
-      const batteryPercentages = Array(25).fill(0);
+      const batteryPercentages = Array(24).fill(0);
 
       // Check for each hour in the last 24 hours
       for (let i = 0; i <= 24; i++) {
@@ -980,9 +980,9 @@ export class DeviceOnboardingService {
     try {
       const now = new Date();
       const startTime = new Date(now.getTime() - 24 * 60 * 60 * 1000); // 24 hours ago
-      const categories = Array.from({ length: 25 }, (_, i) => i.toString());
+      const categories = Array.from({ length: 24 }, (_, i) => i.toString());
 
-      const speed = Array(25).fill(0);
+      const speed = Array(24).fill(0);
 
       // Check for each hour in the last 24 hours
       for (let i = 0; i <= 24; i++) {
