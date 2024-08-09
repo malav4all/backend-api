@@ -14,6 +14,7 @@ import {
   DeviceOnboardingFetchInput,
   DeviceOnboardingInput,
   DeviceTransferInput,
+  GetBatteryPercentageGraphInput,
 } from './dto/create-device-onboarding.input';
 import { DeviceOnboardingService } from './device-onboarding.service';
 import { UpdateDeviceOnboardingInput } from './dto/update-device-onboarding.input';
@@ -206,6 +207,39 @@ export class DeviceOnboardingResolver {
     try {
       const record =
         await this.deviceOnboardingService.getHourlyOnlineOfflineData(input);
+      return {
+        xaxis: record.xaxis,
+        series: record.series,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Mutation(() => DeviceLineGraphData)
+  async batteryGraphDataData(
+    @Args('input')
+    input: GetBatteryPercentageGraphInput
+  ): Promise<DeviceLineGraphData> {
+    try {
+      const record =
+        await this.deviceOnboardingService.getBatteryPercentageData(input);
+      return {
+        xaxis: record.xaxis,
+        series: record.series,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Mutation(() => DeviceLineGraphData)
+  async speedGraphData(
+    @Args('input')
+    input: GetBatteryPercentageGraphInput
+  ): Promise<DeviceLineGraphData> {
+    try {
+      const record = await this.deviceOnboardingService.getSpeedData(input);
       return {
         xaxis: record.xaxis,
         series: record.series,

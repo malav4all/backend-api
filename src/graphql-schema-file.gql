@@ -975,6 +975,8 @@ type Mutation {
   offlineDeviceGraph(input: DeviceOnboardingAccountIdInput!): DeviceOfflineGraphData!
   onlineDeviceGraph(input: DeviceOnboardingAccountIdInput!): DeviceOfflineGraphData!
   lineGraphDeviceData(input: DeviceOnboardingAccountIdInput!): DeviceLineGraphData!
+  batteryGraphDataData(input: GetBatteryPercentageGraphInput!): DeviceLineGraphData!
+  speedGraphData(input: GetBatteryPercentageGraphInput!): DeviceLineGraphData!
   getOnlineOfflineCount(input: DeviceOnboardingAccountIdInput!): DeviceOnlineOfflineCount!
   getImeiList(input: DeviceOnboardingAccountIdInput!): ImeiListResponse!
   fetchDeviceOnboardingListWithLocation(input: DeviceOnboardingFetchInput!): DeviceOnboardingResponse!
@@ -1614,6 +1616,11 @@ input BulkDeviceOnboardingInput {
   imei: [String!]
   toAccountId: String
   accountTransferBy: String
+}
+
+input GetBatteryPercentageGraphInput {
+  accountId: String
+  imei: String
 }
 
 input DeviceOnboardingHistoryInput {

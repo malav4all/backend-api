@@ -101,3 +101,12 @@ export class DeviceOnboardingAccountIdInput {
   @Field({ nullable: true })
   accountId: string;
 }
+
+@InputType()
+export class GetBatteryPercentageGraphInput {
+  @Field({ nullable: true })
+  accountId: string;
+
+  @Field({ nullable: true })
+  imei: string;
+}

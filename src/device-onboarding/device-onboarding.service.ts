@@ -13,6 +13,7 @@ import {
   DeviceOnboardingFetchInput,
   DeviceOnboardingInput,
   DeviceTransferInput,
+  GetBatteryPercentageGraphInput,
 } from './dto/create-device-onboarding.input';
 import { UpdateDeviceOnboardingInput } from './dto/update-device-onboarding.input';
 import { DeviceOnboardingHistoryService } from '@imz/history/device-onboarding-history/device-onboarding-history.service';
@@ -904,6 +905,136 @@ export class DeviceOnboardingService {
       throw new InternalServerErrorException(
         `FindAll operation failed: ${error.message}`
       );
+    }
+  }
+
+  async getBatteryPercentageData(
+    input: GetBatteryPercentageGraphInput
+  ): Promise<DeviceLineGraphData> {
+    try {
+      const now = new Date();
+      const startTime = new Date(now.getTime() - 24 * 60 * 60 * 1000); // 24 hours ago
+      const categories = Array.from({ length: 25 }, (_, i) => i.toString());
+
+      const batteryPercentages = Array(25).fill(0);
+
+      // Check for each hour in the last 24 hours
+      for (let i = 0; i <= 24; i++) {
+        const hourStartUTC = new Date(
+          startTime.getTime() + i * 60 * 60 * 1000
+        ).toISOString();
+        const hourEndUTC = new Date(
+          startTime.getTime() + (i + 1) * 60 * 60 * 1000
+        ).toISOString();
+        const hourStartIST = convertUTCToIST(hourStartUTC);
+        const hourEndIST = convertUTCToIST(hourEndUTC);
+
+        const fluxQuery = `
+          from(bucket: "${input.accountId}")
+            |> range(start: ${hourStartIST}, stop: ${hourEndIST})
+            |> filter(fn: (r) => r["_measurement"] == "track")
+            |> filter(fn: (r) => r["imei"] == "${input.imei}")
+            |> keep(columns: ["_time", "batteryPercentage"])
+        `;
+
+        try {
+          const queryResults = await this.influxDbService.executeQuery(
+            fluxQuery
+          );
+
+          let sum = 0;
+          let count = 0;
+
+          for await (const { values } of queryResults) {
+            if (values && values[3]) {
+              sum += Number(values[3]);
+              count++;
+            }
+          }
+
+          batteryPercentages[i] = count > 0 ? sum / count : 0;
+        } catch (error) {
+          console.error(`Error executing query for hour ${i}:`, error.message);
+          batteryPercentages[i] = 0;
+        }
+      }
+
+      return {
+        xaxis: { categories: categories },
+        series: [
+          {
+            name: 'Battery Percentage',
+            data: batteryPercentages,
+          },
+        ],
+      };
+    } catch (error: any) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  async getSpeedData(
+    input: GetBatteryPercentageGraphInput
+  ): Promise<DeviceLineGraphData> {
+    try {
+      const now = new Date();
+      const startTime = new Date(now.getTime() - 24 * 60 * 60 * 1000); // 24 hours ago
+      const categories = Array.from({ length: 25 }, (_, i) => i.toString());
+
+      const speed = Array(25).fill(0);
+
+      // Check for each hour in the last 24 hours
+      for (let i = 0; i <= 24; i++) {
+        const hourStartUTC = new Date(
+          startTime.getTime() + i * 60 * 60 * 1000
+        ).toISOString();
+        const hourEndUTC = new Date(
+          startTime.getTime() + (i + 1) * 60 * 60 * 1000
+        ).toISOString();
+        const hourStartIST = convertUTCToIST(hourStartUTC);
+        const hourEndIST = convertUTCToIST(hourEndUTC);
+
+        const fluxQuery = `
+          from(bucket: "${input.accountId}")
+            |> range(start: ${hourStartIST}, stop: ${hourEndIST})
+            |> filter(fn: (r) => r["_measurement"] == "track")
+            |> filter(fn: (r) => r["imei"] == "${input.imei}")
+            |> keep(columns: ["_time", "speed"])
+        `;
+
+        try {
+          const queryResults = await this.influxDbService.executeQuery(
+            fluxQuery
+          );
+
+          let sum = 0;
+          let count = 0;
+
+          for await (const { values } of queryResults) {
+            if (values && values[3]) {
+              sum += Number(values[3]);
+              count++;
+            }
+          }
+
+          speed[i] = count > 0 ? sum / count : 0;
+        } catch (error) {
+          console.error(`Error executing query for hour ${i}:`, error.message);
+          speed[i] = 0;
+        }
+      }
+
+      return {
+        xaxis: { categories: categories },
+        series: [
+          {
+            name: 'Speed',
+            data: speed,
+          },
+        ],
+      };
+    } catch (error: any) {
+      throw new BadRequestException(error.message);
     }
   }
 }
