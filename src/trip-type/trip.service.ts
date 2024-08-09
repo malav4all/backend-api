@@ -60,6 +60,25 @@ export class TripTypeService {
     }
   }
 
+  async findById(input: TripTypeInput) {
+    try {
+      const tripTypeModel = await this.getTenantModel<TripType>(
+        input.accountId,
+        TripType.name,
+        TripTypeSchema
+      );
+
+      if (!tripTypeModel) {
+        return null;
+      }
+
+      const record = await tripTypeModel.findById(input.tripId).lean().exec();
+      return record;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
   private calculateSkip(page: number, limit: number) {
     return page === -1 ? 0 : (page - 1) * limit;
   }

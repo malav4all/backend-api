@@ -9,6 +9,7 @@ import {
   TripTypeInput,
 } from './dto/create-trip-type.input';
 import { UpdateTripTypeInput } from './dto/update-trip-type';
+import { TripResponse } from '@imz/trip-module/dto/response';
 
 @Resolver(() => TripTypeResponse)
 export class TripTypeResolver {
@@ -43,6 +44,21 @@ export class TripTypeResolver {
         success: 1,
         message: 'Trip Type list available.',
         data: records,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @UseGuards(new AuthGuard())
+  @Mutation(() => TripResponse)
+  async getTripType(input: TripTypeInput) {
+    try {
+      const record = await this.tripTypeService.findById(input);
+      return {
+        success: record ? 1 : 0,
+        message: record ? 'Record found.' : 'Record not found.',
+        data: record,
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
