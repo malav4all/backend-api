@@ -143,40 +143,35 @@ export class DeviceOnboardingService {
   }
 
   async update(payload: UpdateDeviceOnboardingInput) {
-    // try {
-    //   const deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
-    //     payload.accountId,
-    //     DeviceOnboarding.name,
-    //     DeviceOnboardingSchema
-    //   );
-    //   const existingRecord = await deviceOnboardingModel.findByIdAndUpdate(
-    //     payload._id
-    //   );
-    //   const updatePayload = { ...payload };
-    //   const record = await deviceOnboardingModel
-    //     .findByIdAndUpdate(deviceId, updatePayload, { new: true })
-    //     .exec();
-    //   const deviceHistoryPayload = this.createDeviceHistoryPayload(
-    //     record,
-    //     existingRecord
-    //   );
-    //   await this.DeviceOnboardingHistoryModel.create(deviceHistoryPayload);
-    //   if (
-    //     this.hasSimNoChanged(
-    //       existingRecord.deviceOnboardingSimNo,
-    //       payload.deviceOnboardingSimNo
-    //     )
-    //   ) {
-    //     const deviceSimHistoryPayload = this.createDeviceSimHistoryPayload(
-    //       record,
-    //       existingRecord
-    //     );
-    //     await this.DeviceSimHistoryModel.create(deviceSimHistoryPayload);
-    //   }
-    //   return record;
-    // } catch (error) {
-    //   throw new InternalServerErrorException(error.message);
-    // }
+    try {
+      const deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
+        payload.accountId,
+        DeviceOnboarding.name,
+        DeviceOnboardingSchema
+      );
+      const updatePayload = {
+        ...payload,
+        lastUpdated: new Date(),
+      };
+      const record = await deviceOnboardingModel
+        .findByIdAndUpdate(payload._id, updatePayload, {
+          new: true,
+        })
+        .exec();
+
+      const redisClient = this.redisService.getClient();
+
+      // Set data in Redis
+      const value = JSON.stringify({
+        accountId: payload.accountId,
+        imei: payload.deviceOnboardingIMEINumber,
+        label: payload.deviceName,
+      });
+      await redisClient.set(payload.deviceOnboardingIMEINumber, value);
+      return record;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
   }
 
   hasSimNoChanged(existingSimNo: any, newSimNo: any) {

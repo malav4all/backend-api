@@ -85,17 +85,17 @@ export class DeviceOnboardingResolver {
   async updateDeviceOnboarding(
     @Args('input') input: UpdateDeviceOnboardingInput
   ) {
-    // try {
-    //   const record = await this.deviceOnboardingService.update(input);
-    //   return {
-    //     success: record ? 1 : 0,
-    //     message: record
-    //       ? 'Records update successfully.'
-    //       : 'Technical issue please try agian.',
-    //   };
-    // } catch (error) {
-    //   throw new InternalServerErrorException(error.message);
-    // }
+    try {
+      const record = await this.deviceOnboardingService.update(input);
+      return {
+        success: record ? 1 : 0,
+        message: record
+          ? 'Records update successfully.'
+          : 'Technical issue please try agian.',
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
   }
 
   @UseGuards(new AuthGuard())

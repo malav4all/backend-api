@@ -18,6 +18,12 @@ export class DeviceOnboarding {
   location?: string;
 
   @Field({ nullable: true })
+  @Column()
+  @Prop({ text: true })
+  @IsOptional()
+  deviceName?: string;
+
+  @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
   accountId: string;

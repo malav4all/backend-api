@@ -10,6 +10,10 @@ export class DeviceOnboardingInput {
   @IsOptional()
   location?: string;
 
+  @Field({ nullable: true })
+  @IsOptional()
+  deviceName?: string;
+
   @Field(() => [String], { nullable: true })
   @IsOptional()
   deviceOnboardingSimNo?: string[];
