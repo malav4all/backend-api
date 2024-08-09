@@ -1,11 +1,13 @@
 import { Resolver, Mutation, Args } from '@nestjs/graphql';
 import { InternalServerErrorException, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@imz/user/guard';
-import { TripResponse } from './dto/response';
+import { BatteryResponse, TripResponse } from './dto/response';
 import { TripService } from './trip-module.service';
 import {
+  BatteryCheckInput,
   CreateTripInput,
   SearchTripInput,
+  TripIDInput,
   TripInput,
 } from './dto/create-trip-module.input';
 import { UpdateTripInput } from './dto/update-trip-module.update';
@@ -68,6 +70,21 @@ export class TripResolver {
 
   @UseGuards(new AuthGuard())
   @Mutation(() => TripResponse)
+  async fetchTripById(@Args('input') input: TripIDInput) {
+    try {
+      const record = await this.tripService.getTripDetailById(input);
+      return {
+        success: 1,
+        message: 'Search list available.',
+        data: record,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @UseGuards(new AuthGuard())
+  @Mutation(() => TripResponse)
   async updateTrip(@Args('input') input: UpdateTripInput) {
     try {
       const record = await this.tripService.update(input);
@@ -80,5 +97,12 @@ export class TripResolver {
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
+  }
+
+  @Mutation(() => BatteryResponse)
+  async checkBattery(
+    @Args('input') input: BatteryCheckInput
+  ): Promise<{ success: boolean; message: string }> {
+    return this.tripService.checkBatteryPercentage(input);
   }
 }

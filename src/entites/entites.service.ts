@@ -73,6 +73,40 @@ export class EntitesService {
     }
   }
 
+  async fetchEntityByTripTypeAndType(input: EntitesTypeInput) {
+    try {
+      const tenantModel = await this.getTenantModel<Entites>(
+        input.accountId,
+        Entites.name,
+        EntitesSchema
+      );
+
+      const page = Number(input.page);
+      const limit = Number(input.limit);
+      const skip = page === -1 ? 0 : (page - 1) * limit;
+      const query: any = {};
+      if (input.type) {
+        query.type = input.type;
+      }
+      if (input.tripTypeList && input.tripTypeList.length > 0) {
+        query.tripTypeList = { $in: input.tripTypeList };
+      }
+
+      const records = await tenantModel
+        .find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .exec();
+
+      const count = await tenantModel.countDocuments(query).exec();
+
+      return { records, count };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
   async searchLocations(input: SearchEntitesInput) {
     try {
       const tenantModel = await this.getTenantModel<Entites>(

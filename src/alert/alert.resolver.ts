@@ -3,11 +3,17 @@ import { InternalServerErrorException, UseGuards } from '@nestjs/common';
 import { Args, Mutation, Resolver, Subscription } from '@nestjs/graphql';
 import {
   AlertInput,
+  AlertReportInputType,
   CreateAlertInputType,
+  DistanceReportInputType,
   SearchAlertInput,
 } from './dto/create-alert.input';
 import { AlertService } from './alert.service';
-import { AlertResponseData } from './dto/response';
+import {
+  AlertReport,
+  AlertResponseData,
+  DistanceReportResponse,
+} from './dto/response';
 import { UpdateAlertInput } from './dto/update-alert';
 import { AlertResponse } from '@imz/helper';
 
@@ -83,9 +89,30 @@ export class AlertResolver {
     }
   }
 
-  @Subscription(() => AlertResponse)
-  async alertUpdated(@Args('topic') topic: string) {
-    const res = await this.alertService.alertUpdated(topic);
-    return res;
+  @UseGuards(new AuthGuard())
+  @Mutation(() => AlertReport)
+  async getAlertData(@Args('input') input: AlertReportInputType) {
+    try {
+      const { rowData, totalCount } = await this.alertService.fetchAlertReport(
+        input
+      );
+      return {
+        totalCount,
+        rowData,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  // @UseGuards(new AuthGuard())
+  @Mutation(() => [DistanceReportResponse])
+  async getDistanceReportData(@Args('input') input: DistanceReportInputType) {
+    try {
+      const record = await this.alertService.distanceReport(input);
+      return record;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
   }
 }

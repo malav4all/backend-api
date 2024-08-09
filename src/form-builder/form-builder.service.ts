@@ -27,23 +27,28 @@ export class FormBuilderService {
     return tenantConnection.model(modelName, schema);
   }
 
-  async create(payload: CreateFormBuilderInput) {
+  async create(payload: CreateFormBuilderInput): Promise<FormBuilder> {
     try {
       const formBuilderModel = await this.getTenantModel<FormBuilder>(
         payload.accountId,
         FormBuilder.name,
         FormBuilderSchema
       );
-      // const existingRecord = await formBuilderModel.findOne({
-      //   deviceGroupformTitleName: payload.formTitle,
-      // });
-      // if (existingRecord) {
-      //   throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
-      // }
-      const record = await formBuilderModel.create({ ...payload });
+
+      const lastRecord = await formBuilderModel
+        .findOne()
+        .sort({ formId: -1 })
+        .limit(1);
+      const newFormId =
+        lastRecord && lastRecord.formId ? lastRecord.formId + 1 : 1;
+
+      const record = await formBuilderModel.create({
+        ...payload,
+        formId: newFormId,
+      });
       return record;
     } catch (error) {
-      throw new Error(`Failed to create:${error.message}`);
+      throw new Error(`Failed to create: ${error.message}`);
     }
   }
 
@@ -84,7 +89,7 @@ export class FormBuilderService {
         updatedAt: new Date(),
       };
       const record = await formBuilderModel
-        .findByIdAndUpdate(payload._id, updatePayload, {
+        .findOneAndUpdate({ formId: payload.formId }, updatePayload, {
           new: true,
         })
         .lean()

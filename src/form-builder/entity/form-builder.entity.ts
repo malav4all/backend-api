@@ -3,28 +3,18 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import GraphQLJSON from 'graphql-type-json';
 import { Column, Entity, ObjectIdColumn } from 'typeorm';
 
-@ObjectType()
-export class FieldInputEntity {
-  @Field({ nullable: true })
-  id: string;
-
-  @Field({ nullable: true })
-  label: string;
-
-  @Field(() => Boolean, { nullable: true })
-  required: boolean;
-
-  @Field({ nullable: true })
-  type: string;
-}
-
 @Schema({ timestamps: true })
 @ObjectType()
 @Entity()
 export class FormBuilder {
-  @Field()
+  @Field({ nullable: true })
   @ObjectIdColumn()
   _id: string;
+
+  @Field({ nullable: true })
+  @Prop({ text: true })
+  @Column()
+  formId: number;
 
   @Field({ nullable: true })
   @Prop({ text: true })
@@ -34,22 +24,32 @@ export class FormBuilder {
   @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
+  name: string;
+
+  @Field({ nullable: true })
+  @Prop({ text: true })
+  @Column()
+  published: boolean;
+
+  @Field({ nullable: true })
+  @Prop({ text: true })
+  @Column()
+  description: string;
+
+  @Field({ nullable: true })
+  @Prop({ text: true })
+  @Column()
   formTitle: string;
 
   @Column()
-  @Prop({ text: true })
-  @Field(() => [FieldInputEntity], { nullable: true })
-  fields: [FieldInputEntity];
+  @Field(() => GraphQLJSON, { nullable: true })
+  @Prop({ type: typeof GraphQLJSON })
+  content: typeof GraphQLJSON;
 
   @Field({ nullable: true })
   @Prop({ text: true })
   @Column()
   createdBy: string;
-
-  @Field(() => Boolean, { nullable: true })
-  @Prop({ text: true })
-  @Column()
-  isFormEnable: boolean;
 
   @Field({ nullable: true })
   @Prop({ text: true })

@@ -6,5 +6,5 @@ export class UpdateFormBuilderInput extends PartialType(
   CreateFormBuilderInput
 ) {
   @Field()
-  _id: string;
+  formId: number;
 }

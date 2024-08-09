@@ -8,7 +8,9 @@ import { Connection, Model } from 'mongoose';
 import { Alert, AlertSchema } from './entity/alert.entity';
 import {
   AlertInput,
+  AlertReportInputType,
   CreateAlertInputType,
+  DistanceReportInputType,
   SearchAlertInput,
 } from './dto/create-alert.input';
 import { RedisService } from '@imz/redis/redis.service';
@@ -16,6 +18,7 @@ import { UpdateAlertInput } from './dto/update-alert';
 import { MqttClient } from 'mqtt';
 import { PubSub } from 'graphql-subscriptions';
 import axios from 'axios';
+import { InfluxdbService } from '@imz/influx-db/influx-db-.service';
 
 @Injectable()
 export class AlertService {
@@ -26,7 +29,8 @@ export class AlertService {
   constructor(
     @InjectConnection()
     private connection: Connection,
-    private readonly redisService: RedisService
+    private readonly redisService: RedisService,
+    private influxDbService: InfluxdbService
   ) {}
 
   async sendOtp(mobileNumber: any, message: string) {
@@ -252,15 +256,76 @@ export class AlertService {
     }
   }
 
-  alertUpdated(topic: string) {
-    this.mqttClient.subscribe(topic, (err) => {
-      if (err) {
-        this.logger.error('Error subscribing to topic:', err);
-      } else {
-        this.logger.log('Subscribed to Alert topic:', topic);
-      }
-    });
+  async fetchAlertReport(payload: AlertReportInputType) {
+    const page = Number(payload.page);
+    const limit = Number(payload.limit);
+    const skip = page === -1 ? 0 : (page - 1) * limit;
 
-    return this.pubSub.asyncIterator('alertUpdated');
+    const countQuery = `
+    from(bucket: "${payload.accountId}")
+      |> range(start: ${payload.startDate}, stop: ${payload.endDate})
+      |> filter(fn: (r) => r["_measurement"] == "alert")
+      |> count()
+  `;
+    const countResponse: any = await this.influxDbService.countQuery(
+      countQuery
+    );
+    const totalCount = countResponse[0]._value;
+
+    const query = `
+      from(bucket: "${payload.accountId}")
+        |> range(start: ${payload.startDate}, stop: ${payload.endDate})
+        |> filter(fn: (r) => r["_measurement"] == "alert")
+        |> filter(fn: (r) => r["_field"] == "imei" or r["_field"] == "latitude" or r["_field"] == "longitude" or r["_field"] == "alertMessage" or r["_field"] == "accountId" or r["_field"] == "label")
+        |> sort(columns:["_time"], desc: true)
+        |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+        |> limit(n: ${payload.limit}, offset: ${skip})
+    `;
+    const rowData = [];
+    for await (const { values } of this.influxDbService.executeQuery(query)) {
+      const [t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10] = values;
+      rowData.push({
+        time: t4,
+        event: t5,
+        imei: t6,
+        accountId: t7,
+        alertMessage: t8,
+        latitude: t9,
+        longitude: t10,
+      });
+    }
+
+    return { rowData, totalCount };
+  }
+
+  async distanceReport(payload: DistanceReportInputType) {
+    const fluxQuery = `
+    from(bucket: "${payload.accountId}")
+      |> range(start: ${payload.startDate}, stop: ${payload.endDate})
+      |> filter(fn: (r) => r["_measurement"] == "track")
+      |> filter(fn: (r) => r["_field"] == "latitude" or r["_field"] == "longitude" or r["_field"] == "imei")
+      |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+     `;
+
+    const data = {};
+
+    for await (const { values } of this.influxDbService.executeQuery(
+      fluxQuery
+    )) {
+      // console.log(values);
+      const [t0, t1, t2, t3, t4, t5, imei, lat, long] = values;
+
+      if (!data[imei]) {
+        data[imei] = { imei, coordinates: [] };
+      }
+
+      data[imei].coordinates.push({
+        latitude: lat,
+        longitude: long,
+        time: t2,
+      });
+    }
+
+    return Object.values(data);
   }
 }

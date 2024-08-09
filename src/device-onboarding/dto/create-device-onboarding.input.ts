@@ -10,6 +10,10 @@ export class DeviceOnboardingInput {
   @IsOptional()
   location?: string;
 
+  @Field({ nullable: true })
+  @IsOptional()
+  deviceName?: string;
+
   @Field(() => [String], { nullable: true })
   @IsOptional()
   deviceOnboardingSimNo?: string[];
@@ -42,6 +46,9 @@ export class DeviceOnboardingFetchInput {
 
   @Field(() => Int, { nullable: true })
   limit: typeof Int;
+
+  @Field({ nullable: true })
+  location: string;
 }
 
 @InputType()
@@ -93,4 +100,13 @@ export class BulkDeviceOnboardingInput {
 export class DeviceOnboardingAccountIdInput {
   @Field({ nullable: true })
   accountId: string;
+}
+
+@InputType()
+export class GetBatteryPercentageGraphInput {
+  @Field({ nullable: true })
+  accountId: string;
+
+  @Field({ nullable: true })
+  imei: string;
 }

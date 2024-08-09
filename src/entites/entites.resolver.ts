@@ -47,6 +47,25 @@ export class EntitesResolver {
     }
   }
 
+  @UseGuards(new AuthGuard())
+  @Mutation(() => EntitesResponse)
+  async fetchEntityByTripTypeAndType(@Args('input') input: EntitesTypeInput) {
+    try {
+      const { count, records } =
+        await this.entitesService.fetchEntityByTripTypeAndType(input);
+      return {
+        paginatorInfo: {
+          count,
+        },
+        success: 1,
+        message: 'list available.',
+        data: records,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
   @Mutation(() => EntitesResponse)
   async searchEntites(@Args('input') input: SearchEntitesInput) {
     try {

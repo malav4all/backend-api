@@ -1,4 +1,4 @@
-import { Field, InputType, Int } from '@nestjs/graphql';
+import { Field, Float, InputType, Int } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
 import GraphQLJSON from 'graphql-type-json';
 
@@ -20,7 +20,7 @@ export class TripInformationDetail {
 @InputType()
 class AlertMedium {
   @Field(() => String, { nullable: true })
-  contact: string;
+  value: string;
 
   @Field(() => Boolean)
   isEnable: boolean;
@@ -88,11 +88,23 @@ export class TripInput {
   @Field({ nullable: true })
   accountId: string;
 
+  @Field({ nullable: true })
+  status: string;
+
   @Field(() => Int, { nullable: true })
   page: typeof Int;
 
   @Field(() => Int, { nullable: true })
   limit: typeof Int;
+}
+
+@InputType()
+export class TripIDInput {
+  @Field({ nullable: true })
+  accountId: string;
+
+  @Field({ nullable: true })
+  tripId: string;
 }
 
 @InputType()
@@ -108,4 +120,16 @@ export class SearchTripInput {
 
   @Field(() => Int, { nullable: true })
   limit: typeof Int;
+}
+
+@InputType()
+export class BatteryCheckInput {
+  @Field({ nullable: true })
+  accountId: string;
+
+  @Field()
+  terminalId: string;
+
+  @Field(() => Float)
+  threshold: number;
 }

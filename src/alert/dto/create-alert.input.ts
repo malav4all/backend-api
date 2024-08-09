@@ -108,3 +108,33 @@ export class SearchAlertInput {
   @Field(() => Int, { nullable: true })
   limit: typeof Int;
 }
+
+@InputType()
+export class AlertReportInputType {
+  @Field(() => String)
+  accountId: string;
+
+  @Field(() => Int, { nullable: true })
+  page: typeof Int;
+
+  @Field(() => Int, { nullable: true })
+  limit: typeof Int;
+
+  @Field(() => String)
+  startDate: string;
+
+  @Field(() => String)
+  endDate: string;
+}
+
+@InputType()
+export class DistanceReportInputType {
+  @Field(() => String)
+  accountId: string;
+
+  @Field(() => String)
+  startDate: string;
+
+  @Field(() => String)
+  endDate: string;
+}

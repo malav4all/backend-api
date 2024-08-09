@@ -48,7 +48,6 @@ export class TripTypeInput {
   @Field(() => Int, { nullable: true })
   limit: typeof Int;
 }
-
 @InputType()
 export class SearchTripTypeInput {
   @Field({ nullable: true })

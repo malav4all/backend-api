@@ -3,9 +3,10 @@ import { AlertResolver } from './alert.resolver';
 import { AlertService } from './alert.service';
 import { RedisService } from '@imz/redis/redis.service';
 import { TenantsMiddleware } from '@imz/helper/middleware/tenants.middleware';
+import { InfluxdbService } from '@imz/influx-db/influx-db-.service';
 
 @Module({
-  providers: [AlertResolver, AlertService, RedisService],
+  providers: [AlertResolver, AlertService, RedisService, InfluxdbService],
   exports: [AlertService],
 })
 export class AlertModule implements NestModule {

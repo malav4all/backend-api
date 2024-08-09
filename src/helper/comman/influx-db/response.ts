@@ -77,6 +77,9 @@ export class AlertResponseTableData {
 
 @InputType()
 export class AlertInputType {
+  @Field(() => String)
+  accountId: string;
+
   @Field(() => Int, { nullable: true })
   page: typeof Int;
 

@@ -1,39 +1,30 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
-
-@InputType()
-export class FieldInputType {
-  @Field({ nullable: true })
-  id: string;
-
-  @Field({ nullable: true })
-  label: string;
-
-  @Field(() => Boolean, { nullable: true })
-  required: boolean;
-
-  @Field({ nullable: true })
-  type: string;
-}
+import GraphQLJSON from 'graphql-type-json';
 
 @InputType()
 export class CreateFormBuilderInput {
+  @Field(() => Int, { nullable: true })
+  formId: number;
+
   @Field({ nullable: true })
   accountId: string;
 
   @Field({ nullable: true })
-  formTitle: string;
+  name: string;
 
-  @Field(() => [FieldInputType], { nullable: true })
-  fields: [FieldInputType];
+  @Field({ nullable: true })
+  description: string;
 
-  @Field(() => Boolean, { nullable: true })
-  isFormEnable: boolean;
+  @Field(() => GraphQLJSON, { nullable: true })
+  content: typeof GraphQLJSON;
 
   @Field({ nullable: true })
   createdBy?: string;
 
   @Field({ nullable: true })
   updatedBy?: string;
+  @Field({ nullable: true })
+  published?: boolean;
 }
 
 @InputType()

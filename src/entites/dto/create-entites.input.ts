@@ -1,4 +1,5 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
+import { IsArray, IsOptional, IsString } from 'class-validator';
 
 @InputType()
 export class CreateEntitesInput {
@@ -55,6 +56,16 @@ export class CreateEntitesInput {
 export class EntitesTypeInput {
   @Field(() => String)
   accountId: string;
+
+  @IsString()
+  @IsOptional()
+  @Field(() => String, { nullable: true })
+  type?: string;
+
+  @IsArray()
+  @IsOptional()
+  @Field(() => [String], { nullable: true })
+  tripTypeList?: string[];
 
   @Field(() => Int, { nullable: true })
   page: typeof Int;

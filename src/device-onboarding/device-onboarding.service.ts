@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
 import { InternalServerErrorException } from '@nestjs/common';
@@ -9,9 +9,11 @@ import {
 } from './enities/device-onboarding.enities';
 import {
   BulkDeviceOnboardingInput,
+  DeviceOnboardingAccountIdInput,
   DeviceOnboardingFetchInput,
   DeviceOnboardingInput,
   DeviceTransferInput,
+  GetBatteryPercentageGraphInput,
 } from './dto/create-device-onboarding.input';
 import { UpdateDeviceOnboardingInput } from './dto/update-device-onboarding.input';
 import { DeviceOnboardingHistoryService } from '@imz/history/device-onboarding-history/device-onboarding-history.service';
@@ -19,6 +21,11 @@ import { DeviceSimHistoryService } from '@imz/history/device-sim-history/device-
 import { UserService } from '@imz/user/user.service';
 import { DeviceOnboardingCopyDocument } from './enities/device-onboarding.copy.entity';
 import { RedisService } from '@imz/redis/redis.service';
+import { InfluxdbService } from '@imz/influx-db/influx-db-.service';
+import * as async from 'async';
+import { DeviceLineGraphData } from './dto/response';
+import { convertUTCToIST } from '@imz/helper/generateotp';
+import { DeviceStatus } from '@imz/helper/comman/influx-db/response';
 
 @Injectable()
 export class DeviceOnboardingService {
@@ -29,7 +36,8 @@ export class DeviceOnboardingService {
     @InjectConnection() private connection: Connection,
     @InjectModel(DeviceOnboarding.name)
     private DeviceOnboardingCopyModel: Model<DeviceOnboardingCopyDocument>,
-    private readonly redisService: RedisService
+    private readonly redisService: RedisService,
+    private influxDbService: InfluxdbService
   ) {}
 
   async getTenantModel<T>(
@@ -136,40 +144,35 @@ export class DeviceOnboardingService {
   }
 
   async update(payload: UpdateDeviceOnboardingInput) {
-    // try {
-    //   const deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
-    //     payload.accountId,
-    //     DeviceOnboarding.name,
-    //     DeviceOnboardingSchema
-    //   );
-    //   const existingRecord = await deviceOnboardingModel.findByIdAndUpdate(
-    //     payload._id
-    //   );
-    //   const updatePayload = { ...payload };
-    //   const record = await deviceOnboardingModel
-    //     .findByIdAndUpdate(deviceId, updatePayload, { new: true })
-    //     .exec();
-    //   const deviceHistoryPayload = this.createDeviceHistoryPayload(
-    //     record,
-    //     existingRecord
-    //   );
-    //   await this.DeviceOnboardingHistoryModel.create(deviceHistoryPayload);
-    //   if (
-    //     this.hasSimNoChanged(
-    //       existingRecord.deviceOnboardingSimNo,
-    //       payload.deviceOnboardingSimNo
-    //     )
-    //   ) {
-    //     const deviceSimHistoryPayload = this.createDeviceSimHistoryPayload(
-    //       record,
-    //       existingRecord
-    //     );
-    //     await this.DeviceSimHistoryModel.create(deviceSimHistoryPayload);
-    //   }
-    //   return record;
-    // } catch (error) {
-    //   throw new InternalServerErrorException(error.message);
-    // }
+    try {
+      const deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
+        payload.accountId,
+        DeviceOnboarding.name,
+        DeviceOnboardingSchema
+      );
+      const updatePayload = {
+        ...payload,
+        lastUpdated: new Date(),
+      };
+      const record = await deviceOnboardingModel
+        .findByIdAndUpdate(payload._id, updatePayload, {
+          new: true,
+        })
+        .exec();
+
+      const redisClient = this.redisService.getClient();
+
+      // Set data in Redis
+      const value = JSON.stringify({
+        accountId: payload.accountId,
+        imei: payload.deviceOnboardingIMEINumber,
+        label: payload.deviceName,
+      });
+      await redisClient.set(payload.deviceOnboardingIMEINumber, value);
+      return record;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
   }
 
   hasSimNoChanged(existingSimNo: any, newSimNo: any) {
@@ -204,6 +207,410 @@ export class DeviceOnboardingService {
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async getOfflineGraphData(
+    input: DeviceOnboardingAccountIdInput
+  ): Promise<any> {
+    try {
+      const deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
+        input.accountId,
+        DeviceOnboarding.name,
+        DeviceOnboardingSchema
+      );
+      const devices = await deviceOnboardingModel.find().lean().exec();
+
+      const now = new Date();
+      const oneHourAgo = new Date(now.getTime() - 1 * 60 * 60 * 1000);
+      const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+      const threeHoursAgo = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+
+      const nowIST = new Date(convertUTCToIST(now));
+      const oneHourAgoIST = new Date(convertUTCToIST(oneHourAgo));
+      const twoHoursAgoIST = new Date(convertUTCToIST(twoHoursAgo));
+      const threeHoursAgoIST = new Date(convertUTCToIST(threeHoursAgo));
+
+      let oneHourOfflineCount = 0;
+      let twoHoursOfflineCount = 0;
+      let threeHoursOfflineCount = 0;
+      let disconnectedCount = 0;
+      let neverConnectedCount = 0;
+
+      // Define the batch size
+      const batchSize = 1000;
+
+      // Split devices into batches
+      const batches = [];
+      for (let i = 0; i < devices.length; i += batchSize) {
+        batches.push(devices.slice(i, i + batchSize));
+      }
+
+      // Process batches concurrently
+      await async.eachLimit(batches, 10, async (batch) => {
+        await Promise.all(
+          batch.map(async (device) => {
+            const imei = device.deviceOnboardingIMEINumber;
+            const fluxQuery = `
+              from(bucket: "IMZ113343")
+                |> range(start: 0, stop: now()) // Check data for the last 30 days to ensure we get the last reported time
+                |> filter(fn: (r) => r["_measurement"] == "track")
+                |> filter(fn: (r) => r["imei"] == "${imei}")
+                |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+                |> sort(columns: ["_time"], desc: true)
+                |> limit(n: 1)
+            `;
+
+            try {
+              const queryResults = await this.influxDbService.executeQuery(
+                fluxQuery
+              );
+              let lastReportedTime: string | null = null;
+
+              for await (const { values } of queryResults) {
+                const timestamp = values[4]; // Assuming the timestamp is the third element
+                if (timestamp) {
+                  lastReportedTime = convertUTCToIST(timestamp);
+                  break;
+                }
+              }
+
+              if (!lastReportedTime) {
+                // No data has ever been reported for this device
+                neverConnectedCount++;
+              } else {
+                const lastReportedDate = new Date(lastReportedTime);
+
+                // Compare the last reported time with the current time ranges
+                if (lastReportedDate < threeHoursAgoIST) {
+                  disconnectedCount++;
+                } else if (lastReportedDate < twoHoursAgoIST) {
+                  threeHoursOfflineCount++;
+                } else if (lastReportedDate < oneHourAgoIST) {
+                  twoHoursOfflineCount++;
+                } else {
+                  oneHourOfflineCount++;
+                }
+              }
+            } catch (error) {
+              neverConnectedCount++;
+            }
+          })
+        );
+      });
+
+      return {
+        series: [
+          oneHourOfflineCount,
+          threeHoursOfflineCount + twoHoursOfflineCount,
+          disconnectedCount,
+          neverConnectedCount,
+        ],
+        labels: ['Since 1 hour', 'since 3 hour', 'Disconnected', 'Malfunction'],
+      };
+    } catch (error: any) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  async getOnlineGraphData(
+    input: DeviceOnboardingAccountIdInput
+  ): Promise<{ series: number[]; labels: string[] }> {
+    try {
+      const deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
+        input.accountId,
+        DeviceOnboarding.name,
+        DeviceOnboardingSchema
+      );
+      const devices = await deviceOnboardingModel.find().lean().exec();
+
+      const now = new Date();
+      const oneHourAgo = new Date(
+        now.getTime() - 1 * 60 * 60 * 1000
+      ).toISOString();
+
+      let onlineCount = 0;
+
+      // Define the batch size
+      const batchSize = 1000;
+
+      // Split devices into batches
+      const batches = [];
+      for (let i = 0; i < devices.length; i += batchSize) {
+        batches.push(devices.slice(i, i + batchSize));
+      }
+
+      // Process batches concurrently
+      await async.eachLimit(batches, 10, async (batch) => {
+        await Promise.all(
+          batch.map(async (device) => {
+            const imei = device.deviceOnboardingIMEINumber;
+            const fluxQuery = `
+              from(bucket: "IMZ113343")
+                |> range(start: ${oneHourAgo}) // Checking data from the last 1 hour
+                |> filter(fn: (r) => r["_measurement"] == "track")
+                |> filter(fn: (r) => r["imei"] == "${imei}")
+            `;
+
+            try {
+              const queryResults = await this.influxDbService.executeQuery(
+                fluxQuery
+              );
+              let lastReportedTime: string | null = null;
+
+              for await (const { values } of queryResults) {
+                const timestamp = values[2]; // Assuming the timestamp is the third element
+                if (timestamp) {
+                  lastReportedTime = convertUTCToIST(timestamp);
+                  break;
+                }
+              }
+
+              if (lastReportedTime) {
+                const lastReportedDate = new Date(
+                  lastReportedTime
+                ).toISOString();
+                const oneHourAgoIST = convertUTCToIST(oneHourAgo);
+                if (lastReportedDate >= oneHourAgoIST) {
+                  onlineCount++;
+                }
+              }
+            } catch (error) {
+              console.error(
+                `Error executing query for IMEI ${imei}:`,
+                error.message
+              );
+            }
+          })
+        );
+      });
+
+      return {
+        series: [onlineCount],
+        labels: ['Online'],
+      };
+    } catch (error: any) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  async getHourlyOnlineOfflineData(
+    input: DeviceOnboardingAccountIdInput
+  ): Promise<DeviceLineGraphData> {
+    try {
+      const deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
+        input.accountId,
+        DeviceOnboarding.name,
+        DeviceOnboardingSchema
+      );
+      const devices = await deviceOnboardingModel.find().lean().exec();
+
+      const now = new Date();
+      const currentHour = now.getHours();
+      const categories = Array.from({ length: currentHour + 1 }, (_, i) =>
+        ((currentHour - i + 24) % 24).toString()
+      );
+
+      const onlineCounts = Array(currentHour + 1).fill(0);
+      const offlineCounts = Array(currentHour + 1).fill(0);
+
+      // Check for each hour in the last few hours
+      for (let i = 0; i <= currentHour; i++) {
+        const hourStartUTC = new Date(
+          now.getTime() - (i + 1) * 60 * 60 * 1000
+        ).toISOString();
+        const hourEndUTC = new Date(
+          now.getTime() - i * 60 * 60 * 1000
+        ).toISOString();
+        const hourStartIST = convertUTCToIST(hourStartUTC);
+        const hourEndIST = convertUTCToIST(hourEndUTC);
+
+        const fluxQuery = `
+          from(bucket: "IMZ113343")
+            |> range(start: ${hourStartIST}, stop: ${hourEndIST})
+            |> filter(fn: (r) => r["_measurement"] == "track")
+            |> keep(columns: ["_time"])
+        `;
+
+        try {
+          const queryResults = await this.influxDbService.executeQuery(
+            fluxQuery
+          );
+          let hasData = false;
+
+          for await (const { values } of queryResults) {
+            if (values) {
+              hasData = true;
+              break;
+            }
+          }
+
+          if (hasData) {
+            onlineCounts[i]++;
+          } else {
+            offlineCounts[i]++;
+          }
+        } catch (error) {
+          console.error(`Error executing query for hour ${i}:`, error.message);
+          offlineCounts[i]++;
+        }
+      }
+
+      return {
+        xaxis: { categories: categories.reverse() },
+        series: [
+          {
+            name: 'Online',
+            data: onlineCounts.reverse(),
+          },
+          {
+            name: 'Offline',
+            data: offlineCounts.reverse(),
+          },
+        ],
+      };
+    } catch (error: any) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  async getDeviceOnlineOfflineCounts(input: DeviceOnboardingAccountIdInput) {
+    try {
+      const deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
+        input.accountId,
+        DeviceOnboarding.name,
+        DeviceOnboardingSchema
+      );
+      const devices = await deviceOnboardingModel.find().lean().exec();
+      const totalDeviceCount = devices.length;
+
+      const now = new Date();
+      const oneHourAgo = new Date(
+        now.getTime() - 1 * 60 * 60 * 1000
+      ).toISOString();
+      const threeHoursAgo = new Date(
+        now.getTime() - 3 * 60 * 60 * 1000
+      ).toISOString();
+
+      let onlineCount = 0;
+      let offlineCount = 0;
+      const deviceStatuses: any = [];
+
+      // Define the batch size
+      const batchSize = 1000;
+
+      // Split devices into batches
+      const batches = [];
+      for (let i = 0; i < devices.length; i += batchSize) {
+        batches.push(devices.slice(i, i + batchSize));
+      }
+
+      // Process batches concurrently
+      await async.eachLimit(batches, 10, async (batch) => {
+        await Promise.all(
+          batch.map(async (device) => {
+            const imei = device.deviceOnboardingIMEINumber;
+            const fluxQuery = `
+              from(bucket: "IMZ113343")
+                |> range(start: ${oneHourAgo}, stop: now())
+                |> filter(fn: (r) => r["_measurement"] == "track")
+                |> filter(fn: (r) => r["imei"] == "${imei}")
+                |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+                |> sort(columns: ["_time"], desc: true)
+                |> limit(n: 1)
+            `;
+
+            try {
+              const queryResults = await this.influxDbService.executeQuery(
+                fluxQuery
+              );
+              let lastReportedTime: string | null = null;
+              let latitude: number | null = null;
+              let longitude: number | null = null;
+              let name: string | '';
+
+              for await (const { values } of queryResults) {
+                lastReportedTime = convertUTCToIST(values[2]); // Adjust this index if necessary
+                latitude = Number(values[49]); // Adjust these indices if necessary
+                longitude = Number(values[51]);
+                name = values[59]; // Adjust these indices if necessary
+                break;
+              }
+
+              if (
+                lastReportedTime &&
+                new Date(lastReportedTime).toISOString() >= oneHourAgo
+              ) {
+                onlineCount++;
+                deviceStatuses.push({
+                  accountId: input.accountId,
+                  name,
+                  imei,
+                  status: 'online',
+                  lastPing: lastReportedTime || 'N/A',
+                  latitude: latitude || 0,
+                  longitude: longitude || 0,
+                });
+              } else {
+                // Additional query to get the last available data packet if no data is found in the last one hour
+                const lastPacketQuery = `
+                from(bucket: "IMZ113343")
+                  |> range(start: 0, stop: now())
+                  |> filter(fn: (r) => r["_measurement"] == "track")
+                  |> filter(fn: (r) => r["imei"] == "${imei}")
+                  |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+                  |> sort(columns: ["_time"], desc: true)
+                  |> limit(n: 1)
+              `;
+
+                const lastPacketResults =
+                  await this.influxDbService.executeQuery(lastPacketQuery);
+                let lastPacketReportedTime: string | null = null;
+                let lastPacketLatitude: number | null = null;
+                let lastPacketLongitude: number | null = null;
+
+                for await (const { values } of lastPacketResults) {
+                  lastPacketReportedTime = convertUTCToIST(values[4]); // Adjust this index if necessary
+                  lastPacketLatitude = Number(values[89]); // Adjust these indices if necessary
+                  lastPacketLongitude = Number(values[91]); // Adjust these indices if necessary
+                  break;
+                }
+
+                offlineCount++;
+                deviceStatuses.push({
+                  accountId: input.accountId,
+                  name,
+                  imei,
+                  status: 'offline',
+                  lastPing: lastPacketReportedTime || 'Never Connected',
+                  latitude: lastPacketLatitude || 0,
+                  longitude: lastPacketLongitude || 0,
+                });
+              }
+            } catch (error) {
+              offlineCount++;
+              deviceStatuses.push({
+                name: '',
+                account: input.accountId,
+                imei,
+                status: 'offline',
+                lastPing: 'N/A',
+                latitude: 0,
+                longitude: 0,
+              });
+            }
+          })
+        );
+      });
+
+      return {
+        totalDeviceCount,
+        online: onlineCount,
+        offline: offlineCount,
+        data: deviceStatuses,
+      };
+    } catch (error: any) {
+      throw new BadRequestException(error.message);
     }
   }
 
@@ -414,5 +821,222 @@ export class DeviceOnboardingService {
       transferredImeis,
       failedImeis,
     };
+  }
+
+  async getImeiList(input: DeviceOnboardingAccountIdInput): Promise<string[]> {
+    const deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
+      input.accountId,
+      DeviceOnboarding.name,
+      DeviceOnboardingSchema
+    );
+
+    // First, fetch the list of devices from DeviceOnboarding
+    const devices = await deviceOnboardingModel.find().lean().exec();
+    const imeis = devices.map((device) => device.deviceOnboardingIMEINumber);
+
+    // Perform the aggregation to find matching device groups
+    const records = await deviceOnboardingModel
+      .aggregate([
+        {
+          $lookup: {
+            from: 'devicegroups',
+            let: { imei: '$deviceOnboardingIMEINumber' },
+            pipeline: [
+              { $match: { $expr: { $in: ['$$imei', '$imeiData'] } } },
+              { $project: { imeiData: 1 } },
+            ],
+            as: 'matchedGroups',
+          },
+        },
+        {
+          $match: {
+            'matchedGroups.0': { $exists: false }, // Match documents where matchedGroups array is empty
+          },
+        },
+        {
+          $project: {
+            deviceOnboardingIMEINumber: 1,
+          },
+        },
+      ])
+      .exec();
+
+    // If no matching device groups are found, return the original list of IMEIs
+    if (records.length === 0) {
+      return imeis;
+    }
+
+    // Extract unique IMEIs from the matched records
+    const uniqueImeis = new Set(
+      records.map((item) => item.deviceOnboardingIMEINumber)
+    );
+
+    return Array.from(uniqueImeis);
+  }
+  async findAllWithLocation(input: DeviceOnboardingFetchInput) {
+    try {
+      let deviceOnboardingModel;
+
+      if (input.accountId) {
+        deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
+          input.accountId,
+          DeviceOnboarding.name,
+          DeviceOnboardingSchema
+        );
+      } else {
+        deviceOnboardingModel = this.DeviceOnboardingCopyModel;
+      }
+
+      const { page, limit, location } = input;
+      const skip = this.calculateSkip(Number(page), Number(limit));
+
+      const query = location ? { location } : {};
+
+      const records = await deviceOnboardingModel
+        .find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit))
+        .exec();
+
+      const count = await deviceOnboardingModel.countDocuments(query).exec();
+      return { records, count };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `FindAll operation failed: ${error.message}`
+      );
+    }
+  }
+
+  async getBatteryPercentageData(
+    input: GetBatteryPercentageGraphInput
+  ): Promise<DeviceLineGraphData> {
+    try {
+      const now = new Date();
+      const startTime = new Date(now.getTime() - 24 * 60 * 60 * 1000); // 24 hours ago
+      const categories = Array.from({ length: 24 }, (_, i) => i.toString());
+
+      const batteryPercentages = Array(24).fill(0);
+
+      // Check for each hour in the last 24 hours
+      for (let i = 0; i <= 24; i++) {
+        const hourStartUTC = new Date(
+          startTime.getTime() + i * 60 * 60 * 1000
+        ).toISOString();
+        const hourEndUTC = new Date(
+          startTime.getTime() + (i + 1) * 60 * 60 * 1000
+        ).toISOString();
+        const hourStartIST = convertUTCToIST(hourStartUTC);
+        const hourEndIST = convertUTCToIST(hourEndUTC);
+
+        const fluxQuery = `
+          from(bucket: "${input.accountId}")
+            |> range(start: ${hourStartIST}, stop: ${hourEndIST})
+            |> filter(fn: (r) => r["_measurement"] == "track")
+            |> filter(fn: (r) => r["imei"] == "${input.imei}")
+            |> filter(fn: (r) => r["_field"] == "batteryPercentage")
+        `;
+
+        try {
+          const queryResults = await this.influxDbService.executeQuery(
+            fluxQuery
+          );
+
+          let sum = 0;
+          let count = 0;
+
+          for await (const { values } of queryResults) {
+            if (values && values[6]) {
+              const batteryPercentage = parseFloat(values[5]);
+              sum += batteryPercentage;
+              count++;
+            }
+          }
+          const dataValue = sum / count;
+          batteryPercentages[i] = count > 0 ? dataValue.toFixed(0) : 0;
+        } catch (error) {
+          console.error(`Error executing query for hour ${i}:`, error.message);
+          batteryPercentages[i] = 0;
+        }
+      }
+
+      return {
+        xaxis: { categories: categories },
+        series: [
+          {
+            name: 'Battery Percentage',
+            data: batteryPercentages,
+          },
+        ],
+      };
+    } catch (error: any) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  async getSpeedData(
+    input: GetBatteryPercentageGraphInput
+  ): Promise<DeviceLineGraphData> {
+    try {
+      const now = new Date();
+      const startTime = new Date(now.getTime() - 24 * 60 * 60 * 1000); // 24 hours ago
+      const categories = Array.from({ length: 24 }, (_, i) => i.toString());
+
+      const speed = Array(24).fill(0);
+
+      // Check for each hour in the last 24 hours
+      for (let i = 0; i <= 24; i++) {
+        const hourStartUTC = new Date(
+          startTime.getTime() + i * 60 * 60 * 1000
+        ).toISOString();
+        const hourEndUTC = new Date(
+          startTime.getTime() + (i + 1) * 60 * 60 * 1000
+        ).toISOString();
+        const hourStartIST = convertUTCToIST(hourStartUTC);
+        const hourEndIST = convertUTCToIST(hourEndUTC);
+
+        const fluxQuery = `
+          from(bucket: "${input.accountId}")
+            |> range(start: ${hourStartIST}, stop: ${hourEndIST})
+            |> filter(fn: (r) => r["_measurement"] == "track")
+            |> filter(fn: (r) => r["imei"] == "${input.imei}")
+            |> filter(fn: (r) => r["_field"] == "speed")
+        `;
+
+        try {
+          const queryResults = await this.influxDbService.executeQuery(
+            fluxQuery
+          );
+
+          let sum = 0;
+          let count = 0;
+
+          for await (const { values } of queryResults) {
+            if (values && values[5]) {
+              const speedValue = parseFloat(values[5]);
+              sum += speedValue;
+              count++;
+            }
+          }
+          const speedCount = sum / count;
+          speed[i] = count > 0 ? speedCount.toFixed(0) : 0;
+        } catch (error) {
+          console.error(`Error executing query for hour ${i}:`, error.message);
+          speed[i] = 0;
+        }
+      }
+
+      return {
+        xaxis: { categories: categories },
+        series: [
+          {
+            name: 'Speed',
+            data: speed,
+          },
+        ],
+      };
+    } catch (error: any) {
+      throw new BadRequestException(error.message);
+    }
   }
 }
