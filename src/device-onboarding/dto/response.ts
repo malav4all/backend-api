@@ -51,16 +51,19 @@ export class DeviceLineGraphData {
 
 @ObjectType()
 class DeviceOnlineStatus {
-  @Field()
+  @Field({ nullable: true })
   name: string;
 
-  @Field()
+  @Field({ nullable: true })
+  accountId: string;
+
+  @Field({ nullable: true })
   imei: string;
 
-  @Field()
+  @Field({ nullable: true })
   status: string;
 
-  @Field()
+  @Field({ nullable: true })
   lastPing: string;
 
   @Field(() => Float)

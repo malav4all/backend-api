@@ -526,11 +526,13 @@ export class DeviceOnboardingService {
               let lastReportedTime: string | null = null;
               let latitude: number | null = null;
               let longitude: number | null = null;
+              let name: string | '';
 
               for await (const { values } of queryResults) {
                 lastReportedTime = convertUTCToIST(values[2]); // Adjust this index if necessary
-                latitude = Number(values[50]); // Adjust these indices if necessary
-                longitude = Number(values[52]); // Adjust these indices if necessary
+                latitude = Number(values[49]); // Adjust these indices if necessary
+                longitude = Number(values[51]);
+                name = values[59]; // Adjust these indices if necessary
                 break;
               }
 
@@ -540,7 +542,8 @@ export class DeviceOnboardingService {
               ) {
                 onlineCount++;
                 deviceStatuses.push({
-                  name: input.accountId,
+                  accountId: input.accountId,
+                  name,
                   imei,
                   status: 'online',
                   lastPing: lastReportedTime || 'N/A',
@@ -574,22 +577,20 @@ export class DeviceOnboardingService {
 
                 offlineCount++;
                 deviceStatuses.push({
-                  name: input.accountId,
+                  accountId: input.accountId,
+                  name,
                   imei,
                   status: 'offline',
-                  lastPing: lastPacketReportedTime || 'N/A',
+                  lastPing: lastPacketReportedTime || 'Never Connected',
                   latitude: lastPacketLatitude || 0,
                   longitude: lastPacketLongitude || 0,
                 });
               }
             } catch (error) {
-              console.error(
-                `Error executing query for IMEI ${imei}:`,
-                error.message
-              );
               offlineCount++;
               deviceStatuses.push({
-                name: input.accountId,
+                name: '',
+                account: input.accountId,
                 imei,
                 status: 'offline',
                 lastPing: 'N/A',
