@@ -86,4 +86,16 @@ export class InfluxdbService implements OnModuleInit {
       throw error;
     }
   }
+
+  countQuery(fluxQuery: string) {
+    try {
+      if (!this.queryApi) {
+        throw new Error('Query API is not initialized.');
+      }
+      return this.queryApi.collectRows(fluxQuery);
+    } catch (error) {
+      this.logger.error('Error executing query:', error.message);
+      throw error;
+    }
+  }
 }

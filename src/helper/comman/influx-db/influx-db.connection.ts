@@ -54,7 +54,7 @@ export class InfluxService {
     const skip = page === -1 ? 0 : (page - 1) * limit;
 
     const countQuery = `
-    from(bucket: "tracking-alerts")
+    from(bucket: "${payload.accountId}")
       |> range(start: ${payload.startDate}, stop: ${payload.endDate})
       |> filter(fn: (r) => r["_measurement"] == "alert")
       |> count()
@@ -63,16 +63,17 @@ export class InfluxService {
     const totalCount = countResponse[0]?._value ?? 0;
 
     const query = `
-      from(bucket: "tracking-alerts")
+      from(bucket: "${payload.accountId}")
         |> range(start: ${payload.startDate}, stop: ${payload.endDate})
         |> filter(fn: (r) => r["_measurement"] == "alert")
-        |> filter(fn: (r) => r["_field"] == "event" or r["_field"] == "lat" or r["_field"] == "lng" or r["_field"] == "message" or r["_field"] == "mode" or r["_field"] == "source")
+        |> filter(fn: (r) => r["_field"] == "imei" or r["_field"] == "latitude" or r["_field"] == "longitude" or r["_field"] == "alertMessage" or r["_field"] == "accountId" or r["_field"] == "label")
         |> sort(columns:["_time"], desc: true)
         |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
         |> limit(n: ${payload.limit}, offset: ${skip})
     `;
     const rowData = [];
     for await (const { values } of this.queryApi.iterateRows(query)) {
+      console.log({ values });
       const [t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14] =
         values;
       rowData.push({

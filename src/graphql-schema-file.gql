@@ -105,17 +105,6 @@ type PaginatorInfo {
   total: Float
 }
 
-type AlertResponse {
-  label: String
-  event: String
-  imei: String
-  message: String
-  lat: String
-  lng: String
-  mode: String
-  source: String
-}
-
 type UserResponse {
   paginatorInfo: PaginatorInfo
   success: Float
@@ -319,6 +308,32 @@ type AlertResponseData {
   success: Float
   message: String
   data: [Alert!]!
+}
+
+type AlertReportDataType {
+  time: String
+  event: String
+  imei: String
+  accountId: String
+  alertMessage: String
+  latitude: String
+  longitude: String
+}
+
+type AlertReport {
+  totalCount: Float
+  rowData: [AlertReportDataType!]!
+}
+
+type DistanceCoordinatesTypeResponse {
+  latitude: String
+  longitude: String
+  time: String
+}
+
+type DistanceReportResponse {
+  imei: String
+  coordinates: [DistanceCoordinatesTypeResponse!]
 }
 
 type DeviceGroupResponse {
@@ -912,6 +927,8 @@ type Mutation {
   fetchAlert(input: AlertInput!): AlertResponseData!
   updateAlert(input: UpdateAlertInput!): AlertResponseData!
   searchAlert(input: SearchAlertInput!): AlertResponseData!
+  getAlertData(input: AlertReportInputType!): AlertReport!
+  getDistanceReportData(input: DistanceReportInputType!): [DistanceReportResponse!]!
   createDeviceGroup(input: CreateDeviceGroupInput!): DeviceGroupResponse!
   fetchDeviceGroup(input: DeviceGroupInput!): DeviceGroupResponse!
   searchDeviceGroup(input: SearchDeviceGroupInput!): DeviceGroupResponse!
@@ -1237,6 +1254,20 @@ input SearchAlertInput {
   search: String
   page: Int
   limit: Int
+}
+
+input AlertReportInputType {
+  accountId: String!
+  page: Int
+  limit: Int
+  startDate: String!
+  endDate: String!
+}
+
+input DistanceReportInputType {
+  accountId: String!
+  startDate: String!
+  endDate: String!
 }
 
 input CreateDeviceGroupInput {
@@ -1854,8 +1885,4 @@ input UpdateFormBuilderInput {
   createdBy: String
   updatedBy: String
   published: Boolean
-}
-
-type Subscription {
-  alertUpdated(topic: String!): AlertResponse!
 }
