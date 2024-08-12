@@ -52,7 +52,7 @@ export class RoleService {
           filter = { industryType: account.industryType.toString() };
         }
       }
-
+      console.log(filter);
       const page = Number(input.page);
       const limit = Number(input.limit);
       const skip = page === -1 ? 0 : (page - 1) * limit;

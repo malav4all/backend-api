@@ -96,6 +96,7 @@ export class AccountResolver {
     @Context() context
   ) {
     try {
+      console.log(context);
       const loggedInAccount = {
         accountId: context?.user?.accountId,
         roleId: context?.user?.roleId,
@@ -125,8 +126,7 @@ export class AccountResolver {
   ) {
     try {
       const loggedInAccount = {
-        accountId: context?.user?.accountId,
-        roleId: context?.user?.roleId,
+        accountId: context?.user?.accountId?.accountId,
       };
       const { records, count } = await this.accountModuleService.findAll(
         input,

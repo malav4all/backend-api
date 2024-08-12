@@ -39,13 +39,38 @@ export class UserService {
 
   logger = new Logger('UserService');
 
-  async findAll(input: UserInput) {
+  async findAll(input: UserInput, loggedInUser: any) {
     try {
       const page = Number(input.page);
       const limit = Number(input.limit);
       const skip = page === -1 ? 0 : (page - 1) * limit;
 
+      // Fetch the logged-in user information
+      const getUser = await this.fetchUserByUserId(
+        loggedInUser?.userId?.toString()
+      );
+      const user = getUser[0];
+      const isSuperAdmin = user.isSuperAdmin || false;
+      const isAccountAdmin = user.isAccountAdmin || false;
+      const accountId = user.accountId; // This is the accountId of the logged-in user
+
+      let matchFilter = {};
+
+      if (isSuperAdmin) {
+        // No filtering for Super Admins, they can see all users
+        matchFilter = {};
+      } else if (isAccountAdmin) {
+        // Account Admins see users within their own account
+        matchFilter = { accountId: accountId };
+      } else {
+        // Regular users only see their own data
+        matchFilter = { _id: user._id.toString() };
+      }
+
       const pipeline = [
+        {
+          $match: matchFilter, // Apply the filter based on user role
+        },
         {
           $addFields: {
             roleId: { $toObjectId: '$roleId' },
@@ -114,7 +139,7 @@ export class UserService {
         .limit(limit)
         .exec();
 
-      const count = await this.UserModel.countDocuments().exec();
+      const count = await this.UserModel.countDocuments(matchFilter).exec();
 
       return { records: result, count };
     } catch (error) {

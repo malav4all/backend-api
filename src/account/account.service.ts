@@ -24,19 +24,19 @@ export class AccountService {
     private influxDbService: InfluxdbService
   ) {}
 
-  async findAll(input: AccountInput, { accountId, roleId }) {
+  async findAll(input: AccountInput, { accountId }) {
     try {
       const page = Number(input.page);
       const limit = Number(input.limit);
 
       const skip = page === -1 ? 0 : (page - 1) * limit;
-      const records = await this.AccountModel.find({})
+      const records = await this.AccountModel.find({ accountId })
         .populate('industryType')
         .skip(skip)
         .limit(limit)
         .lean()
         .exec();
-      const count = await this.AccountModel.count().exec();
+      const count = await this.AccountModel.count({ accountId }).exec();
 
       return { count, records };
     } catch (error) {
