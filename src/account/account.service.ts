@@ -104,6 +104,18 @@ export class AccountService {
     }
   }
 
+  async getAccountDetailId(payload: any) {
+    try {
+      const record = await this.AccountModel.findOne({
+        accountId: payload.accountId,
+      }).exec();
+
+      return record;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
   async searchAccount(input: SearchAccountInput) {
     try {
       const page = Number(input.page);

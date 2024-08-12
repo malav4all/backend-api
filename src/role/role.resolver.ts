@@ -35,8 +35,10 @@ export class RoleResolver {
   @Mutation(() => RoleResponse)
   async roleListAll(@Args('input') input: RoleInput, @Context() context) {
     try {
-      const roleId = context.user.roleId._id;
-      const roles = await this.roleService.findAll(input, roleId);
+      const loggedInUser = {
+        userId: context?.user?._id,
+      };
+      const roles = await this.roleService.findAll(input, loggedInUser);
       const count = await this.roleService.count();
       return {
         paginatorInfo: {

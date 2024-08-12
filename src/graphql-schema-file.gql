@@ -433,13 +433,6 @@ type CustomerModuleResponse {
   data: [CustomerModule!]!
 }
 
-type RoleResponse {
-  paginatorInfo: PaginatorInfo
-  success: Float
-  message: String
-  data: [Role!]!
-}
-
 type IndustryTypeResponse {
   _id: String!
   name: String
@@ -477,6 +470,13 @@ type Account {
   tenantId: String
   updatedBy: String
   isDelete: Boolean
+}
+
+type RoleResponse {
+  paginatorInfo: PaginatorInfo
+  success: Float
+  message: String
+  data: [Role!]!
 }
 
 type AccountResponse {
