@@ -5,12 +5,14 @@ import { InputType, Field, Int } from '@nestjs/graphql';
 export class CreateIndustryInput {
   @Field({ nullable: true })
   name: string;
+
   @Field(() => [String], { nullable: true })
   code: string[];
+
   @Field({ nullable: true })
   description: string;
-  @Field({ nullable: true })
-  file: Upload;
+  // @Field({ nullable: true })
+  // file: Upload;
 }
 
 @InputType()

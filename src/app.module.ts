@@ -85,7 +85,7 @@ import { FormBuilderModule } from './form-builder/form-builder.module';
     LocationTypeModule,
     FormBuilderModule,
   ],
-  providers: [Upload],
+  providers: [],
   exports: [],
 })
 export class AppModule {}

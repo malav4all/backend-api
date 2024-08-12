@@ -27,11 +27,11 @@ export class Industry {
   @Column()
   description: string;
 
-  @Field()
-  @Prop({ text: true })
-  @Column()
-  @IsOptional()
-  file?: string;
+  // @Field()
+  // @Prop({ text: true })
+  // @Column()
+  // @IsOptional()
+  // file?: string;
 
   @Field({ nullable: true })
   @Prop()

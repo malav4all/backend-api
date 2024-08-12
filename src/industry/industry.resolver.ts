@@ -28,30 +28,29 @@ export class IndustryResolver {
   @Mutation(() => IndustryResponse)
   async createIndustry(@Args('input') input: CreateIndustryInput) {
     try {
-      if (input.file) {
-        const { createReadStream, filename } = (await input.file) as any;
-        const uploadDir = path.join(__dirname, '../../uploads/');
+      // if (input.file) {
+      //   const { createReadStream, filename } = (await input.file) as any;
+      //   const uploadDir = path.join(__dirname, '../../uploads/');
 
-        if (!existsSync(uploadDir)) {
-          mkdirSync(uploadDir);
-        }
-        const stream = createReadStream();
-        const filePath = path.join(uploadDir, `${filename}`);
+      //   if (!existsSync(uploadDir)) {
+      //     mkdirSync(uploadDir);
+      //   }
+      //   const stream = createReadStream();
+      //   const filePath = path.join(uploadDir, `${filename}`);
 
-        await new Promise((resolve, reject) =>
-          stream
-            .pipe(createWriteStream(filePath))
-            .on('finish', resolve)
-            .on('error', reject)
-        );
-        const record = await this.industryService.create(input, filename);
-        return {
-          success: record ? 1 : 0,
-          message: record
-            ? 'Record created.'
-            : 'Record not created. Please try again.',
-        };
-      }
+      //   await new Promise((resolve, reject) =>
+      //     stream
+      //       .pipe(createWriteStream(filePath))
+      //       .on('finish', resolve)
+      //       .on('error', reject)
+      //   );
+      const record = await this.industryService.create(input);
+      return {
+        success: record ? 1 : 0,
+        message: record
+          ? 'Record created.'
+          : 'Record not created. Please try again.',
+      };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }

@@ -400,7 +400,6 @@ type Industry {
   name: String!
   code: [String!]!
   description: String!
-  file: String!
   lastUpdated: DateTime
 }
 
@@ -1328,11 +1327,7 @@ input CreateIndustryInput {
   name: String
   code: [String!]
   description: String
-  file: Upload
 }
-
-"""File upload scalar type"""
-scalar Upload
 
 input IndustryInput {
   page: Int

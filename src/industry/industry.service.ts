@@ -56,10 +56,9 @@ export class IndustryService {
     }
   }
 
-  async create(payload: CreateIndustryInput, fileName: string) {
+  async create(payload: CreateIndustryInput) {
     const record = this.IndustryModel.create({
       ...payload,
-      file: fileName,
     });
     return record;
   }
