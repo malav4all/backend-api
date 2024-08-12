@@ -1,7 +1,11 @@
 import { Resolver, Mutation, Args } from '@nestjs/graphql';
 import { InternalServerErrorException, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@imz/user/guard';
-import { BatteryResponse, TripResponse } from './dto/response';
+import {
+  BatteryResponse,
+  TripMetricsResponseWrapper,
+  TripResponse,
+} from './dto/response';
 import { TripService } from './trip-module.service';
 import {
   BatteryCheckInput,
@@ -76,7 +80,7 @@ export class TripResolver {
       return {
         success: 1,
         message: 'Search list available.',
-        data: record,
+        data: [record],
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
@@ -104,5 +108,22 @@ export class TripResolver {
     @Args('input') input: BatteryCheckInput
   ): Promise<{ success: boolean; message: string }> {
     return this.tripService.checkBatteryPercentage(input);
+  }
+
+  @UseGuards(new AuthGuard())
+  @Mutation(() => TripMetricsResponseWrapper)
+  async getTripStatusMetrics(@Args('input') input: TripInput) {
+    try {
+      const metrics = await this.tripService.getTripStatusMetrics(
+        input.accountId
+      );
+      return {
+        success: 1,
+        message: 'Trip status metrics retrieved successfully.',
+        data: metrics,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
   }
 }

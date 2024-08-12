@@ -22,3 +22,23 @@ export class BatteryResponse {
   @Field({ nullable: true })
   message: string;
 }
+@ObjectType()
+export class TripMetricsResponseWrapper {
+  @Field()
+  success: number;
+
+  @Field()
+  message: string;
+
+  @Field(() => [TripMetricsResponse])
+  data: TripMetricsResponse[];
+}
+
+@ObjectType()
+export class TripMetricsResponse {
+  @Field({ nullable: true })
+  status: string;
+
+  @Field({ nullable: true })
+  count: number;
+}

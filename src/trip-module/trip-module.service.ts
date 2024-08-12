@@ -223,4 +223,32 @@ export class TripService {
       throw new BadRequestException(error.message);
     }
   }
+
+  async getTripStatusMetrics(
+    accountId: string
+  ): Promise<{ status: string; count: number }[]> {
+    try {
+      const tripModel = await this.getTenantModel<Trip>(
+        accountId,
+        Trip.name,
+        TripSchema
+      );
+
+      if (!tripModel) {
+        return [];
+      }
+
+      const metrics = await tripModel
+        .aggregate([
+          { $match: { accountId: accountId } },
+          { $group: { _id: '$status', count: { $sum: 1 } } },
+          { $project: { status: '$_id', count: 1, _id: 0 } },
+        ])
+        .exec();
+
+      return metrics;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
 }
