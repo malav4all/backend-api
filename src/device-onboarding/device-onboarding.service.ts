@@ -1077,7 +1077,7 @@ export class DeviceOnboardingService {
     const devices = await deviceOnboardingModel.find().lean().exec();
     const imeis = devices.map((device) => device.deviceOnboardingIMEINumber);
 
-    // Perform the aggregation to find matching device groups
+    // Perform the aggregation to find IMEIs that are NOT in any device groups
     const records = await deviceOnboardingModel
       .aggregate([
         {
@@ -1086,7 +1086,7 @@ export class DeviceOnboardingService {
             let: { imei: '$deviceOnboardingIMEINumber' },
             pipeline: [
               { $match: { $expr: { $in: ['$$imei', '$imeiData'] } } },
-              { $project: { imeiData: 1 } },
+              { $project: { _id: 1 } },
             ],
             as: 'matchedGroups',
           },
@@ -1104,18 +1104,15 @@ export class DeviceOnboardingService {
       ])
       .exec();
 
-    // If no matching device groups are found, return the original list of IMEIs
-    if (records.length === 0) {
-      return imeis;
-    }
-
     // Extract unique IMEIs from the matched records
     const uniqueImeis = new Set(
       records.map((item) => item.deviceOnboardingIMEINumber)
     );
 
+    // Return the filtered IMEI list
     return Array.from(uniqueImeis);
   }
+
   async findAllWithLocation(
     input: DeviceOnboardingFetchInput,
     loggedInUser: any
