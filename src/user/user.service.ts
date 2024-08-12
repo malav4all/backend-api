@@ -20,12 +20,21 @@ import * as jwt from 'jsonwebtoken';
 import { UAParser } from 'ua-parser-js';
 import { REQUEST } from '@nestjs/core';
 import { generateOtp } from '@imz/helper/generateotp';
+import { Role, RoleDocument } from '@imz/role/entities/role.entity';
+import {
+  MenuItem,
+  MenuItemDocument,
+} from '@imz/menu-item/entities/menu-item.entity';
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(User.name)
     private UserModel: Model<UserDocument>,
-    @Inject(REQUEST) private readonly request: Request
+    @Inject(REQUEST) private readonly request: Request,
+    @InjectModel(Role.name)
+    private RoleModel: Model<RoleDocument>,
+    @InjectModel(MenuItem.name)
+    private MenuItemModel: Model<MenuItemDocument>
   ) {}
 
   logger = new Logger('UserService');
@@ -238,19 +247,15 @@ export class UserService {
         );
         if (isPasswordValid) {
           const accessToken = await this.generateAccessToken(userData);
-
-          // // Fetch the menu items based on the user's role
-          // const menuItems = await this.getMenuItemsForRole(userData.roleId._id);
-          // console.log({ menuItems });
-
+          const menuItems = await this.getMenuItemsForRole(userData.roleId._id);
           const responseUser = {
-            _id: userData._id,
+            _id: userData?._id,
             accessToken,
-            name: userData.firstName,
-            email: userData.email,
-            account: userData.accountId,
-            roleId: userData.roleId,
-            // sidebar: menuItems,
+            name: userData?.firstName,
+            email: userData?.email,
+            account: userData?.accountId,
+            roleId: userData?.roleId,
+            sidebar: menuItems,
           };
 
           this.logger.verbose(`User Login Successfully:::${responseUser.name}`);
@@ -278,13 +283,49 @@ export class UserService {
     }
   }
 
+  private async getMenuItemsForRole(roleId: string) {
+    const role = await this.RoleModel.findById(roleId).exec();
+    if (role) {
+      const resourceNames = role.resources.map((resource) => resource.name);
+      const allMenuItems = await this.MenuItemModel.find().lean().exec();
+      const accessibleMenuItems = allMenuItems?.filter(
+        (item) =>
+          resourceNames?.includes(item?.pageName) ||
+          (item?.subMenu &&
+            item?.subMenu?.some((subItem) =>
+              resourceNames?.includes(subItem?.pageName)
+            ))
+      );
+
+      const uniqueMenuItems = accessibleMenuItems?.reduce((acc, item) => {
+        if (resourceNames?.includes(item?.pageName)) {
+          acc?.push(item);
+        } else if (
+          item?.subMenu &&
+          item?.subMenu?.some((subItem) =>
+            resourceNames?.includes(subItem?.pageName)
+          )
+        ) {
+          const filteredSubMenu = item?.subMenu?.filter((subItem) =>
+            resourceNames?.includes(subItem?.pageName)
+          );
+          acc?.push({ ...item, subMenu: filteredSubMenu });
+        }
+        return acc;
+      }, []);
+
+      return uniqueMenuItems;
+    }
+    return [];
+  }
+
   private async verifyPassword(
     user: any,
     inputPassword: string
   ): Promise<boolean> {
     const decryptedPassword = await EncodeDecode.decrypt(
-      user.password,
-      user.email
+      user?.password,
+      user?.email
     );
     return decryptedPassword === inputPassword;
   }

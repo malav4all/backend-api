@@ -107,6 +107,40 @@ type PaginatorInfo {
   total: Float
 }
 
+type IndustryResponseType {
+  _id: String!
+  name: String
+  code: String
+  description: String
+}
+
+type Values {
+  name: String
+  permissions: [String!]!
+}
+
+type Role {
+  _id: String!
+  name: String!
+  industryType: IndustryResponseType
+  description: String!
+  resources: [Values!]!
+  isDelete: Boolean!
+  lastUpdated: DateTime
+}
+
+type MenuItem {
+  _id: String
+  icon: String
+  activeIcon: String
+  text: String
+  link: String
+  pageName: String
+  visibleInSidebar: Boolean
+  accessToResource: [String!]
+  subMenu: [MenuItem!]
+}
+
 type UserResponse {
   paginatorInfo: PaginatorInfo
   success: Float
@@ -381,28 +415,6 @@ type CustomerModuleResponse {
   success: Float
   message: String
   data: [CustomerModule!]!
-}
-
-type IndustryResponseType {
-  _id: String!
-  name: String
-  code: String
-  description: String
-}
-
-type Values {
-  name: String
-  permissions: [String!]!
-}
-
-type Role {
-  _id: String!
-  name: String!
-  industryType: IndustryResponseType
-  description: String!
-  resources: [Values!]!
-  isDelete: Boolean!
-  lastUpdated: DateTime
 }
 
 type RoleResponse {
@@ -785,18 +797,6 @@ type AddDeviceResponse {
   success: Float
   message: String
   data: [AddDevice!]!
-}
-
-type MenuItem {
-  _id: String
-  icon: String
-  activeIcon: String
-  text: String
-  link: String
-  pageName: String
-  visibleInSidebar: Boolean
-  accessToResource: [String!]
-  subMenu: [MenuItem!]
 }
 
 type MenuItemResponse {

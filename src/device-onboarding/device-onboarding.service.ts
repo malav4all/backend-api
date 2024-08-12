@@ -55,6 +55,10 @@ export class DeviceOnboardingService {
         loggedInUser?.userId?.toString()
       );
 
+      // Check the admin flags
+      const isAccountAdmin = getUser[0]?.isAccountAdmin || false;
+      const isSuperAdmin = getUser[0]?.isSuperAdmin || false;
+
       let deviceOnboardingModel;
 
       if (input.accountId) {
@@ -64,13 +68,32 @@ export class DeviceOnboardingService {
           DeviceOnboardingSchema
         );
 
-        // Extract the IMEI list from the user
-        const imeiList = getUser[0].imeiList;
-
-        // Create the filter based on imeiList if accountId is provided
         let filter = {};
-        if (imeiList && imeiList.length > 0) {
-          filter = { deviceOnboardingIMEINumber: { $in: imeiList } };
+
+        // Apply IMEI filtering only if neither flag is true
+        if (!isAccountAdmin && !isSuperAdmin) {
+          let imeiList = getUser[0]?.imeiList || [];
+
+          // If imeiList is empty, extract IMEIs from the user's deviceGroup
+          if (!imeiList.length && getUser[0]?.deviceGroup?.length) {
+            imeiList = getUser[0].deviceGroup.reduce(
+              (acc: string[], group: any) => {
+                if (group.imeiData && group.imeiData.length) {
+                  acc = acc.concat(group.imeiData);
+                }
+                return acc;
+              },
+              []
+            );
+          }
+
+          // Apply the IMEI filter if there are IMEIs to filter by
+          if (imeiList.length > 0) {
+            filter = { deviceOnboardingIMEINumber: { $in: imeiList } };
+          } else {
+            // If there are still no IMEIs, return an empty result
+            return { records: [], count: 0 };
+          }
         }
 
         // Query the database with the filter and pagination
