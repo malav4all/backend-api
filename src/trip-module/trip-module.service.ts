@@ -251,4 +251,29 @@ export class TripService {
       throw new InternalServerErrorException(error.message);
     }
   }
+
+  async updateTripStatus(accountId: string, tripId: string, status: string) {
+    try {
+      const tripModel = await this.getTenantModel<Trip>(
+        accountId,
+        Trip.name,
+        TripSchema
+      );
+
+      const trip = await tripModel.findOne({ tripId });
+
+      if (!trip) {
+        throw new BadRequestException(`Trip with ID ${tripId} not found.`);
+      }
+
+      trip.status = status;
+      trip.lastUpdated = new Date();
+
+      const updatedTrip = await trip.save();
+
+      return updatedTrip;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
 }

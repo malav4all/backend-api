@@ -13,6 +13,7 @@ import {
   SearchTripInput,
   TripIDInput,
   TripInput,
+  TripStausInput,
 } from './dto/create-trip-module.input';
 import { UpdateTripInput } from './dto/update-trip-module.update';
 
@@ -121,6 +122,25 @@ export class TripResolver {
         success: 1,
         message: 'Trip status metrics retrieved successfully.',
         data: metrics,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  // @UseGuards(new AuthGuard())
+  @Mutation(() => TripResponse)
+  async updateTripStatus(@Args('input') input: TripStausInput) {
+    try {
+      const updatedTrip = await this.tripService.updateTripStatus(
+        input.accountId,
+        input.tripId,
+        input.status
+      );
+      return {
+        success: 1,
+        message: `Trip with ID ${updatedTrip.tripId} successfully updated to status ${updatedTrip.status}`,
+        data: [updatedTrip],
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
