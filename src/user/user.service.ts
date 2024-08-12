@@ -185,8 +185,6 @@ export class UserService {
 
   async login(payload: LoginUserInput) {
     const inputUser: any = payload;
-    console.log('asdfhk');
-    console.log({ inputUser });
     try {
       const user = await this.UserModel.aggregate([
         {
