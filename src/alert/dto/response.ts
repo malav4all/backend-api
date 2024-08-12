@@ -88,3 +88,18 @@ export class DistanceTrackPlayResponse {
   @Field(() => String, { nullable: true })
   speed: string;
 }
+
+@ObjectType()
+export class MapViewResponse {
+  @Field(() => String, { nullable: true })
+  latitude: string;
+
+  @Field(() => String, { nullable: true })
+  longitude: string;
+
+  @Field(() => String, { nullable: true })
+  time: string;
+
+  @Field(() => String, { nullable: true })
+  imei: string;
+}

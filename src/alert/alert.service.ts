@@ -12,6 +12,7 @@ import {
   CreateAlertInputType,
   DistanceReportInputType,
   DistanceTrackPlayInputType,
+  MapViewInputType,
   SearchAlertInput,
 } from './dto/create-alert.input';
 import { RedisService } from '@imz/redis/redis.service';
@@ -457,5 +458,80 @@ export class AlertService {
     }
 
     return rowData;
+  }
+
+  async allDeviceMapView(payload: MapViewInputType, loggedInUser: any) {
+    // Fetch the logged-in user object
+    const getUser = await this.userService.fetchUserByUserId(
+      loggedInUser?.userId?.toString()
+    );
+
+    // Check the admin flags
+    const isAccountAdmin = getUser[0]?.isAccountAdmin || false;
+    const isSuperAdmin = getUser[0]?.isSuperAdmin || false;
+
+    let imeiList: string[] = [];
+
+    // Only apply IMEI filtering if the user is not an account admin or super admin
+    if (!isAccountAdmin && !isSuperAdmin) {
+      imeiList = getUser[0]?.imeiList || [];
+
+      // If imeiList is empty, extract IMEIs from the user's deviceGroup
+      if (!imeiList.length && getUser[0]?.deviceGroup?.length) {
+        imeiList = getUser[0].deviceGroup.reduce(
+          (acc: string[], group: any) => {
+            if (group.imeiData && group.imeiData.length) {
+              acc = acc.concat(group.imeiData);
+            }
+            return acc;
+          },
+          []
+        );
+      }
+
+      // If there are still no IMEIs associated with the user, return an empty result
+      if (!imeiList.length) {
+        return [];
+      }
+    }
+    const now = new Date();
+    const oneHourAgo = new Date(
+      now.getTime() - 1 * 60 * 60 * 1000
+    ).toISOString();
+
+    // Create a Flux query for fetching the distance data
+    const fluxQuery = `
+      from(bucket: "${payload.accountId}")
+         |> range(start: ${oneHourAgo},stop: now()) 
+        |> filter(fn: (r) => r["_measurement"] == "track")
+        ${
+          !isAccountAdmin && !isSuperAdmin && imeiList.length
+            ? `|> filter(fn: (r) => r["imei"] == "${imeiList.join(
+                '" or r["imei"] == "'
+              )}" )`
+            : ''
+        }
+        |> filter(fn: (r) => r["_field"] == "latitude" or r["_field"] == "longitude" or r["_field"] == "imei")
+        |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+        |> sort(columns: ["_time"], desc: true)
+        |> limit(n: 1)
+    `;
+
+    const data: any[] = [];
+
+    for await (const { values } of this.influxDbService.executeQuery(
+      fluxQuery
+    )) {
+      const [t0, t1, t2, t3, t4, t5, imei, lat, long] = values;
+
+      data.push({
+        latitude: lat,
+        longitude: long,
+        imei,
+        time: t2,
+      });
+    }
+
+    return Object.values(data);
   }
 }

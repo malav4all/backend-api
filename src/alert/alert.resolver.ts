@@ -13,6 +13,7 @@ import {
   CreateAlertInputType,
   DistanceReportInputType,
   DistanceTrackPlayInputType,
+  MapViewInputType,
   SearchAlertInput,
 } from './dto/create-alert.input';
 import { AlertService } from './alert.service';
@@ -21,6 +22,7 @@ import {
   AlertResponseData,
   DistanceReportResponse,
   DistanceTrackPlayResponse,
+  MapViewResponse,
 } from './dto/response';
 import { UpdateAlertInput } from './dto/update-alert';
 import { AlertResponse } from '@imz/helper';
@@ -145,6 +147,26 @@ export class AlertResolver {
   async getDistanceTrackPlay(@Args('input') input: DistanceTrackPlayInputType) {
     try {
       const record = await this.alertService.distanceTrackPlay(input);
+      return record;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @UseGuards(new AuthGuard())
+  @Mutation(() => [MapViewResponse])
+  async viewAllDeviceMap(
+    @Args('input') input: MapViewInputType,
+    @Context() context
+  ) {
+    try {
+      const loggedInUser = {
+        userId: context?.user?._id,
+      };
+      const record = await this.alertService.allDeviceMapView(
+        input,
+        loggedInUser
+      );
       return record;
     } catch (error) {
       throw new InternalServerErrorException(error.message);

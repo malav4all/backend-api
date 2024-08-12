@@ -153,3 +153,9 @@ export class DistanceTrackPlayInputType {
   @Field(() => String)
   endDate: string;
 }
+
+@InputType()
+export class MapViewInputType {
+  @Field(() => String)
+  accountId: string;
+}
