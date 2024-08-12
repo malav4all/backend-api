@@ -99,7 +99,7 @@ export class TripInput {
 }
 
 @InputType()
-export class TripStausInput {
+export class TripStatusInput {
   @Field({ nullable: true })
   accountId: string;
 

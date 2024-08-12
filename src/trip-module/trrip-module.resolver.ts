@@ -13,7 +13,7 @@ import {
   SearchTripInput,
   TripIDInput,
   TripInput,
-  TripStausInput,
+  TripStatusInput,
 } from './dto/create-trip-module.input';
 import { UpdateTripInput } from './dto/update-trip-module.update';
 
@@ -130,7 +130,7 @@ export class TripResolver {
 
   // @UseGuards(new AuthGuard())
   @Mutation(() => TripResponse)
-  async updateTripStatus(@Args('input') input: TripStausInput) {
+  async updateTripStatus(@Args('input') input: TripStatusInput) {
     try {
       const updatedTrip = await this.tripService.updateTripStatus(
         input.accountId,
