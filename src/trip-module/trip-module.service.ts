@@ -170,17 +170,17 @@ export class TripService {
     input: BatteryCheckInput
   ): Promise<{ success: boolean; message: string }> {
     try {
-      const { terminalId, threshold } = input;
+      const { imei, threshold } = input;
 
       const now = new Date().toISOString();
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
 
       const fluxQuery = `
-        from(bucket: "${input.accountId})
+        from(bucket: "${input.accountId}")
           |> range(start: ${oneHourAgo}, stop: ${now})
           |> filter(fn: (r) => r["_measurement"] == "track")
-          |> filter(fn: (r) => r["Terminal_ID"] == "${terminalId}")
-          |> filter(fn: (r) => r["_field"] == "Additional_Data_1_Battery_Percentage")
+          |> filter(fn: (r) => r["imei"] == "${imei}")
+          |> filter(fn: (r) => r["_field"] == "batteryPercentage")
           |> last()
       `;
 
@@ -191,14 +191,14 @@ export class TripService {
 
       for await (const { values } of queryResults) {
         lastReportedTime = values[2]; // Assuming the timestamp is the first element
-        const value = values[4]; // Assuming the battery percentage value is the fifth element
+        const value = values[5]; // Assuming the battery percentage value is the fifth element
         batteryPercentage = parseFloat(value);
         break;
       }
 
       if (lastReportedTime === null) {
         throw new BadRequestException(
-          `No data found for Terminal_ID ${terminalId} in the last hour`
+          `No data found for Terminal_ID ${imei} in the last hour`
         );
       }
 
@@ -209,7 +209,7 @@ export class TripService {
         };
       }
 
-      if (batteryPercentage > threshold) {
+      if (batteryPercentage > Number(threshold)) {
         return {
           success: true,
           message: 'Battery percentage is above the threshold',

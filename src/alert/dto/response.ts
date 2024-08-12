@@ -67,3 +67,24 @@ export class DistanceReportResponse {
   @Field(() => [DistanceCoordinatesTypeResponse], { nullable: true })
   coordinates: [DistanceCoordinatesTypeResponse];
 }
+
+@ObjectType()
+export class DistanceTrackPlayResponse {
+  @Field(() => String, { nullable: true })
+  latitude: string;
+
+  @Field(() => String, { nullable: true })
+  longitude: string;
+
+  @Field(() => String, { nullable: true })
+  time: string;
+
+  @Field(() => String, { nullable: true })
+  imei: string;
+
+  @Field(() => String, { nullable: true })
+  bearing: string;
+
+  @Field(() => String, { nullable: true })
+  speed: string;
+}

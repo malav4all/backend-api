@@ -127,9 +127,9 @@ export class BatteryCheckInput {
   @Field({ nullable: true })
   accountId: string;
 
-  @Field()
-  terminalId: string;
+  @Field({ nullable: true })
+  imei: string;
 
-  @Field(() => Float)
-  threshold: number;
+  @Field(() => Int, { nullable: true })
+  threshold: typeof Int;
 }

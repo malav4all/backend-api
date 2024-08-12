@@ -12,6 +12,7 @@ import {
   AlertReportInputType,
   CreateAlertInputType,
   DistanceReportInputType,
+  DistanceTrackPlayInputType,
   SearchAlertInput,
 } from './dto/create-alert.input';
 import { AlertService } from './alert.service';
@@ -19,6 +20,7 @@ import {
   AlertReport,
   AlertResponseData,
   DistanceReportResponse,
+  DistanceTrackPlayResponse,
 } from './dto/response';
 import { UpdateAlertInput } from './dto/update-alert';
 import { AlertResponse } from '@imz/helper';
@@ -132,6 +134,17 @@ export class AlertResolver {
         input,
         loggedInUser
       );
+      return record;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @UseGuards(new AuthGuard())
+  @Mutation(() => [DistanceTrackPlayResponse])
+  async getDistanceTrackPlay(@Args('input') input: DistanceTrackPlayInputType) {
+    try {
+      const record = await this.alertService.distanceTrackPlay(input);
       return record;
     } catch (error) {
       throw new InternalServerErrorException(error.message);

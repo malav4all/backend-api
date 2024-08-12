@@ -138,3 +138,18 @@ export class DistanceReportInputType {
   @Field(() => String)
   endDate: string;
 }
+
+@InputType()
+export class DistanceTrackPlayInputType {
+  @Field(() => String)
+  accountId: string;
+
+  @Field(() => String)
+  imei: string;
+
+  @Field(() => String)
+  startDate: string;
+
+  @Field(() => String)
+  endDate: string;
+}

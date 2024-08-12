@@ -372,6 +372,15 @@ type DistanceReportResponse {
   coordinates: [DistanceCoordinatesTypeResponse!]
 }
 
+type DistanceTrackPlayResponse {
+  latitude: String
+  longitude: String
+  time: String
+  imei: String
+  bearing: String
+  speed: String
+}
+
 type DeviceGroupResponse {
   paginatorInfo: PaginatorInfo
   success: Float
@@ -918,6 +927,7 @@ type Mutation {
   searchAlert(input: SearchAlertInput!): AlertResponseData!
   getAlertData(input: AlertReportInputType!): AlertReport!
   getDistanceReportData(input: DistanceReportInputType!): [DistanceReportResponse!]!
+  getDistanceTrackPlay(input: DistanceTrackPlayInputType!): [DistanceTrackPlayResponse!]!
   createDeviceGroup(input: CreateDeviceGroupInput!): DeviceGroupResponse!
   fetchDeviceGroup(input: DeviceGroupInput!): DeviceGroupResponse!
   searchDeviceGroup(input: SearchDeviceGroupInput!): DeviceGroupResponse!
@@ -1265,6 +1275,13 @@ input DistanceReportInputType {
   endDate: String!
 }
 
+input DistanceTrackPlayInputType {
+  accountId: String!
+  imei: String!
+  startDate: String!
+  endDate: String!
+}
+
 input CreateDeviceGroupInput {
   deviceGroupName: String
   accountId: String
@@ -1556,8 +1573,8 @@ input UpdateTripInput {
 
 input BatteryCheckInput {
   accountId: String
-  terminalId: String!
-  threshold: Float!
+  imei: String
+  threshold: Int
 }
 
 input DeviceOnboardingAccountIdInput {

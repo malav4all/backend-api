@@ -11,6 +11,7 @@ import {
   AlertReportInputType,
   CreateAlertInputType,
   DistanceReportInputType,
+  DistanceTrackPlayInputType,
   SearchAlertInput,
 } from './dto/create-alert.input';
 import { RedisService } from '@imz/redis/redis.service';
@@ -417,5 +418,44 @@ export class AlertService {
     }
 
     return Object.values(data);
+  }
+
+  async distanceTrackPlay(payload: DistanceTrackPlayInputType) {
+    // Create a Flux query for fetching the distance data
+    let startDate = new Date(payload.startDate);
+    let endDate = new Date(payload.endDate);
+
+    // Validate and swap if necessary
+    if (startDate > endDate) {
+      // Swap the dates
+      [startDate, endDate] = [endDate, startDate];
+    }
+
+    const fluxQuery = `
+      from(bucket: "${payload.accountId}")
+         |> range(start: ${startDate.toISOString()}, stop: ${endDate.toISOString()})
+         |> filter(fn: (r) => r["_measurement"] == "track")
+         |> filter(fn: (r) => r["imei"] == "${payload.imei}")
+         |> filter(fn: (r) => r["_field"] == "speed" or r["_field"] == "latitude" or r["_field"] == "longitude" or r["_field"] == "bearing")
+         |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+    `;
+
+    const rowData = [];
+
+    for await (const { values } of this.influxDbService.executeQuery(
+      fluxQuery
+    )) {
+      const [t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10] = values;
+      rowData.push({
+        time: t2,
+        imei: t6,
+        latitude: t8,
+        longitude: t9,
+        bearing: t7,
+        speed: t10,
+      });
+    }
+
+    return rowData;
   }
 }
