@@ -25,7 +25,6 @@ import { InfluxdbService } from '@imz/influx-db/influx-db-.service';
 import * as async from 'async';
 import { DeviceLineGraphData } from './dto/response';
 import { convertUTCToIST } from '@imz/helper/generateotp';
-import { DeviceStatus } from '@imz/helper/comman/influx-db/response';
 
 @Injectable()
 export class DeviceOnboardingService {
@@ -49,8 +48,13 @@ export class DeviceOnboardingService {
     return tenantConnection.model(modelName, schema);
   }
 
-  async findAll(input: DeviceOnboardingFetchInput) {
+  async findAll(input: DeviceOnboardingFetchInput, loggedInUser: any) {
     try {
+      // Fetch the logged-in user object
+      const getUser = await this.UserModel.fetchUserByUserId(
+        loggedInUser?.userId?.toString()
+      );
+
       let deviceOnboardingModel;
 
       if (input.accountId) {
@@ -59,22 +63,49 @@ export class DeviceOnboardingService {
           DeviceOnboarding.name,
           DeviceOnboardingSchema
         );
+
+        // Extract the IMEI list from the user
+        const imeiList = getUser[0].imeiList;
+
+        // Create the filter based on imeiList if accountId is provided
+        let filter = {};
+        if (imeiList && imeiList.length > 0) {
+          filter = { deviceOnboardingIMEINumber: { $in: imeiList } };
+        }
+
+        // Query the database with the filter and pagination
+        const { page, limit } = input;
+        const skip = this.calculateSkip(Number(page), Number(limit));
+
+        const records = await deviceOnboardingModel
+          .find(filter)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(Number(limit))
+          .exec();
+
+        // Count the total number of filtered records
+        const count = await deviceOnboardingModel.countDocuments(filter).exec();
+
+        return { records, count };
       } else {
+        // If no accountId is provided, use the default model without the filter
         deviceOnboardingModel = this.DeviceOnboardingCopyModel;
+
+        const { page, limit } = input;
+        const skip = this.calculateSkip(Number(page), Number(limit));
+
+        const records = await deviceOnboardingModel
+          .find({})
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(Number(limit))
+          .exec();
+
+        const count = await deviceOnboardingModel.countDocuments().exec();
+
+        return { records, count };
       }
-
-      const { page, limit } = input;
-      const skip = this.calculateSkip(Number(page), Number(limit));
-
-      const records = await deviceOnboardingModel
-        .find()
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(Number(limit))
-        .exec();
-
-      const count = await deviceOnboardingModel.countDocuments().exec();
-      return { records, count };
     } catch (error) {
       throw new InternalServerErrorException(
         `FindAll operation failed: ${error.message}`
@@ -211,15 +242,61 @@ export class DeviceOnboardingService {
   }
 
   async getOfflineGraphData(
-    input: DeviceOnboardingAccountIdInput
+    input: DeviceOnboardingAccountIdInput,
+    loggedInUser: any
   ): Promise<any> {
     try {
+      // Fetch the logged-in user object
+      const getUser = await this.UserModel.fetchUserByUserId(
+        loggedInUser?.userId?.toString()
+      );
+
+      // Check the admin flags
+      const isAccountAdmin = getUser[0]?.isAccountAdmin || false;
+      const isSuperAdmin = getUser[0]?.isSuperAdmin || false;
+
+      let filter = {};
+
+      // Apply IMEI filtering only if neither flag is true
+      if (!isAccountAdmin && !isSuperAdmin) {
+        let imeiList = getUser[0]?.imeiList || [];
+
+        // If imeiList is empty, extract IMEIs from the user's deviceGroup
+        if (!imeiList.length && getUser[0]?.deviceGroup?.length) {
+          imeiList = getUser[0].deviceGroup.reduce(
+            (acc: string[], group: any) => {
+              if (group.imeiData && group.imeiData.length) {
+                acc = acc.concat(group.imeiData);
+              }
+              return acc;
+            },
+            []
+          );
+        }
+
+        // Apply the filter if there are IMEIs to filter by
+        if (imeiList.length > 0) {
+          filter = { deviceOnboardingIMEINumber: { $in: imeiList } };
+        } else {
+          // If there are still no IMEIs, return an empty result
+          return {
+            series: [0, 0, 0, 0],
+            labels: [
+              'Since 1 hour',
+              'since 3 hour',
+              'Disconnected',
+              'Never Connected',
+            ],
+          };
+        }
+      }
+
       const deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
         input.accountId,
         DeviceOnboarding.name,
         DeviceOnboardingSchema
       );
-      const devices = await deviceOnboardingModel.find().lean().exec();
+      const devices = await deviceOnboardingModel.find(filter).lean().exec();
 
       const now = new Date();
       const oneHourAgo = new Date(now.getTime() - 1 * 60 * 60 * 1000);
@@ -252,7 +329,7 @@ export class DeviceOnboardingService {
           batch.map(async (device) => {
             const imei = device.deviceOnboardingIMEINumber;
             const fluxQuery = `
-              from(bucket: "IMZ113343")
+              from(bucket: "${input.accountId}")
                 |> range(start: 0, stop: now()) // Check data for the last 30 days to ensure we get the last reported time
                 |> filter(fn: (r) => r["_measurement"] == "track")
                 |> filter(fn: (r) => r["imei"] == "${imei}")
@@ -302,11 +379,16 @@ export class DeviceOnboardingService {
       return {
         series: [
           oneHourOfflineCount,
-          threeHoursOfflineCount + twoHoursOfflineCount,
+          threeHoursOfflineCount,
           disconnectedCount,
           neverConnectedCount,
         ],
-        labels: ['Since 1 hour', 'since 3 hour', 'Disconnected', 'Malfunction'],
+        labels: [
+          'Since 1 hour',
+          'since 3 hour',
+          'Disconnected',
+          'Never Connected',
+        ],
       };
     } catch (error: any) {
       throw new BadRequestException(error.message);
@@ -314,15 +396,55 @@ export class DeviceOnboardingService {
   }
 
   async getOnlineGraphData(
-    input: DeviceOnboardingAccountIdInput
+    input: DeviceOnboardingAccountIdInput,
+    loggedInUser: any
   ): Promise<{ series: number[]; labels: string[] }> {
     try {
+      const getUser = await this.UserModel.fetchUserByUserId(
+        loggedInUser?.userId?.toString()
+      );
+
+      // Check the admin flags
+      const isAccountAdmin = getUser[0]?.isAccountAdmin || false;
+      const isSuperAdmin = getUser[0]?.isSuperAdmin || false;
+
+      let filter = {};
+
+      // Apply IMEI filtering only if neither flag is true
+      if (!isAccountAdmin && !isSuperAdmin) {
+        let imeiList = getUser[0]?.imeiList || [];
+
+        // If imeiList is empty, extract IMEIs from the user's deviceGroup
+        if (!imeiList.length && getUser[0]?.deviceGroup?.length) {
+          imeiList = getUser[0].deviceGroup.reduce(
+            (acc: string[], group: any) => {
+              if (group.imeiData && group.imeiData.length) {
+                acc = acc.concat(group.imeiData);
+              }
+              return acc;
+            },
+            []
+          );
+        }
+
+        // Apply the filter if there are IMEIs to filter by
+        if (imeiList.length > 0) {
+          filter = { deviceOnboardingIMEINumber: { $in: imeiList } };
+        } else {
+          // If there are still no IMEIs, return an empty result
+          return {
+            series: [0],
+            labels: ['Online'],
+          };
+        }
+      }
+
       const deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
         input.accountId,
         DeviceOnboarding.name,
         DeviceOnboardingSchema
       );
-      const devices = await deviceOnboardingModel.find().lean().exec();
+      const devices = await deviceOnboardingModel.find(filter).lean().exec();
 
       const now = new Date();
       const oneHourAgo = new Date(
@@ -346,7 +468,7 @@ export class DeviceOnboardingService {
           batch.map(async (device) => {
             const imei = device.deviceOnboardingIMEINumber;
             const fluxQuery = `
-              from(bucket: "IMZ113343")
+             from(bucket: "${input.accountId}")
                 |> range(start: ${oneHourAgo}) // Checking data from the last 1 hour
                 |> filter(fn: (r) => r["_measurement"] == "track")
                 |> filter(fn: (r) => r["imei"] == "${imei}")
@@ -395,16 +517,67 @@ export class DeviceOnboardingService {
   }
 
   async getHourlyOnlineOfflineData(
-    input: DeviceOnboardingAccountIdInput
+    input: DeviceOnboardingAccountIdInput,
+    loggedInUser: any
   ): Promise<DeviceLineGraphData> {
     try {
+      // Fetch the logged-in user object
+      const getUser = await this.UserModel.fetchUserByUserId(
+        loggedInUser?.userId?.toString()
+      );
+
+      // Check the admin flags
+      const isAccountAdmin = getUser[0]?.isAccountAdmin || false;
+      const isSuperAdmin = getUser[0]?.isSuperAdmin || false;
+
+      let filter = {};
+
+      // Apply IMEI filtering only if neither flag is true
+      if (!isAccountAdmin && !isSuperAdmin) {
+        let imeiList = getUser[0]?.imeiList || [];
+
+        // If imeiList is empty, extract IMEIs from the user's deviceGroup
+        if (!imeiList.length && getUser[0]?.deviceGroup?.length) {
+          imeiList = getUser[0].deviceGroup.reduce(
+            (acc: string[], group: any) => {
+              if (group.imeiData && group.imeiData.length) {
+                acc = acc.concat(group.imeiData);
+              }
+              return acc;
+            },
+            []
+          );
+        }
+
+        // Apply the filter if there are IMEIs to filter by
+        if (imeiList.length > 0) {
+          filter = { deviceOnboardingIMEINumber: { $in: imeiList } };
+        } else {
+          // If there are still no IMEIs, return an empty result
+          return {
+            xaxis: { categories: [] },
+            series: [
+              { name: 'Online', data: [] },
+              { name: 'Offline', data: [] },
+            ],
+          };
+        }
+      }
+
+      // Fetch devices from the device onboarding model
       const deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
         input.accountId,
         DeviceOnboarding.name,
         DeviceOnboardingSchema
       );
-      const devices = await deviceOnboardingModel.find().lean().exec();
+      const devices = await deviceOnboardingModel.find(filter).lean().exec();
 
+      // Extract the IMEI numbers from the devices
+      const deviceImeiList = devices.map(
+        (device) => device.deviceOnboardingIMEINumber
+      );
+
+      // Set up date and hour information
       const now = new Date();
       const currentHour = now.getHours();
       const categories = Array.from({ length: currentHour + 1 }, (_, i) =>
@@ -414,7 +587,7 @@ export class DeviceOnboardingService {
       const onlineCounts = Array(currentHour + 1).fill(0);
       const offlineCounts = Array(currentHour + 1).fill(0);
 
-      // Check for each hour in the last few hours
+      // Iterate over each hour to check device status
       for (let i = 0; i <= currentHour; i++) {
         const hourStartUTC = new Date(
           now.getTime() - (i + 1) * 60 * 60 * 1000
@@ -425,10 +598,14 @@ export class DeviceOnboardingService {
         const hourStartIST = convertUTCToIST(hourStartUTC);
         const hourEndIST = convertUTCToIST(hourEndUTC);
 
+        // Build the InfluxDB query
         const fluxQuery = `
-          from(bucket: "IMZ113343")
+          from(bucket: "${input.accountId}")
             |> range(start: ${hourStartIST}, stop: ${hourEndIST})
             |> filter(fn: (r) => r["_measurement"] == "track")
+            |> filter(fn: (r) => r["imei"] == "${deviceImeiList.join(
+              '" or r["imei"] == "'
+            )}")
             |> keep(columns: ["_time"])
         `;
 
@@ -438,6 +615,7 @@ export class DeviceOnboardingService {
           );
           let hasData = false;
 
+          // Check if any data is returned
           for await (const { values } of queryResults) {
             if (values) {
               hasData = true;
@@ -456,6 +634,7 @@ export class DeviceOnboardingService {
         }
       }
 
+      // Prepare the result
       return {
         xaxis: { categories: categories.reverse() },
         series: [
@@ -474,22 +653,63 @@ export class DeviceOnboardingService {
     }
   }
 
-  async getDeviceOnlineOfflineCounts(input: DeviceOnboardingAccountIdInput) {
+  async getDeviceOnlineOfflineCounts(
+    input: DeviceOnboardingAccountIdInput,
+    loggedInUser: any
+  ) {
     try {
+      const getUser = await this.UserModel.fetchUserByUserId(
+        loggedInUser?.userId?.toString()
+      );
+
+      // Check the admin flags
+      const isAccountAdmin = getUser[0]?.isAccountAdmin || false;
+      const isSuperAdmin = getUser[0]?.isSuperAdmin || false;
+
+      let filter = {};
+
+      // Apply IMEI filtering only if neither flag is true
+      if (!isAccountAdmin && !isSuperAdmin) {
+        let imeiList = getUser[0]?.imeiList || [];
+
+        // If imeiList is empty, extract IMEIs from the user's deviceGroup
+        if (!imeiList.length && getUser[0]?.deviceGroup?.length) {
+          imeiList = getUser[0].deviceGroup.reduce(
+            (acc: string[], group: any) => {
+              if (group.imeiData && group.imeiData.length) {
+                acc = acc.concat(group.imeiData);
+              }
+              return acc;
+            },
+            []
+          );
+        }
+
+        // Apply the filter if there are IMEIs to filter by
+        if (imeiList.length > 0) {
+          filter = { deviceOnboardingIMEINumber: { $in: imeiList } };
+        } else {
+          // If there are still no IMEIs, return an empty result
+          return {
+            totalDeviceCount: 0,
+            online: 0,
+            offline: 0,
+            data: [],
+          };
+        }
+      }
+
       const deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
         input.accountId,
         DeviceOnboarding.name,
         DeviceOnboardingSchema
       );
-      const devices = await deviceOnboardingModel.find().lean().exec();
+      const devices = await deviceOnboardingModel.find(filter).lean().exec();
       const totalDeviceCount = devices.length;
 
       const now = new Date();
       const oneHourAgo = new Date(
         now.getTime() - 1 * 60 * 60 * 1000
-      ).toISOString();
-      const threeHoursAgo = new Date(
-        now.getTime() - 3 * 60 * 60 * 1000
       ).toISOString();
 
       let onlineCount = 0;
@@ -511,7 +731,7 @@ export class DeviceOnboardingService {
           batch.map(async (device) => {
             const imei = device.deviceOnboardingIMEINumber;
             const fluxQuery = `
-              from(bucket: "IMZ113343")
+              from(bucket: "${input.accountId}")
                 |> range(start: ${oneHourAgo}, stop: now())
                 |> filter(fn: (r) => r["_measurement"] == "track")
                 |> filter(fn: (r) => r["imei"] == "${imei}")
@@ -554,7 +774,7 @@ export class DeviceOnboardingService {
               } else {
                 // Additional query to get the last available data packet if no data is found in the last one hour
                 const lastPacketQuery = `
-                from(bucket: "IMZ113343")
+                from(bucket: "${input.accountId}")
                   |> range(start: 0, stop: now())
                   |> filter(fn: (r) => r["_measurement"] == "track")
                   |> filter(fn: (r) => r["imei"] == "${imei}")
@@ -873,8 +1093,16 @@ export class DeviceOnboardingService {
 
     return Array.from(uniqueImeis);
   }
-  async findAllWithLocation(input: DeviceOnboardingFetchInput) {
+  async findAllWithLocation(
+    input: DeviceOnboardingFetchInput,
+    loggedInUser: any
+  ) {
     try {
+      // Fetch the logged-in user object
+      const getUser = await this.UserModel.fetchUserByUserId(
+        loggedInUser?.userId?.toString()
+      );
+
       let deviceOnboardingModel;
 
       if (input.accountId) {
@@ -886,11 +1114,20 @@ export class DeviceOnboardingService {
       } else {
         deviceOnboardingModel = this.DeviceOnboardingCopyModel;
       }
-
+      const imeiList = getUser[0].imeiList;
       const { page, limit, location } = input;
       const skip = this.calculateSkip(Number(page), Number(limit));
 
-      const query = location ? { location } : {};
+      // Create the query object
+      const query: any = {};
+
+      if (location) {
+        query.location = location;
+      }
+
+      if (imeiList && imeiList.length > 0) {
+        query.deviceOnboardingIMEINumber = { $in: imeiList };
+      }
 
       const records = await deviceOnboardingModel
         .find(query)

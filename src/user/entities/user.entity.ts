@@ -68,6 +68,16 @@ export class User {
   @Column()
   active: boolean;
 
+  @Field({ nullable: true, defaultValue: false })
+  @Prop()
+  @Column()
+  isAccountAdmin: boolean;
+
+  @Field({ nullable: true, defaultValue: false })
+  @Prop()
+  @Column()
+  isSuperAdmin: boolean;
+
   @Field()
   @Prop()
   @Column()

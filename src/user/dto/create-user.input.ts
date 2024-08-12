@@ -29,6 +29,12 @@ export class CreateUserInput {
   @Field({ nullable: true, defaultValue: true })
   emailVerified?: boolean;
 
+  @Field({ nullable: true, defaultValue: false })
+  isAccountAdmin?: boolean;
+
+  @Field({ nullable: true, defaultValue: false })
+  isSuperAdmin?: boolean;
+
   @Field({ nullable: true, defaultValue: true })
   mobileVerified?: boolean;
 

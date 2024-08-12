@@ -1,6 +1,6 @@
 import { AuthGuard } from '@imz/user/guard';
 import { InternalServerErrorException, UseGuards } from '@nestjs/common';
-import { Args, Mutation, Resolver } from '@nestjs/graphql';
+import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
 import { DeviceGroupService } from './device-group.service';
 import {
   CreateDeviceGroupInput,
@@ -32,9 +32,18 @@ export class DeviceGroupResolver {
 
   @UseGuards(new AuthGuard())
   @Mutation(() => DeviceGroupResponse)
-  async fetchDeviceGroup(@Args('input') input: DeviceGroupInput) {
+  async fetchDeviceGroup(
+    @Args('input') input: DeviceGroupInput,
+    @Context() context
+  ) {
     try {
-      const { count, records } = await this.deviceGroupService.findAll(input);
+      const loggedInUser = {
+        userId: context?.user?._id,
+      };
+      const { count, records } = await this.deviceGroupService.findAll(
+        input,
+        loggedInUser
+      );
       const success = records.length > 0 ? 1 : 0;
       return {
         paginatorInfo: {

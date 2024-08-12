@@ -12,11 +12,13 @@ import {
   SearchDeviceGroupInput,
 } from './dto/create-device-group.input';
 import { UpdateDeviceGroupInput } from './dto/update-device-group.input';
+import { UserService } from '@imz/user/user.service';
 
 export class DeviceGroupService {
   constructor(
     @InjectConnection()
-    private connection: Connection
+    private connection: Connection,
+    private userService: UserService
   ) {}
 
   async getTenantModel<T>(
@@ -63,8 +65,34 @@ export class DeviceGroupService {
     }
   }
 
-  async findAll(input: DeviceGroupInput) {
+  async findAll(input: DeviceGroupInput, loggedInUser: any) {
     try {
+      // Fetch the logged-in user object
+      const getUser = await this.userService.fetchUserByUserId(
+        loggedInUser?.userId?.toString()
+      );
+
+      // Check the admin flags
+      const isAccountAdmin = getUser[0]?.isAccountAdmin || false;
+      const isSuperAdmin = getUser[0]?.isSuperAdmin || false;
+
+      let filter = {};
+
+      // Only apply the filter if the user is not an account admin or super admin
+      if (!isAccountAdmin && !isSuperAdmin) {
+        // Extract device group IDs from the logged-in user's object
+        const deviceGroupIds = getUser[0]?.deviceGroup?.map((group: any) =>
+          group._id.toString()
+        );
+
+        if (!deviceGroupIds || deviceGroupIds.length === 0) {
+          return { records: [], count: 0 };
+        }
+
+        filter = { _id: { $in: deviceGroupIds } };
+      }
+
+      // Get the tenant model
       const deviceGroupModel = await this.getTenantModel<DeviceGroup>(
         input.accountId,
         DeviceGroup.name,
@@ -72,20 +100,24 @@ export class DeviceGroupService {
       );
 
       if (!deviceGroupModel) {
-        console.warn('Skipping search operation as tenantModel is null');
-        return { records: [], count: 0 }; // return empty results or handle as needed
+        return { records: [], count: 0 };
       }
 
+      // Pagination settings
       const page = Number(input.page) || 1;
       const limit = Number(input.limit) || 10;
       const skip = page === -1 ? 0 : (page - 1) * limit;
+
+      // Query the database with or without the filter
       const records = await deviceGroupModel
-        .find({})
+        .find(filter)
         .skip(skip)
         .limit(limit)
         .lean()
         .exec();
-      const count = await deviceGroupModel.countDocuments({});
+
+      // Count the total number of records with or without the filter
+      const count = await deviceGroupModel.countDocuments(filter);
 
       return { records, count };
     } catch (error) {

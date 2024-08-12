@@ -1,6 +1,12 @@
 import { AuthGuard } from '@imz/user/guard';
 import { InternalServerErrorException, UseGuards } from '@nestjs/common';
-import { Args, Mutation, Resolver, Subscription } from '@nestjs/graphql';
+import {
+  Args,
+  Context,
+  Mutation,
+  Resolver,
+  Subscription,
+} from '@nestjs/graphql';
 import {
   AlertInput,
   AlertReportInputType,
@@ -91,10 +97,17 @@ export class AlertResolver {
 
   @UseGuards(new AuthGuard())
   @Mutation(() => AlertReport)
-  async getAlertData(@Args('input') input: AlertReportInputType) {
+  async getAlertData(
+    @Args('input') input: AlertReportInputType,
+    @Context() context
+  ) {
     try {
+      const loggedInUser = {
+        userId: context?.user?._id,
+      };
       const { rowData, totalCount } = await this.alertService.fetchAlertReport(
-        input
+        input,
+        loggedInUser
       );
       return {
         totalCount,
@@ -105,11 +118,20 @@ export class AlertResolver {
     }
   }
 
-  // @UseGuards(new AuthGuard())
+  @UseGuards(new AuthGuard())
   @Mutation(() => [DistanceReportResponse])
-  async getDistanceReportData(@Args('input') input: DistanceReportInputType) {
+  async getDistanceReportData(
+    @Args('input') input: DistanceReportInputType,
+    @Context() context
+  ) {
+    const loggedInUser = {
+      userId: context?.user?._id,
+    };
     try {
-      const record = await this.alertService.distanceReport(input);
+      const record = await this.alertService.distanceReport(
+        input,
+        loggedInUser
+      );
       return record;
     } catch (error) {
       throw new InternalServerErrorException(error.message);

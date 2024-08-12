@@ -75,6 +75,8 @@ type User {
   deviceGroup: JSON
   imeiList: [String!]
   active: Boolean!
+  isAccountAdmin: Boolean
+  isSuperAdmin: Boolean
   createdBy: String!
   createdAt: DateTime
   updatedAt: DateTime
@@ -496,6 +498,17 @@ type BatteryResponse {
   message: String
 }
 
+type TripMetricsResponseWrapper {
+  success: Float!
+  message: String!
+  data: [TripMetricsResponse!]!
+}
+
+type TripMetricsResponse {
+  status: String
+  count: Float
+}
+
 type DeviceOnboarding {
   _id: String!
   location: String
@@ -607,33 +620,6 @@ type DeviceSimHistory {
   toDate: DateTime
   createdBy: String
   updatedBy: String
-}
-
-type AlertResponseType {
-  event: String
-  lat: String
-  imei: String
-  label: String
-  lng: String
-  mode: String
-  source: String
-  message: String
-  time: String
-}
-
-type DeviceStatusResponse {
-  time: String!
-  imei: String!
-  label: String!
-  lat: String!
-  lng: String!
-  status: String!
-}
-
-type CoordinatesTypeResponse {
-  latitude: String
-  longitude: String
-  time: String
 }
 
 type DeviceOnboardingHistoryResponse {
@@ -870,6 +856,8 @@ input CreateUserInput {
   avatar: String
   active: Boolean = false
   emailVerified: Boolean = true
+  isAccountAdmin: Boolean = false
+  isSuperAdmin: Boolean = false
   mobileVerified: Boolean = true
   accountId: String
   deviceGroup: JSON
@@ -957,6 +945,7 @@ type Mutation {
   fetchAccountModuleList(input: AccountInput!): AccountResponse!
   createTripType(input: CreateTripTypeInput!): TripTypeResponse!
   tripTypeList(input: TripTypeInput!): TripTypeResponse!
+  getTripType: TripResponse!
   searchTripType(input: SearchTripTypeInput!): TripTypeResponse!
   updateTripType(input: UpdateTripTypeInput!): TripTypeResponse!
   createTrip(input: CreateTripInput!): TripResponse!
@@ -965,6 +954,7 @@ type Mutation {
   fetchTripById(input: TripIDInput!): TripResponse!
   updateTrip(input: UpdateTripInput!): TripResponse!
   checkBattery(input: BatteryCheckInput!): BatteryResponse!
+  getTripStatusMetrics(input: TripInput!): TripMetricsResponseWrapper!
   filterRecordAccountId(input: DeviceOnboardingAccountIdInput!): DeviceOnboardingResponse!
   createDeviceOnboarding(input: DeviceOnboardingInput!): DeviceOnboardingResponse!
   fetchDeviceOnboardingList(input: DeviceOnboardingFetchInput!): DeviceOnboardingResponse!
@@ -1043,6 +1033,8 @@ input UpdateUserInput {
   avatar: String
   active: Boolean = false
   emailVerified: Boolean = true
+  isAccountAdmin: Boolean = false
+  isSuperAdmin: Boolean = false
   mobileVerified: Boolean = true
   accountId: String
   deviceGroup: JSON

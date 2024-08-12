@@ -19,18 +19,16 @@ import { MqttClient } from 'mqtt';
 import { PubSub } from 'graphql-subscriptions';
 import axios from 'axios';
 import { InfluxdbService } from '@imz/influx-db/influx-db-.service';
+import { UserService } from '@imz/user/user.service';
 
 @Injectable()
 export class AlertService {
-  private mqttClient: MqttClient;
-  private pubSub: PubSub = new PubSub();
-  private logger = new Logger('AlertService');
-
   constructor(
     @InjectConnection()
     private connection: Connection,
     private readonly redisService: RedisService,
-    private influxDbService: InfluxdbService
+    private influxDbService: InfluxdbService,
+    private userService: UserService
   ) {}
 
   async sendOtp(mobileNumber: any, message: string) {
@@ -256,31 +254,82 @@ export class AlertService {
     }
   }
 
-  async fetchAlertReport(payload: AlertReportInputType) {
+  async fetchAlertReport(payload: AlertReportInputType, loggedInUser: any) {
+    // Fetch the logged-in user object
+    const getUser = await this.userService.fetchUserByUserId(
+      loggedInUser?.userId?.toString()
+    );
+
+    // Check the admin flags
+    const isAccountAdmin = getUser[0]?.isAccountAdmin || false;
+    const isSuperAdmin = getUser[0]?.isSuperAdmin || false;
+
+    let imeiList: string[] = [];
+
+    // Only apply IMEI filtering if the user is not an account admin or super admin
+    if (!isAccountAdmin && !isSuperAdmin) {
+      imeiList = getUser[0]?.imeiList || [];
+
+      // If imeiList is empty, extract IMEIs from the user's deviceGroup
+      if (!imeiList.length && getUser[0]?.deviceGroup?.length) {
+        imeiList = getUser[0].deviceGroup.reduce(
+          (acc: string[], group: any) => {
+            if (group.imeiData && group.imeiData.length) {
+              acc = acc.concat(group.imeiData);
+            }
+            return acc;
+          },
+          []
+        );
+      }
+
+      // If there are still no IMEIs associated with the user, return an empty result
+      if (!imeiList.length) {
+        return { rowData: [], totalCount: 0 };
+      }
+    }
+
     const page = Number(payload.page);
     const limit = Number(payload.limit);
     const skip = page === -1 ? 0 : (page - 1) * limit;
 
+    // Create a Flux query for counting the total number of matching records
     const countQuery = `
     from(bucket: "${payload.accountId}")
       |> range(start: ${payload.startDate}, stop: ${payload.endDate})
       |> filter(fn: (r) => r["_measurement"] == "alert")
+      ${
+        !isAccountAdmin && !isSuperAdmin && imeiList.length
+          ? `|> filter(fn: (r) => r["imei"] == "${imeiList.join(
+              '" or r["imei"] == "'
+            )}" )`
+          : ''
+      }
       |> count()
   `;
     const countResponse: any = await this.influxDbService.countQuery(
       countQuery
     );
-    const totalCount = countResponse[0]._value;
+    const totalCount = countResponse[0]?._value || 0;
 
+    // Create a Flux query for fetching the alert data
     const query = `
-      from(bucket: "${payload.accountId}")
-        |> range(start: ${payload.startDate}, stop: ${payload.endDate})
-        |> filter(fn: (r) => r["_measurement"] == "alert")
-        |> filter(fn: (r) => r["_field"] == "imei" or r["_field"] == "latitude" or r["_field"] == "longitude" or r["_field"] == "alertMessage" or r["_field"] == "accountId" or r["_field"] == "label")
-        |> sort(columns:["_time"], desc: true)
-        |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
-        |> limit(n: ${payload.limit}, offset: ${skip})
-    `;
+    from(bucket: "${payload.accountId}")
+      |> range(start: ${payload.startDate}, stop: ${payload.endDate})
+      |> filter(fn: (r) => r["_measurement"] == "alert")
+      ${
+        !isAccountAdmin && !isSuperAdmin && imeiList.length
+          ? `|> filter(fn: (r) => r["imei"] == "${imeiList.join(
+              '" or r["imei"] == "'
+            )}" )`
+          : ''
+      }
+      |> filter(fn: (r) => r["_field"] == "latitude" or r["_field"] == "longitude" or r["_field"] == "alertMessage" or r["_field"] == "accountId" or r["_field"] == "label")
+      |> sort(columns:["_time"], desc: true)
+      |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+      |> limit(n: ${payload.limit}, offset: ${skip})
+  `;
+
     const rowData = [];
     for await (const { values } of this.influxDbService.executeQuery(query)) {
       const [t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10] = values;
@@ -298,21 +347,62 @@ export class AlertService {
     return { rowData, totalCount };
   }
 
-  async distanceReport(payload: DistanceReportInputType) {
-    const fluxQuery = `
-    from(bucket: "${payload.accountId}")
-      |> range(start: ${payload.startDate}, stop: ${payload.endDate})
-      |> filter(fn: (r) => r["_measurement"] == "track")
-      |> filter(fn: (r) => r["_field"] == "latitude" or r["_field"] == "longitude" or r["_field"] == "imei")
-      |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
-     `;
+  async distanceReport(payload: DistanceReportInputType, loggedInUser: any) {
+    // Fetch the logged-in user object
+    const getUser = await this.userService.fetchUserByUserId(
+      loggedInUser?.userId?.toString()
+    );
 
-    const data = {};
+    // Check the admin flags
+    const isAccountAdmin = getUser[0]?.isAccountAdmin || false;
+    const isSuperAdmin = getUser[0]?.isSuperAdmin || false;
+
+    let imeiList: string[] = [];
+
+    // Only apply IMEI filtering if the user is not an account admin or super admin
+    if (!isAccountAdmin && !isSuperAdmin) {
+      imeiList = getUser[0]?.imeiList || [];
+
+      // If imeiList is empty, extract IMEIs from the user's deviceGroup
+      if (!imeiList.length && getUser[0]?.deviceGroup?.length) {
+        imeiList = getUser[0].deviceGroup.reduce(
+          (acc: string[], group: any) => {
+            if (group.imeiData && group.imeiData.length) {
+              acc = acc.concat(group.imeiData);
+            }
+            return acc;
+          },
+          []
+        );
+      }
+
+      // If there are still no IMEIs associated with the user, return an empty result
+      if (!imeiList.length) {
+        return [];
+      }
+    }
+
+    // Create a Flux query for fetching the distance data
+    const fluxQuery = `
+      from(bucket: "${payload.accountId}")
+        |> range(start: ${payload.startDate}, stop: ${payload.endDate})
+        |> filter(fn: (r) => r["_measurement"] == "track")
+        ${
+          !isAccountAdmin && !isSuperAdmin && imeiList.length
+            ? `|> filter(fn: (r) => r["imei"] == "${imeiList.join(
+                '" or r["imei"] == "'
+              )}" )`
+            : ''
+        }
+        |> filter(fn: (r) => r["_field"] == "latitude" or r["_field"] == "longitude" or r["_field"] == "imei")
+        |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+    `;
+
+    const data: { [key: string]: { imei: string; coordinates: any[] } } = {};
 
     for await (const { values } of this.influxDbService.executeQuery(
       fluxQuery
     )) {
-      // console.log(values);
       const [t0, t1, t2, t3, t4, t5, imei, lat, long] = values;
 
       if (!data[imei]) {

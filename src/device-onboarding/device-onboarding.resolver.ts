@@ -62,11 +62,16 @@ export class DeviceOnboardingResolver {
   @UseGuards(new AuthGuard())
   @Mutation(() => DeviceOnboardingResponse)
   async fetchDeviceOnboardingList(
-    @Args('input') input: DeviceOnboardingFetchInput
+    @Args('input') input: DeviceOnboardingFetchInput,
+    @Context() context
   ) {
     try {
+      const loggedInUser = {
+        userId: context?.user?._id,
+      };
       const { records, count } = await this.deviceOnboardingService.findAll(
-        input
+        input,
+        loggedInUser
       );
       return {
         paginatorInfo: {
@@ -158,15 +163,21 @@ export class DeviceOnboardingResolver {
     }
   }
 
-  // @UseGuards(new AuthGuard())
+  @UseGuards(new AuthGuard())
   @Mutation(() => DeviceOfflineGraphData)
   async offlineDeviceGraph(
     @Args('input')
-    input: DeviceOnboardingAccountIdInput
+    input: DeviceOnboardingAccountIdInput,
+    @Context() context
   ) {
     try {
+      const loggedInUser = {
+        userId: context?.user?._id,
+      };
+
       const record = await this.deviceOnboardingService.getOfflineGraphData(
-        input
+        input,
+        loggedInUser
       );
       return {
         success: 1,
@@ -178,15 +189,20 @@ export class DeviceOnboardingResolver {
     }
   }
 
-  // @UseGuards(new AuthGuard())
+  @UseGuards(new AuthGuard())
   @Mutation(() => DeviceOfflineGraphData)
   async onlineDeviceGraph(
     @Args('input')
-    input: DeviceOnboardingAccountIdInput
+    input: DeviceOnboardingAccountIdInput,
+    @Context() context
   ) {
     try {
+      const loggedInUser = {
+        userId: context?.user?._id,
+      };
       const record = await this.deviceOnboardingService.getOnlineGraphData(
-        input
+        input,
+        loggedInUser
       );
       return {
         success: 1,
@@ -198,15 +214,22 @@ export class DeviceOnboardingResolver {
     }
   }
 
-  // @UseGuards(new AuthGuard())
+  @UseGuards(new AuthGuard())
   @Mutation(() => DeviceLineGraphData)
   async lineGraphDeviceData(
     @Args('input')
-    input: DeviceOnboardingAccountIdInput
+    input: DeviceOnboardingAccountIdInput,
+    @Context() context
   ): Promise<DeviceLineGraphData> {
     try {
+      const loggedInUser = {
+        userId: context?.user?._id,
+      };
       const record =
-        await this.deviceOnboardingService.getHourlyOnlineOfflineData(input);
+        await this.deviceOnboardingService.getHourlyOnlineOfflineData(
+          input,
+          loggedInUser
+        );
       return {
         xaxis: record.xaxis,
         series: record.series,
@@ -216,6 +239,7 @@ export class DeviceOnboardingResolver {
     }
   }
 
+  @UseGuards(new AuthGuard())
   @Mutation(() => DeviceLineGraphData)
   async batteryGraphDataData(
     @Args('input')
@@ -233,6 +257,7 @@ export class DeviceOnboardingResolver {
     }
   }
 
+  @UseGuards(new AuthGuard())
   @Mutation(() => DeviceLineGraphData)
   async speedGraphData(
     @Args('input')
@@ -249,15 +274,22 @@ export class DeviceOnboardingResolver {
     }
   }
 
-  // @UseGuards(new AuthGuard())
+  @UseGuards(new AuthGuard())
   @Mutation(() => DeviceOnlineOfflineCount)
   async getOnlineOfflineCount(
     @Args('input')
-    input: DeviceOnboardingAccountIdInput
+    input: DeviceOnboardingAccountIdInput,
+    @Context() context
   ): Promise<DeviceOnlineOfflineCount> {
     try {
+      const loggedInUser = {
+        userId: context?.user?._id,
+      };
       const record =
-        await this.deviceOnboardingService.getDeviceOnlineOfflineCounts(input);
+        await this.deviceOnboardingService.getDeviceOnlineOfflineCounts(
+          input,
+          loggedInUser
+        );
       return {
         totalDeviceCount: record.totalDeviceCount,
         online: record.online,
@@ -269,10 +301,11 @@ export class DeviceOnboardingResolver {
     }
   }
 
-  // @UseGuards(new AuthGuard())
+  @UseGuards(new AuthGuard())
   @Mutation(() => ImeiListResponse)
   async getImeiList(
-    @Args('input') input: DeviceOnboardingAccountIdInput
+    @Args('input') input: DeviceOnboardingAccountIdInput,
+    @Context() context
   ): Promise<ImeiListResponse> {
     try {
       const imeiList = await this.deviceOnboardingService.getImeiList(input);
@@ -289,11 +322,18 @@ export class DeviceOnboardingResolver {
   @UseGuards(new AuthGuard())
   @Mutation(() => DeviceOnboardingResponse)
   async fetchDeviceOnboardingListWithLocation(
-    @Args('input') input: DeviceOnboardingFetchInput
+    @Args('input') input: DeviceOnboardingFetchInput,
+    @Context() context
   ) {
     try {
+      const loggedInUser = {
+        userId: context?.user?._id,
+      };
       const { records, count } =
-        await this.deviceOnboardingService.findAllWithLocation(input);
+        await this.deviceOnboardingService.findAllWithLocation(
+          input,
+          loggedInUser
+        );
       return {
         paginatorInfo: {
           count: count,

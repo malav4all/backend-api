@@ -23,11 +23,11 @@ import { generateOtp } from '@imz/helper/generateotp';
 @Injectable()
 export class UserService {
   constructor(
-    @Inject(REQUEST) private readonly request: Request,
     @InjectModel(User.name)
-    private UserModel: Model<UserDocument>
+    private UserModel: Model<UserDocument>,
+    @Inject(REQUEST) private readonly request: Request
   ) {}
-  otpStorage: Record<string, { otp: string; timestamp: number }> = {};
+
   logger = new Logger('UserService');
 
   async findAll(input: UserInput) {
@@ -176,8 +176,7 @@ export class UserService {
 
   async login(payload: LoginUserInput) {
     const inputUser: any = payload;
-    console.log('asdfhk');
-    console.log({ inputUser });
+
     try {
       const user = await this.UserModel.aggregate([
         {
@@ -638,6 +637,15 @@ export class UserService {
     try {
       const { accountId } = payload;
       const user = await this.UserModel.find({ accountId }).lean().exec();
+      return user;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async fetchUserByUserId(id: any): Promise<any> {
+    try {
+      const user = await this.UserModel.find({ _id: id }).lean().exec();
       return user;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
