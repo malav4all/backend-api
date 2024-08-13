@@ -13,6 +13,7 @@ import { UpdateAccountInput } from './dto/update.account-module';
 import { TenantsService } from '@imz/tenants/tenants.service';
 import { generateShortUuid, generateUniqueID } from '@imz/helper/generateotp';
 import { InfluxdbService } from '@imz/influx-db/influx-db-.service';
+import { UserService } from '@imz/user/user.service';
 
 @Injectable()
 export class AccountService {
@@ -21,22 +22,49 @@ export class AccountService {
     private AccountModel: Model<AccountDocument>,
     @InjectModel(Role.name) private RoleModel: Model<RoleDocument>,
     private tenantService: TenantsService,
-    private influxDbService: InfluxdbService
+    private influxDbService: InfluxdbService,
+    private userService: UserService
   ) {}
 
-  async findAll(input: AccountInput, { accountId }) {
+  async findAll(input: AccountInput, loggedInUser: any) {
     try {
+      // Fetch the logged-in user information
+      const getUser = await this.userService.fetchUserByUserId(
+        loggedInUser.userId?.toString()
+      );
+      const user = getUser[0];
+      const isSuperAdmin = user?.isSuperAdmin || false;
+      const isAccountAdmin = user?.isAccountAdmin || false;
+      const accountId = user?.accountId; // The accountId of the logged-in user
+
+      // Determine the filter based on the user's role
+      let filter = {};
+
+      if (isSuperAdmin) {
+        // No filter applied, Super Admin can see all accounts
+        filter = {};
+      } else if (isAccountAdmin) {
+        // Account Admin can see accounts related to their accountId
+        filter = { accountId: accountId };
+      } else {
+        // Regular users can only see their own account
+        filter = { accountId: accountId };
+      }
+
       const page = Number(input.page);
       const limit = Number(input.limit);
-
       const skip = page === -1 ? 0 : (page - 1) * limit;
-      const records = await this.AccountModel.find({ accountId })
+
+      // Fetch the accounts based on the determined filter
+      const records = await this.AccountModel.find(filter)
         .populate('industryType')
         .skip(skip)
         .limit(limit)
         .lean()
         .exec();
-      const count = await this.AccountModel.count({ accountId }).exec();
+
+      // Count the total number of records based on the same filter
+      const count = await this.AccountModel.countDocuments(filter).exec();
 
       return { count, records };
     } catch (error) {
