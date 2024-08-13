@@ -257,6 +257,9 @@ export class AlertService {
   }
 
   async fetchAlertReport(payload: AlertReportInputType, loggedInUser: any) {
+    if (!payload.accountId) {
+      return { rowData: [], totalCount: 0 };
+    }
     // Fetch the logged-in user object
     const getUser = await this.userService.fetchUserByUserId(
       loggedInUser?.userId?.toString()
@@ -350,6 +353,9 @@ export class AlertService {
   }
 
   async distanceReport(payload: DistanceReportInputType, loggedInUser: any) {
+    if (!payload.accountId) {
+      return [];
+    }
     // Fetch the logged-in user object
     const getUser = await this.userService.fetchUserByUserId(
       loggedInUser?.userId?.toString()
@@ -462,6 +468,10 @@ export class AlertService {
 
   async allDeviceMapView(payload: MapViewInputType, loggedInUser: any) {
     // Fetch the logged-in user object
+    if (!payload.accountId) {
+      return [];
+    }
+
     const getUser = await this.userService.fetchUserByUserId(
       loggedInUser?.userId?.toString()
     );
@@ -532,6 +542,6 @@ export class AlertService {
       });
     }
 
-    return Object.values(data);
+    return data;
   }
 }

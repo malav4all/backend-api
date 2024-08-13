@@ -972,6 +972,7 @@ type Mutation {
   updateTrip(input: UpdateTripInput!): TripResponse!
   checkBattery(input: BatteryCheckInput!): BatteryResponse!
   getTripStatusMetrics(input: TripInput!): TripMetricsResponseWrapper!
+  updateTripStatus(input: TripStatusInput!): TripResponse!
   filterRecordAccountId(input: DeviceOnboardingAccountIdInput!): DeviceOnboardingResponse!
   createDeviceOnboarding(input: DeviceOnboardingInput!): DeviceOnboardingResponse!
   fetchDeviceOnboardingList(input: DeviceOnboardingFetchInput!): DeviceOnboardingResponse!
@@ -1582,6 +1583,12 @@ input BatteryCheckInput {
   accountId: String
   imei: String
   threshold: Int
+}
+
+input TripStatusInput {
+  accountId: String
+  status: String
+  tripId: String
 }
 
 input DeviceOnboardingAccountIdInput {
