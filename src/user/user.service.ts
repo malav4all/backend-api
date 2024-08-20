@@ -64,7 +64,7 @@ export class UserService {
         matchFilter = { accountId: accountId };
       } else {
         // Regular users only see their own data
-        matchFilter = { _id: user._id.toString() };
+        matchFilter = { _id: user._id };
       }
 
       const pipeline = [
