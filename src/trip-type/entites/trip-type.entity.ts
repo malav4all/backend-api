@@ -35,7 +35,7 @@ export class TripType {
   @Field()
   @Prop({ text: true })
   @Column()
-  gstPercentage: number;
+  gstPercentage: string;
 
   @Column()
   @Field(() => GraphQLJSON, { nullable: true })

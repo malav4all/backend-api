@@ -746,7 +746,7 @@ type TripType {
   tripName: String
   minBatteryPercentage: Float!
   tripRate: Float!
-  gstPercentage: Float!
+  gstPercentage: String!
   disableField: JSON
   filtrationFelid: JSON
   createdBy: String!
