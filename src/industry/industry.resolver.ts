@@ -19,6 +19,7 @@ import {
 } from './dto/create-industry.input';
 import { IndustryService } from './industry.service';
 import { Any } from 'typeorm';
+import { UpdateIndustryInput } from './dto/update-industry.input';
 
 @Resolver(() => IndustryResponse)
 export class IndustryResolver {
@@ -127,6 +128,22 @@ export class IndustryResolver {
         success: record ? 1 : 0,
         message: record ? 'Record exists.' : 'Record not exists.',
         data: record,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @UseGuards(new AuthGuard())
+  @Mutation(() => IndustryResponse)
+  async updateIndustry(@Args('input') input: UpdateIndustryInput) {
+    try {
+      const record = await this.industryService.update(input);
+      return {
+        success: record ? 1 : 0,
+        message: record
+          ? 'Records update successfully.'
+          : 'Technical issue please try again.',
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);

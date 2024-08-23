@@ -11,8 +11,6 @@ export class CreateIndustryInput {
 
   @Field({ nullable: true })
   description: string;
-  // @Field({ nullable: true })
-  // file: Upload;
 }
 
 @InputType()

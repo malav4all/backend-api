@@ -944,9 +944,10 @@ type Mutation {
   searchIndustry(input: SearchIndustryInput!): IndustryResponse!
   checkIndustryExistsRecord(input: checkExitIndustryInput!): IndustryResponse!
   fetchIndustryName(input: fetchIndustryNameCodeInput!): IndustryCodeResponse!
+  updateIndustry(input: UpdateIndustryInput!): IndustryResponse!
   createCustomerModule(input: CreateCustomerModuleInput!): CustomerModuleResponse!
   customerModuleListAll(input: CustomerModuleInput!): CustomerModuleResponse!
-  updateRole(input: UpdateCustomerModuleInput!): CustomerModuleResponse!
+  updateCustomerModule(input: UpdateCustomerModuleInput!): CustomerModuleResponse!
   searchCustomerModule(input: SearchInput!): CustomerModuleResponse!
   checkCustomerModuleExistsRecord(input: CustomerModuleExitsInput!): CustomerModuleResponse!
   createRole(input: CreateRoleInput!): RoleResponse!
@@ -1347,6 +1348,13 @@ input checkExitIndustryInput {
 
 input fetchIndustryNameCodeInput {
   _id: String
+}
+
+input UpdateIndustryInput {
+  name: String
+  code: [String!]
+  description: String
+  _id: String!
 }
 
 input CreateCustomerModuleInput {

@@ -152,10 +152,13 @@ export class AccountService {
 
       const records = await this.AccountModel.find({
         $or: [
+          { accountId: { $regex: input.search, $options: 'i' } },
+          { accountContactMobile: { $regex: input.search, $options: 'i' } },
           { accountName: { $regex: input.search, $options: 'i' } },
           { accountContactEmail: { $regex: input.search, $options: 'i' } },
         ],
       })
+        .populate('industryType')
         .skip(skip)
         .limit(limit)
         .lean()

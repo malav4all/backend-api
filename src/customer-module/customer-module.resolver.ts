@@ -52,7 +52,7 @@ export class CustomerModuleResolver {
 
   @UseGuards(new AuthGuard())
   @Mutation(() => CustomerModuleResponse)
-  async updateRole(@Args('input') input: UpdateCustomerModuleInput) {
+  async updateCustomerModule(@Args('input') input: UpdateCustomerModuleInput) {
     try {
       const record = await this.customerModuleService.update(input);
       return {
