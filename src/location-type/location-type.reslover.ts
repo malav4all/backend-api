@@ -1,6 +1,11 @@
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import { LocationTypeResponse } from './dto/response';
-import { InternalServerErrorException, UseGuards } from '@nestjs/common';
+import {
+  ConflictException,
+  InternalServerErrorException,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { AuthGuard } from '@imz/user/guard';
 import {
   CreateLocationTypeInput,
@@ -26,6 +31,9 @@ export class LocationTypeResolver {
           : 'Record not created. Please try again.',
       };
     } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error;
+      }
       throw new InternalServerErrorException(error.message);
     }
   }

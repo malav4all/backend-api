@@ -1,4 +1,6 @@
 import {
+  BadRequestException,
+  ConflictException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -52,19 +54,25 @@ export class LocationTypeService {
 
       if (!locationTypeModel) {
         console.warn('Skipping create operation as tenantModel is null');
-        return null; // or handle the case as needed
+        return null;
       }
 
       const existingRecord = await locationTypeModel.findOne({
         type: payload.type,
       });
+
       if (existingRecord) {
-        throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+        throw new ConflictException(
+          `A record with the type "${payload.type}" already exists`
+        );
       }
 
       const record = await locationTypeModel.create({ ...payload });
       return record;
     } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error;
+      }
       throw new Error(`Failed to create: ${error.message}`);
     }
   }

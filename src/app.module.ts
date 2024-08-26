@@ -31,6 +31,7 @@ import { AddDeviceModule } from './add-device/add-device.module';
 import { MenuItemModule } from './menu-item/menu-item.module';
 import { LocationTypeModule } from './location-type/location-type.module';
 import { FormBuilderModule } from './form-builder/form-builder.module';
+import { CustomStatusCodePlugin } from './helper/middleware/graphql-status-code.middleware';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { FormBuilderModule } from './form-builder/form-builder.module';
           path: '/graphql',
         },
       },
+      plugins: [CustomStatusCodePlugin],
     }),
     UserModule,
     AssertAssingmentModuleModule,
