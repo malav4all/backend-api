@@ -3,8 +3,6 @@ import { ObjectType, Field } from '@nestjs/graphql';
 import { Entity, ObjectIdColumn, Column } from 'typeorm';
 import { now, Document, Types } from 'mongoose';
 import { IsOptional } from 'class-validator';
-import { DeviceGroup } from '@imz/device-group/entities/device-group.entity';
-import { IndustryType } from '../dto/industry.response.type';
 import { RoleResponseType } from '../dto/role.response';
 import { AccountResponseType } from '../dto/account.response.type';
 import GraphQLJSON from 'graphql-type-json';
@@ -83,6 +81,11 @@ export class User {
   @Column()
   createdBy: string;
 
+  @Field()
+  @Prop()
+  @Column()
+  updatedBy: string;
+
   @Field({ nullable: true })
   @Prop({ default: now() })
   @Column()
@@ -104,19 +107,18 @@ export class User {
   mobileVerified: boolean;
 
   @Field()
-  @Prop({ type: Types.ObjectId, ref: 'Account', text: true })
-  accountId: AccountResponseType;
+  @Prop()
+  @Column()
+  accountId: string;
+
+  // @Field()
+  // @Prop({ type: Types.ObjectId, ref: 'Account', text: true })
+  // accountId: AccountResponseType;
 
   @Field()
   @Column()
   @Prop({ type: Types.ObjectId, ref: 'Role', text: true })
   roleId: RoleResponseType;
-
-  // @Field()
-  // @Column()
-  // @Prop({ type: Types.ObjectId, ref: 'Industry', text: true })
-  // @IsOptional()
-  // industryType?: IndustryType;
 
   @Field()
   @Column()
@@ -129,12 +131,6 @@ export class User {
   @Prop()
   @IsOptional()
   parentUserId?: string;
-
-  // @Field()
-  // @Column()
-  // @Prop()
-  // @IsOptional()
-  // mainParentId?: string;
 
   @Field({ nullable: true, defaultValue: 'Active' })
   @Prop({ text: true, default: 'Active' })

@@ -56,7 +56,7 @@ import { CustomStatusCodePlugin } from './helper/middleware/graphql-status-code.
           path: '/graphql',
         },
       },
-      plugins: [CustomStatusCodePlugin],
+      // plugins: [CustomStatusCodePlugin],
     }),
     UserModule,
     AssertAssingmentModuleModule,

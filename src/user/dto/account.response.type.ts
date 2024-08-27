@@ -25,6 +25,12 @@ export class AccountResponseType {
   @IsOptional()
   accountLogo?: string;
 
+  @Field({ nullable: true })
+  @Prop({ text: true })
+  @Column()
+  @IsOptional()
+  accountId?: string;
+
   @Field()
   @Prop({ text: true })
   @Column()

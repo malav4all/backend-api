@@ -110,9 +110,11 @@ export class UserService {
             roleId: 1,
             status: 1,
             deviceGroup: 1,
+            isAccountAdmin: 1,
+            isSuperAdmin: 1,
             imeiList: 1,
             'roleDetails.name': 1, // Include the role name
-            'accountDetails._id': 1, // Include the account ID
+            'accountDetails.accountId': 1, // Include the account ID
             'accountDetails.accountName': 1, // Include the account name
           },
         },
@@ -127,8 +129,12 @@ export class UserService {
             createdBy: { $first: '$createdBy' },
             roleId: { $first: '$roleId' },
             status: { $first: '$status' },
+            deviceGroup: { $first: '$deviceGroup' },
+            isAccountAdmin: { $first: '$isAccountAdmin' },
+            isSuperAdmin: { $first: '$isSuperAdmin' },
+            imeiList: { $first: '$imeiList' },
             roleName: { $first: '$roleDetails.name' }, // Add the role name
-            accountId: { $first: '$accountDetails._id' }, // Add the account ID
+            accountId: { $first: '$accountDetails.accountId' }, // Add the account ID
             accountName: { $first: '$accountDetails.accountName' }, // Add the account name
           },
         },
@@ -215,8 +221,7 @@ export class UserService {
       const user = await this.UserModel.aggregate([
         {
           $match: {
-            email: inputUser.email,
-            // password: inputUser.password,
+            $or: [{ email: inputUser.email }, { userName: inputUser.email }],
           },
         },
         {
@@ -258,14 +263,29 @@ export class UserService {
             firstName: 1,
             email: 1,
             password: 1,
+            status: 1, // Ensure status is included in the projection
             accountId: '$account',
             roleId: '$role',
+            isAccountAdmin: 1,
+            isSuperAdmin: 1,
+            imeiList: 1,
+            deviceGroup: 1,
           },
         },
       ]).exec();
 
       if (user && user.length > 0) {
         const userData = user[0];
+
+        // Check if the user status is "Inactive"
+        if (userData.status !== 'Active') {
+          this.logger.error('User account is inactive.');
+          return {
+            success: 0,
+            message: 'Your account is inactive. Please contact support.',
+          };
+        }
+
         const isPasswordValid = await this.verifyPassword(
           userData,
           inputUser.password
@@ -276,10 +296,14 @@ export class UserService {
           const responseUser = {
             _id: userData?._id,
             accessToken,
+            isSuperAdmin: userData?.isSuperAdmin,
+            isAccountAdmin: userData?.isAccountAdmin,
             name: userData?.firstName,
             email: userData?.email,
             account: userData?.accountId,
             roleId: userData?.roleId,
+            imeiList: userData.imeiList,
+            deviceGroup: userData.deviceGroup,
             sidebar: menuItems,
           };
 
@@ -380,6 +404,7 @@ export class UserService {
         _id: user._id,
         accountId: user.accountId,
         roleId: user.roleId,
+
         // exp: Math.floor(Date.now() / 1000) + 10,
         exp: Math.floor(Date.now() / 1000) + 12 * 60 * 60, // 1-hour Token Expiry By default
       },
@@ -431,35 +456,28 @@ export class UserService {
       throw new InternalServerErrorException(error.message);
     }
   }
-
   async searchUsers(input: SearchUsersInput) {
     try {
       const page = Number(input.page);
       const limit = Number(input.limit);
       const skip = page === -1 ? 0 : (page - 1) * limit;
-
-      const searchCriteria = input.search
-        ? {
-            $or: [
-              { firstName: { $regex: input.search, $options: 'i' } },
-              { email: { $regex: input.search, $options: 'i' } },
-              { mobileNumber: { $regex: input.search, $options: 'i' } },
-              { createdBy: { $regex: input.search, $options: 'i' } },
-              { 'roleDetails.name': { $regex: input.search, $options: 'i' } },
-              {
-                'accountDetails.accountName': {
-                  $regex: input.search,
-                  $options: 'i',
-                },
-              },
-            ],
-          }
-        : {};
+      const searchText = input.search?.trim() || ''; // Assuming searchText is part of UserInput
 
       const pipeline = [
         {
           $addFields: {
-            roleId: { $toObjectId: '$roleId' },
+            roleId: {
+              $cond: {
+                if: {
+                  $and: [
+                    { $not: { $eq: ['$roleId', null] } },
+                    { $not: { $eq: ['$roleId', ''] } },
+                  ],
+                },
+                then: { $toObjectId: '$roleId' },
+                else: null,
+              },
+            },
           },
         },
         {
@@ -471,7 +489,10 @@ export class UserService {
           },
         },
         {
-          $unwind: { path: '$roleDetails', preserveNullAndEmptyArrays: true },
+          $unwind: {
+            path: '$roleDetails',
+            preserveNullAndEmptyArrays: true,
+          },
         },
         {
           $lookup: {
@@ -488,13 +509,23 @@ export class UserService {
           },
         },
         {
-          $addFields: {
-            roleName: '$roleDetails.name',
-            accountName: '$accountDetails.accountName',
+          $match: {
+            $or: [
+              { firstName: { $regex: searchText, $options: 'i' } },
+              { lastName: { $regex: searchText, $options: 'i' } },
+              { userName: { $regex: searchText, $options: 'i' } },
+              { email: { $regex: searchText, $options: 'i' } },
+              { status: { $regex: searchText, $options: 'i' } },
+              { mobileNumber: { $regex: searchText, $options: 'i' } },
+              { 'roleDetails.name': { $regex: searchText, $options: 'i' } },
+              {
+                'accountDetails.accountName': {
+                  $regex: searchText,
+                  $options: 'i',
+                },
+              },
+            ],
           },
-        },
-        {
-          $match: searchCriteria,
         },
         {
           $project: {
@@ -507,25 +538,37 @@ export class UserService {
             createdBy: 1,
             roleId: 1,
             status: 1,
-            roleName: 1,
-            accountId: 1,
-            accountName: 1,
+            deviceGroup: 1,
+            imeiList: 1,
+            'roleDetails.name': 1,
+            'accountDetails.accountId': 1,
+            'accountDetails.accountName': 1,
+          },
+        },
+        {
+          $group: {
+            _id: '$_id',
+            firstName: { $first: '$firstName' },
+            lastName: { $first: '$lastName' },
+            userName: { $first: '$userName' },
+            email: { $first: '$email' },
+            mobileNumber: { $first: '$mobileNumber' },
+            createdBy: { $first: '$createdBy' },
+            roleId: { $first: '$roleId' },
+            status: { $first: '$status' },
+            roleName: { $first: '$roleDetails.name' },
+            accountId: { $first: '$accountDetails.accountId' },
+            accountName: { $first: '$accountDetails.accountName' },
           },
         },
       ];
 
-      const records = await this.UserModel.aggregate(pipeline)
+      const result = await this.UserModel.aggregate(pipeline)
         .skip(skip)
         .limit(limit)
         .exec();
 
       const countPipeline = [
-        {
-          $addFields: {
-            roleId: { $toObjectId: '$roleId' },
-            accountId: { $toObjectId: '$accountId' },
-          },
-        },
         {
           $lookup: {
             from: 'roles',
@@ -535,13 +578,16 @@ export class UserService {
           },
         },
         {
-          $unwind: { path: '$roleDetails', preserveNullAndEmptyArrays: true },
+          $unwind: {
+            path: '$roleDetails',
+            preserveNullAndEmptyArrays: true,
+          },
         },
         {
           $lookup: {
             from: 'accounts',
             localField: 'accountId',
-            foreignField: '_id',
+            foreignField: 'accountId',
             as: 'accountDetails',
           },
         },
@@ -552,21 +598,33 @@ export class UserService {
           },
         },
         {
-          $addFields: {
-            roleName: '$roleDetails.name',
-            accountName: '$accountDetails.accountName',
+          $match: {
+            $or: [
+              { firstName: { $regex: searchText, $options: 'i' } },
+              { lastName: { $regex: searchText, $options: 'i' } },
+              { userName: { $regex: searchText, $options: 'i' } },
+              { status: { $regex: searchText, $options: 'i' } },
+              { email: { $regex: searchText, $options: 'i' } },
+              { mobileNumber: { $regex: searchText, $options: 'i' } },
+              { 'roleDetails.name': { $regex: searchText, $options: 'i' } },
+              {
+                'accountDetails.accountName': {
+                  $regex: searchText,
+                  $options: 'i',
+                },
+              },
+            ],
           },
         },
         {
-          $match: searchCriteria,
+          $count: 'count',
         },
-        { $count: 'total' },
       ];
 
-      const countResult = await this.UserModel.aggregate(countPipeline);
-      const count = countResult[0]?.total || 0;
+      const countResult = await this.UserModel.aggregate(countPipeline).exec();
+      const count = countResult.length > 0 ? countResult[0].count : 0;
 
-      return { records, count };
+      return { records: result, count };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }

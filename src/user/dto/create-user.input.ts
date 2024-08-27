@@ -1,4 +1,5 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
+import { IsOptional } from 'class-validator';
 import GraphQLJSON from 'graphql-type-json';
 @InputType()
 export class CreateUserInput {
@@ -64,6 +65,10 @@ export class CreateUserInput {
 
   @Field({ nullable: true })
   createdBy: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  updatedBy?: string;
 
   @Field({ nullable: true })
   roleName: string;
