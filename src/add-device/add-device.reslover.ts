@@ -1,5 +1,9 @@
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
-import { InternalServerErrorException, UseGuards } from '@nestjs/common';
+import {
+  ConflictException,
+  InternalServerErrorException,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@imz/user/guard';
 import { AddDeviceService } from './add-device.service';
 import { AddDeviceResponse } from './dto/response';
@@ -26,6 +30,9 @@ export class AddDeviceResolver {
           : 'Record not created. Please try again.',
       };
     } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error;
+      }
       throw new InternalServerErrorException(error.message);
     }
   }
@@ -49,6 +56,7 @@ export class AddDeviceResolver {
   }
 
   @Mutation(() => AddDeviceResponse)
+  @UseGuards(new AuthGuard())
   async searchDeviceList(@Args('input') input: SearchAddDeviceInput) {
     try {
       const { records, count } = await this.addDeviceService.searchDeviceList(
@@ -90,14 +98,26 @@ export class AddDeviceResolver {
     input: CreateAddDeviceInput[]
   ) {
     try {
-      const record = await this.addDeviceService.bulkDeviceUpload(input);
+      const result = await this.addDeviceService.bulkDeviceUpload(input);
+
+      if (result.successCount === 0) {
+        throw new ConflictException(
+          `All records are duplicates. None of the ${result.duplicateCount} records were processed.`
+        );
+      }
+
       return {
-        success: record ? 1 : 0,
-        message: record
-          ? 'Record uploaded.'
-          : 'Assert Record not uploaded. Please try again.',
+        success: result.successCount > 0 ? 1 : 0,
+        message:
+          result.successCount > 0
+            ? `Record uploaded successfully. ${result.duplicateCount} duplicate(s) were skipped.`
+            : 'No records were uploaded. Please try again.',
+        data: result.data,
       };
     } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error;
+      }
       throw new InternalServerErrorException(error.message);
     }
   }

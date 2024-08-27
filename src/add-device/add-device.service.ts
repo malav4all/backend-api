@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { Connection, Model } from 'mongoose';
 import { AddDevice, AddDeviceDocument } from './entity/add-device.entity';
@@ -22,7 +26,9 @@ export class AddDeviceService {
         imei: payload.imei,
       });
       if (existingRecord) {
-        throw new Error('Record Already Exits');
+        throw new ConflictException(
+          `A record with the IMEI "${payload.imei}" already exists in the system. Please use a unique IMEI.`
+        );
       }
 
       const record = await this.AddDeviceModel.create({
@@ -30,7 +36,10 @@ export class AddDeviceService {
       });
       return record;
     } catch (error) {
-      throw new Error(`Failed to create : ${error.message}`);
+      if (error instanceof ConflictException) {
+        throw error;
+      }
+      throw new Error(`Failed to create: ${error.message}`);
     }
   }
 
@@ -222,10 +231,7 @@ export class AddDeviceService {
       throw new InternalServerErrorException(error.message);
     }
   }
-
-  async bulkDeviceUpload(
-    payload: CreateAddDeviceInput[]
-  ): Promise<AddDevice[]> {
+  async bulkDeviceUpload(payload: CreateAddDeviceInput[]) {
     const payloadLength = payload.length;
     const defaultBatchSize = 1000;
     const maxBatchSize = 10000;
@@ -233,15 +239,44 @@ export class AddDeviceService {
     // Calculate batch size dynamically
     const batchSize =
       Math.min(Math.ceil(payloadLength / 10), maxBatchSize) || defaultBatchSize;
-    const results = [];
+
+    const results: AddDevice[] = [];
+    let totalDuplicates = 0;
 
     try {
       for (let i = 0; i < payloadLength; i += batchSize) {
         const batch = payload.slice(i, i + batchSize);
-        const record = await this.AddDeviceModel.insertMany(batch);
-        results.push(...record);
+
+        // Extract IMEIs from the batch
+        const imeis = batch.map((device) => device.imei);
+
+        // Find existing IMEIs in the database
+        const existingDevices = await this.AddDeviceModel.find({
+          imei: { $in: imeis },
+        }).select('imei');
+
+        const existingImeis = existingDevices.map((device) => device.imei);
+
+        // Filter out the records with IMEIs that already exist in the database
+        const filteredBatch = batch.filter(
+          (device) => !existingImeis.includes(device.imei)
+        );
+
+        // Count duplicates
+        totalDuplicates += batch.length - filteredBatch.length;
+
+        // Insert the filtered batch
+        if (filteredBatch.length > 0) {
+          const record = await this.AddDeviceModel.insertMany(filteredBatch);
+          results.push(...record);
+        }
       }
-      return results;
+
+      return {
+        successCount: results.length,
+        duplicateCount: totalDuplicates,
+        data: results,
+      };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }

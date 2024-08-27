@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { Entity, ObjectIdColumn, Column } from 'typeorm';
 import { Document, Types } from 'mongoose';
-import { IsOptional } from 'class-validator';
+import { IsNumber, IsOptional } from 'class-validator';
 
 import { IndustryTypeResponse } from '../dto/industry.type';
 
@@ -75,6 +75,12 @@ export class Account {
   @Column()
   @IsOptional()
   accountState?: string;
+
+  @Field({ nullable: true }) // GraphQL nullable field
+  @Prop({ type: Number }) // Mongoose property with Number type
+  @IsOptional() // Class-validator: makes the field optional
+  @IsNumber() // Class-validator: ensures the value is a number
+  deviceOnboardingIMEINumberCount?: number;
 
   @Field({ nullable: true })
   @Prop({ text: true })

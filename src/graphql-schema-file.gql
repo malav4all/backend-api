@@ -456,6 +456,7 @@ type Account {
   accountAadharNo: String
   accountAddress: String!
   accountState: String
+  deviceOnboardingIMEINumberCount: Float
   accountCity: String
   accountContactName: String!
   accountContactEmail: String!

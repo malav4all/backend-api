@@ -28,26 +28,21 @@ export class AccountService {
 
   async findAll(input: AccountInput, loggedInUser: any) {
     try {
-      // Fetch the logged-in user information
       const getUser = await this.userService.fetchUserByUserId(
         loggedInUser.userId?.toString()
       );
       const user = getUser[0];
       const isSuperAdmin = user?.isSuperAdmin || false;
       const isAccountAdmin = user?.isAccountAdmin || false;
-      const accountId = user?.accountId; // The accountId of the logged-in user
+      const accountId = user?.accountId;
 
-      // Determine the filter based on the user's role
       let filter = {};
 
       if (isSuperAdmin) {
-        // No filter applied, Super Admin can see all accounts
         filter = {};
       } else if (isAccountAdmin) {
-        // Account Admin can see accounts related to their accountId
         filter = { accountId: accountId };
       } else {
-        // Regular users can only see their own account
         filter = { accountId: accountId };
       }
 
@@ -55,13 +50,48 @@ export class AccountService {
       const limit = Number(input.limit);
       const skip = page === -1 ? 0 : (page - 1) * limit;
 
-      // Fetch the accounts based on the determined filter
-      const records = await this.AccountModel.find(filter)
-        .populate('industryType')
-        .skip(skip)
-        .limit(limit)
-        .lean()
-        .exec();
+      // Aggregation pipeline to fetch accounts with device onboarding count
+      const aggregatedRecords = await this.AccountModel.aggregate([
+        { $match: filter },
+        {
+          $lookup: {
+            from: 'deviceonboardings', // Collection to join
+            localField: 'accountId', // Field in AccountModel (source collection)
+            foreignField: 'accountId', // Field in deviceonboardings (target collection)
+            as: 'deviceOnboardings', // Alias for the joined collection
+          },
+        },
+        {
+          $addFields: {
+            deviceOnboardingIMEINumberCount: {
+              $size: {
+                $filter: {
+                  input: '$deviceOnboardings',
+                  as: 'deviceOnboarding',
+                  cond: {
+                    $ne: [
+                      '$$deviceOnboarding.deviceOnboardingIMEINumber',
+                      null,
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+        {
+          $project: {
+            deviceOnboardings: 0, // Exclude the joined array if not needed
+          },
+        },
+        { $skip: skip },
+        { $limit: limit },
+      ]).exec();
+
+      // Convert the aggregation results into a format mongoose can use for population
+      const records = await this.AccountModel.populate(aggregatedRecords, {
+        path: 'industryType',
+      });
 
       // Count the total number of records based on the same filter
       const count = await this.AccountModel.countDocuments(filter).exec();
