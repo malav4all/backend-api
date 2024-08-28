@@ -64,7 +64,7 @@ export class Trip {
 
   @Prop({ type: typeof GraphQLJSON })
   @Column()
-  @Field(() => GraphQLJSON)
+  @Field(() => GraphQLJSON, { nullable: true })
   route: typeof GraphQLJSON;
 
   @Prop({ type: typeof GraphQLJSON })
