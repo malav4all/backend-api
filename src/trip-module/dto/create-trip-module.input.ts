@@ -88,6 +88,9 @@ export class CreateTripInput {
   @Field({ nullable: true })
   @IsOptional()
   updatedBy?: string;
+
+  @Field(() => GraphQLJSON, { nullable: true })
+  tripVerification: typeof GraphQLJSON;
 }
 
 @InputType()

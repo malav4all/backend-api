@@ -18,7 +18,7 @@ import {
   TripStatusInput,
 } from './dto/create-trip-module.input';
 import { UpdateTripInput } from './dto/update-trip-module.update';
-import path from 'path';
+import * as path from 'path';
 import { createWriteStream, existsSync, mkdirSync } from 'fs';
 
 @Resolver(() => TripResponse)
@@ -49,26 +49,20 @@ export class TripResolver {
     try {
       if (input.file) {
         const { createReadStream, filename } = (await input.file) as any;
+        const uploadDir = path?.join(__dirname, '../../uploads/');
 
-        // Define the directory for file uploads
-        const uploadDir = path.join(__dirname, '../../uploads/');
-
-        // Ensure the directory exists
         if (!existsSync(uploadDir)) {
           mkdirSync(uploadDir);
         }
+        const stream = createReadStream();
+        const filePath = path?.join(uploadDir, `${filename}`);
 
-        // Define the path to save the file
-        const filePath = path.join(uploadDir, filename);
-
-        // Create a write stream and save the file
-        await new Promise<void>((resolve, reject) => {
-          createReadStream()
+        await new Promise((resolve, reject) =>
+          stream
             .pipe(createWriteStream(filePath))
             .on('finish', resolve)
-            .on('error', reject);
-        });
-
+            .on('error', reject)
+        );
         // Return success response
         return {
           fileName: filename,

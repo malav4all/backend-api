@@ -69,7 +69,7 @@ export class Geozone {
   @Column()
   name: string;
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   @Prop({ text: true })
   @Column()
   description: string;

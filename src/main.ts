@@ -7,7 +7,7 @@ import * as requestIp from 'request-ip';
 import { Logger } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import * as bodyParser from 'body-parser';
-
+import * as path from 'path';
 const bootstrap = async () => {
   const logger = new Logger('bootstrap');
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -17,6 +17,7 @@ const bootstrap = async () => {
   app.use(requestIp.mw());
   app.use(bodyParser.json({ limit: '50mb' }));
   app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+  app.useStaticAssets(path.join(__dirname, '../uploads'));
   await app.listen(process.env.PORT);
   logger.log(`Application is running on this port::${process.env.PORT}`);
 };

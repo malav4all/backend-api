@@ -111,6 +111,11 @@ export class Trip {
   @Prop()
   @Column()
   lastUpdated: Date;
+
+  @Prop({ type: typeof GraphQLJSON })
+  @Column()
+  @Field(() => GraphQLJSON)
+  tripVerification: typeof GraphQLJSON;
 }
 
 export const TripSchema = SchemaFactory.createForClass(Trip);
