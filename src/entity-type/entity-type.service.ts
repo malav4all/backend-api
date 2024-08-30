@@ -7,6 +7,7 @@ import {
   EntityTypeInput,
   SearchEntityInput,
 } from './dto/create-entity-type.input';
+import { UpdateEntityTypeInput } from './dto/update-entity-type.input';
 
 @Injectable()
 export class EntityTypeService {
@@ -109,7 +110,10 @@ export class EntityTypeService {
 
       const records = await deviceOnboardingTenant
         .find({
-          $or: [{ type: { $regex: input.search, $options: 'i' } }],
+          $or: [
+            { name: { $regex: input.search, $options: 'i' } },
+            { description: { $regex: input.search, $options: 'i' } },
+          ],
         })
         .skip(skip)
         .limit(limit)
@@ -117,9 +121,35 @@ export class EntityTypeService {
         .exec();
 
       const count = await deviceOnboardingTenant.countDocuments({
-        $or: [{ type: { $regex: input.search, $options: 'i' } }],
+        $or: [
+          { name: { $regex: input.search, $options: 'i' } },
+          { description: { $regex: input.search, $options: 'i' } },
+        ],
       });
       return { records, count };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async update(payload: UpdateEntityTypeInput) {
+    try {
+      const updatePayload = {
+        ...payload,
+        lastUpdated: new Date(),
+      };
+      const tripTypeModel = await this.getTenantModel<EntityType>(
+        payload.accountId,
+        EntityType.name,
+        EntityTypeSchema
+      );
+      if (!tripTypeModel) {
+        return null;
+      }
+      const record = await tripTypeModel
+        .findByIdAndUpdate(payload._id, updatePayload, { new: true })
+        .exec();
+      return record;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }

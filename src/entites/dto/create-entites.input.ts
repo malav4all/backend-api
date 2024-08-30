@@ -50,6 +50,9 @@ export class CreateEntitesInput {
 
   @Field(() => String)
   createdBy: string;
+
+  @Field(() => String, { nullable: true })
+  updatedBy?: string;
 }
 
 @InputType()

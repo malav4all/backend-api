@@ -8,6 +8,7 @@ import {
   SearchEntitesInput,
 } from './dto/create-entites.input';
 import { EntitesService } from './entites.service';
+import { UpdateEntitesInput } from './dto/update.entites.input';
 
 @Resolver(() => EntitesResponse)
 export class EntitesResolver {
@@ -66,12 +67,11 @@ export class EntitesResolver {
     }
   }
 
+  @UseGuards(new AuthGuard())
   @Mutation(() => EntitesResponse)
-  async searchEntites(@Args('input') input: SearchEntitesInput) {
+  async searchEntity(@Args('input') input: SearchEntitesInput) {
     try {
-      const { records, count } = await this.entitesService.searchLocations(
-        input
-      );
+      const { records, count } = await this.entitesService.searchEntity(input);
       return {
         paginatorInfo: {
           count,
@@ -79,6 +79,22 @@ export class EntitesResolver {
         success: 1,
         message: 'Location list available.',
         data: records,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @UseGuards(new AuthGuard())
+  @Mutation(() => EntitesResponse)
+  async updateEntityType(@Args('input') input: UpdateEntitesInput) {
+    try {
+      const record = await this.entitesService.update(input);
+      return {
+        success: record ? 1 : 0,
+        message: record
+          ? 'Record Update Successfully.'
+          : 'Record not created. Please try again.',
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);

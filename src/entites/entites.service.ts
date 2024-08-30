@@ -7,6 +7,7 @@ import {
   SearchEntitesInput,
 } from './dto/create-entites.input';
 import { Entites, EntitesSchema } from './entity/entites.type';
+import { UpdateEntitesInput } from './dto/update.entites.input';
 
 @Injectable()
 export class EntitesService {
@@ -107,31 +108,72 @@ export class EntitesService {
     }
   }
 
-  async searchLocations(input: SearchEntitesInput) {
+  async searchEntity(input: SearchEntitesInput) {
     try {
       const tenantModel = await this.getTenantModel<Entites>(
         input.accountId,
         Entites.name,
         EntitesSchema
       );
-
       const page = Number(input.page);
       const limit = Number(input.limit);
       const skip = page === -1 ? 0 : (page - 1) * limit;
 
+      const searchCriteria = {
+        $or: [
+          { createdBy: { $regex: input.search, $options: 'i' } },
+          { aadharCardNo: { $regex: input.search, $options: 'i' } },
+          { gstIn: { $regex: input.search, $options: 'i' } },
+          { contactPhone: { $regex: input.search, $options: 'i' } },
+          { contactEmail: { $regex: input.search, $options: 'i' } },
+          { contactName: { $regex: input.search, $options: 'i' } },
+          { pinCode: { $regex: input.search, $options: 'i' } },
+          { district: { $regex: input.search, $options: 'i' } },
+          { area: { $regex: input.search, $options: 'i' } },
+          { state: { $regex: input.search, $options: 'i' } },
+          { city: { $regex: input.search, $options: 'i' } },
+          { address: { $regex: input.search, $options: 'i' } },
+          { type: { $regex: input.search, $options: 'i' } },
+          { name: { $regex: input.search, $options: 'i' } },
+          { tripTypeList: { $regex: input.search, $options: 'i' } },
+          { accountId: { $regex: input.search, $options: 'i' } },
+          { updatedBy: { $regex: input.search, $options: 'i' } },
+        ],
+      };
+
       const records = await tenantModel
-        .find({
-          $or: [{ type: { $regex: input.search, $options: 'i' } }],
-        })
+        .find(searchCriteria)
         .skip(skip)
         .limit(limit)
         .lean()
         .exec();
 
-      const count = await tenantModel.countDocuments({
-        $or: [{ type: { $regex: input.search, $options: 'i' } }],
-      });
+      const count = await tenantModel.countDocuments(searchCriteria);
+
       return { records, count };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async update(payload: UpdateEntitesInput) {
+    try {
+      const updatePayload = {
+        ...payload,
+        lastUpdated: new Date(),
+      };
+      const tenantModel = await this.getTenantModel<Entites>(
+        payload.accountId,
+        Entites.name,
+        EntitesSchema
+      );
+      if (!tenantModel) {
+        return null;
+      }
+      const record = await tenantModel
+        .findByIdAndUpdate(payload._id, updatePayload, { new: true })
+        .exec();
+      return record;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }

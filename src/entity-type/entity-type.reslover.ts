@@ -8,6 +8,7 @@ import {
   SearchEntityInput,
 } from './dto/create-entity-type.input';
 import { EntityTypeService } from './entity-type.service';
+import { UpdateEntityTypeInput } from './dto/update-entity-type.input';
 
 @Resolver(() => EntityTypeResponse)
 export class EntityTypeResolver {
@@ -47,6 +48,7 @@ export class EntityTypeResolver {
     }
   }
 
+  @UseGuards(new AuthGuard())
   @Mutation(() => EntityTypeResponse)
   async searchEntity(@Args('input') input: SearchEntityInput) {
     try {
@@ -60,6 +62,22 @@ export class EntityTypeResolver {
         success: 1,
         message: 'Location list available.',
         data: records,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @UseGuards(new AuthGuard())
+  @Mutation(() => EntityTypeResponse)
+  async updateEntityType(@Args('input') input: UpdateEntityTypeInput) {
+    try {
+      const record = await this.entityTypeService.update(input);
+      return {
+        success: record ? 1 : 0,
+        message: record
+          ? 'Record Update Successfully.'
+          : 'Record not created. Please try again.',
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);

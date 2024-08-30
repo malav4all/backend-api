@@ -69,7 +69,7 @@ export class TripTypeResolver {
   @Mutation(() => TripTypeResponse)
   async searchTripType(@Args('input') input: SearchTripTypeInput) {
     try {
-      const { records, count } = await this.tripTypeService.searchIndustry(
+      const { records, count } = await this.tripTypeService.searchTripType(
         input
       );
       return {

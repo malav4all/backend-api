@@ -98,7 +98,7 @@ export class TripTypeService {
     return record;
   }
 
-  async searchIndustry(input: SearchTripTypeInput) {
+  async searchTripType(input: SearchTripTypeInput) {
     try {
       const tripTypeModel = await this.getTenantModel<TripType>(
         input.accountId,
@@ -108,6 +108,7 @@ export class TripTypeService {
       if (!tripTypeModel) {
         return { records: [], count: 0 }; // return empty results or handle as needed
       }
+
       const { page, limit, search } = input;
       const skip = this.calculateSkip(Number(page), Number(limit));
       const query = this.buildSearchQuery(search);
@@ -128,15 +129,29 @@ export class TripTypeService {
   }
 
   private buildSearchQuery(search: string) {
-    return search
-      ? {
-          $or: [
-            { tripName: { $regex: search, $options: 'i' } },
-            { tripRate: { $regex: search, $options: 'i' } },
-            { minBatteryPercentage: { $regex: search, $options: 'i' } },
-          ],
-        }
-      : { isDelete: false };
+    if (!search) {
+      return {};
+    }
+
+    const searchNumber = parseFloat(search);
+    const isNumericSearch = !isNaN(searchNumber);
+
+    const numericSearchConditions = isNumericSearch
+      ? [
+          { tripRate: searchNumber },
+          { minBatteryPercentage: searchNumber },
+          { gstPercentage: searchNumber },
+        ]
+      : [];
+
+    const textSearchConditions = [
+      { tripName: { $regex: new RegExp(search, 'i') } },
+      { accountId: { $regex: new RegExp(search, 'i') } },
+      { createdBy: { $regex: new RegExp(search, 'i') } },
+    ];
+
+    // Combine numeric and text search conditions
+    return { $or: [...textSearchConditions, ...numericSearchConditions] };
   }
 
   async update(payload: UpdateTripTypeInput) {

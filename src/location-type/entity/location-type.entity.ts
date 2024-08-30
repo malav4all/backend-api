@@ -19,6 +19,11 @@ export class LocationType {
   @Prop({ text: true })
   @Column()
   createdBy: string;
+
+  @Field({ nullable: true })
+  @Prop({ text: true })
+  @Column()
+  updatedBy?: string;
 }
 
 export const LocationTypeSchema = SchemaFactory.createForClass(LocationType);

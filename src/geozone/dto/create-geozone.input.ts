@@ -2,13 +2,6 @@ import { Field, Float, InputType, Int } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
 
 @InputType()
-class PropertyType {
-  @Field({ nullable: true })
-  @IsOptional()
-  name?: string;
-}
-
-@InputType()
 class GeoJsonGeometry {
   @Field(() => String)
   type: string;
@@ -28,10 +21,6 @@ class GeoJsonData {
 
   @Field(() => GeoJsonGeometry)
   geometry: GeoJsonGeometry;
-
-  @Field(() => PropertyType)
-  @IsOptional()
-  properties?: PropertyType;
 }
 
 @InputType()
@@ -65,9 +54,6 @@ export class CreateGeoZoneInput {
 
   @Field({ nullable: true })
   name: string;
-
-  @Field({ nullable: true })
-  description: string;
 
   @Field({ nullable: true })
   locationType: string;

@@ -5,13 +5,6 @@ import { Document } from 'mongoose';
 import { IsOptional } from 'class-validator';
 
 @ObjectType()
-class PropertyTypeEntity {
-  @Field({ nullable: true })
-  @IsOptional()
-  name?: string;
-}
-
-@ObjectType()
 class GeoJsonGeometryEntity {
   @Field(() => String)
   type: string;
@@ -31,10 +24,6 @@ class GeoJsonEntity {
 
   @Field(() => GeoJsonGeometryEntity)
   geometry: GeoJsonGeometryEntity;
-
-  @Field(() => PropertyTypeEntity, { nullable: true })
-  @IsOptional()
-  properties?: PropertyTypeEntity;
 }
 @ObjectType()
 class AddressEntityType {

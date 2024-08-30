@@ -166,7 +166,7 @@ export class RouteService {
 
       if (!routeModel) {
         console.warn('Skipping searchRoute operation as tenantModel is null');
-        return { records: [], count: 0 }; // return empty results or handle as needed
+        return { records: [], count: 0 };
       }
 
       const page = Number(input.page) || 1;
@@ -192,18 +192,49 @@ export class RouteService {
       }
 
       const searchConditions = [
-        { journeyName: { $regex: new RegExp(searchStr, 'i') } },
+        { routeName: { $regex: new RegExp(searchStr, 'i') } },
+        { routeId: { $regex: new RegExp(searchStr, 'i') } },
         { createdBy: { $regex: new RegExp(searchStr, 'i') } },
         ...numericSearchConditions,
       ];
 
-      const records = await routeModel
-        .find({ $or: searchConditions })
-        .skip(skip)
-        .limit(limit)
-        .populate({ path: 'journeyData' })
-        .lean()
-        .exec();
+      const aggregationPipeline: any = [
+        {
+          $match: {
+            $or: searchConditions,
+          },
+        },
+        {
+          $sort: { createdAt: -1 },
+        },
+        {
+          $skip: skip,
+        },
+        {
+          $limit: limit,
+        },
+        {
+          $addFields: {
+            routesData: {
+              $map: {
+                input: '$routesData',
+                as: 'routeId',
+                in: { $toObjectId: '$$routeId' },
+              },
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: 'geozones',
+            localField: 'routesData',
+            foreignField: '_id',
+            as: 'routeDetails',
+          },
+        },
+      ];
+
+      const records = await routeModel.aggregate(aggregationPipeline).exec();
 
       const count = await routeModel.countDocuments({
         $or: searchConditions,
