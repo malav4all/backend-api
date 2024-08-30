@@ -1,4 +1,5 @@
-import { Field, Float, InputType, Int } from '@nestjs/graphql';
+import { Upload } from '@imz/helper/comman/scalar/Upload.scalar';
+import { Field, InputType, Int } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
 import GraphQLJSON from 'graphql-type-json';
 
@@ -15,6 +16,12 @@ export class TripInformationDetail {
 
   @Field({ nullable: true })
   remarks: string;
+}
+
+@InputType()
+export class FileUploadInput {
+  @Field({ nullable: true })
+  file: Upload;
 }
 
 @InputType()

@@ -22,6 +22,15 @@ export class BatteryResponse {
   @Field({ nullable: true })
   message: string;
 }
+
+@ObjectType()
+export class FileUploadResponse {
+  @Field({ nullable: true })
+  fileName: string;
+
+  @Field({ nullable: true })
+  message: string;
+}
 @ObjectType()
 export class TripMetricsResponseWrapper {
   @Field()

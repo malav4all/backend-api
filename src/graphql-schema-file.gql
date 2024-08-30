@@ -484,6 +484,11 @@ type BatteryResponse {
   message: String
 }
 
+type FileUploadResponse {
+  fileName: String
+  message: String
+}
+
 type TripMetricsResponseWrapper {
   success: Float!
   message: String!
@@ -928,6 +933,7 @@ type Mutation {
   searchTripType(input: SearchTripTypeInput!): TripTypeResponse!
   updateTripType(input: UpdateTripTypeInput!): TripTypeResponse!
   createTrip(input: CreateTripInput!): TripResponse!
+  fileUpload(input: FileUploadInput!): FileUploadResponse!
   tripList(input: TripInput!): TripResponse!
   searchTrip(input: SearchTripInput!): TripResponse!
   fetchTripById(input: TripIDInput!): TripResponse!
@@ -1503,6 +1509,13 @@ input TripInformationDetail {
   tripDate: String
   remarks: String
 }
+
+input FileUploadInput {
+  file: Upload
+}
+
+"""File upload scalar type"""
+scalar Upload
 
 input TripInput {
   accountId: String

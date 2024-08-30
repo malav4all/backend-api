@@ -3,6 +3,7 @@ import { InternalServerErrorException, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@imz/user/guard';
 import {
   BatteryResponse,
+  FileUploadResponse,
   TripMetricsResponseWrapper,
   TripResponse,
 } from './dto/response';
@@ -10,12 +11,15 @@ import { TripService } from './trip-module.service';
 import {
   BatteryCheckInput,
   CreateTripInput,
+  FileUploadInput,
   SearchTripInput,
   TripIDInput,
   TripInput,
   TripStatusInput,
 } from './dto/create-trip-module.input';
 import { UpdateTripInput } from './dto/update-trip-module.update';
+import path from 'path';
+import { createWriteStream, existsSync, mkdirSync } from 'fs';
 
 @Resolver(() => TripResponse)
 export class TripResolver {
@@ -32,6 +36,47 @@ export class TripResolver {
           ? `Trip created Successful - ${tripId}`
           : 'Record not created. Please try again.',
       };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @UseGuards(new AuthGuard())
+  @Mutation(() => FileUploadResponse)
+  async fileUpload(
+    @Args('input') input: FileUploadInput
+  ): Promise<FileUploadResponse> {
+    try {
+      if (input.file) {
+        const { createReadStream, filename } = (await input.file) as any;
+
+        // Define the directory for file uploads
+        const uploadDir = path.join(__dirname, '../../uploads/');
+
+        // Ensure the directory exists
+        if (!existsSync(uploadDir)) {
+          mkdirSync(uploadDir);
+        }
+
+        // Define the path to save the file
+        const filePath = path.join(uploadDir, filename);
+
+        // Create a write stream and save the file
+        await new Promise<void>((resolve, reject) => {
+          createReadStream()
+            .pipe(createWriteStream(filePath))
+            .on('finish', resolve)
+            .on('error', reject);
+        });
+
+        // Return success response
+        return {
+          fileName: filename,
+          message: 'File uploaded successfully',
+        };
+      } else {
+        throw new Error('No file provided');
+      }
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }

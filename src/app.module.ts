@@ -87,7 +87,7 @@ import { CustomStatusCodePlugin } from './helper/middleware/graphql-status-code.
     LocationTypeModule,
     FormBuilderModule,
   ],
-  providers: [],
+  providers: [Upload],
   exports: [],
 })
 export class AppModule {}
