@@ -102,25 +102,73 @@ export class DeviceModelService {
     }
   }
 
+  // async searchDeviceModel(input: SearchDeviceModel) {
+  //   try {
+  //     const page = Number(input.page);
+  //     const limit = Number(input.limit);
+  //     const skip = page === -1 ? 0 : (page - 1) * limit;
+
+  //     const searchCriteria = {
+  //       $or: [
+  //         { deviceModelName: { $regex: input.search, $options: 'i' } },
+  //         { deviceModel: { $regex: input.search, $options: 'i' } },
+  //         { deviceModelType: { $regex: input.search, $options: 'i' } },
+  //         { deviceModelIpAddress: { $regex: input.search, $options: 'i' } },
+  //         { deviceModelPortNumber: { $regex: input.search, $options: 'i' } },
+  //         { deviceModelSimCount: { $regex: input.search, $options: 'i' } },
+  //         { deviceModelNetworkType: { $regex: input.search, $options: 'i' } },
+  //       ],
+  //     };
+
+  //     const records = await this.DeviceModelModel.find(searchCriteria)
+  //       .skip(skip)
+  //       .limit(limit)
+  //       .lean()
+  //       .exec();
+
+  //     const count = await this.DeviceModelModel.countDocuments(searchCriteria);
+
+  //     return { records, count };
+  //   } catch (error) {
+  //     throw new InternalServerErrorException(error.message);
+  //   }
+  // }
+
   async searchDeviceModel(input: SearchDeviceModel) {
     try {
       const page = Number(input.page);
       const limit = Number(input.limit);
       const skip = page === -1 ? 0 : (page - 1) * limit;
 
-      const records = await this.DeviceModelModel.find({
-        $or: [
-          { deviceModelName: { $regex: input.search, $options: 'i' } },
-          { deviceModel: { $regex: input.search, $options: 'i' } },
-        ],
-      })
+      const searchValue = input.search;
+
+      // Create a search criteria array for string fields
+      const searchCriteria: any[] = [
+        { deviceId: { $regex: searchValue, $options: 'i' } },
+        { deviceModelName: { $regex: searchValue, $options: 'i' } },
+        { deviceModel: { $regex: searchValue, $options: 'i' } },
+        { deviceModelType: { $regex: searchValue, $options: 'i' } },
+        { deviceModelIpAddress: { $regex: searchValue, $options: 'i' } },
+        { deviceModelNetworkType: { $regex: searchValue, $options: 'i' } },
+      ];
+
+      // Check if the searchValue is a number and add numeric fields to the search criteria
+      if (!isNaN(Number(searchValue))) {
+        const numericValue = Number(searchValue);
+        searchCriteria.push(
+          { deviceModelPortNumber: numericValue },
+          { deviceModelSimCount: numericValue }
+        );
+      }
+
+      const records = await this.DeviceModelModel.find({ $or: searchCriteria })
         .skip(skip)
         .limit(limit)
         .lean()
         .exec();
 
       const count = await this.DeviceModelModel.countDocuments({
-        $or: [{ deviceModelName: { $regex: input.search, $options: 'i' } }],
+        $or: searchCriteria,
       });
 
       return { records, count };

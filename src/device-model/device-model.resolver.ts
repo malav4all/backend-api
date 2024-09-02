@@ -63,7 +63,7 @@ export class DeviceModelResolver {
     }
   }
 
-  @UseGuards(new AuthGuard())
+  // @UseGuards(new AuthGuard())
   @Mutation(() => DeviceModelResponse)
   async searchDeviceModel(@Args('input') input: SearchDeviceModel) {
     try {
