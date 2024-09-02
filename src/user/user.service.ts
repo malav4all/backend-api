@@ -96,7 +96,7 @@ export class UserService {
           },
         },
         {
-          $unwind: '$accountDetails', // Unwind the array to get an object
+          $unwind: '$accountDetails',
         },
         {
           $project: {
@@ -113,9 +113,9 @@ export class UserService {
             isAccountAdmin: 1,
             isSuperAdmin: 1,
             imeiList: 1,
-            'roleDetails.name': 1, // Include the role name
-            'accountDetails.accountId': 1, // Include the account ID
-            'accountDetails.accountName': 1, // Include the account name
+            'roleDetails.name': 1,
+            'accountDetails.accountId': 1,
+            'accountDetails.accountName': 1,
           },
         },
         {
@@ -133,9 +133,9 @@ export class UserService {
             isAccountAdmin: { $first: '$isAccountAdmin' },
             isSuperAdmin: { $first: '$isSuperAdmin' },
             imeiList: { $first: '$imeiList' },
-            roleName: { $first: '$roleDetails.name' }, // Add the role name
-            accountId: { $first: '$accountDetails.accountId' }, // Add the account ID
-            accountName: { $first: '$accountDetails.accountName' }, // Add the account name
+            roleName: { $first: '$roleDetails.name' },
+            accountId: { $first: '$accountDetails.accountId' },
+            accountName: { $first: '$accountDetails.accountName' },
           },
         },
       ];
