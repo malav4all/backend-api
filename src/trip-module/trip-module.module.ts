@@ -5,12 +5,12 @@ import { TripService } from './trip-module.service';
 import { TripResolver } from './trrip-module.resolver';
 import { TenantsMiddleware } from '@imz/helper/middleware/tenants.middleware';
 import { InfluxdbService } from '@imz/influx-db/influx-db-.service';
+import { UserModule } from '@imz/user/user.module';
+import { RedisService } from '@imz/redis/redis.service';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([{ name: Trip.name, schema: TripSchema }]),
-  ],
-  providers: [TripResolver, TripService, InfluxdbService],
+  imports: [UserModule],
+  providers: [TripResolver, TripService, InfluxdbService, RedisService],
   exports: [TripService],
 })
 export class TripModuleModule implements NestModule {

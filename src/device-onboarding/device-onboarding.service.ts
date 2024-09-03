@@ -152,7 +152,7 @@ export class DeviceOnboardingService {
       await this.createDeviceHistoryRecord(payload);
       await this.createDeviceSimHistoryRecord(payload);
 
-      const redisClient = this.redisService.getClient();
+      const redisClient = this.redisService.getClient('default-0');
 
       // Set data in Redis
       const value = JSON.stringify({
@@ -214,7 +214,7 @@ export class DeviceOnboardingService {
         })
         .exec();
 
-      const redisClient = this.redisService.getClient();
+      const redisClient = this.redisService.getClient('default-${0}');
 
       // Set data in Redis
       const value = JSON.stringify({
@@ -759,6 +759,7 @@ export class DeviceOnboardingService {
                 |> filter(fn: (r) => r["_measurement"] == "track")
                 |> filter(fn: (r) => r["imei"] == "${imei}")
                 |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+                |> keep(columns: ["_time", "name", "latitude", "longitude", "accountId", "imei"])
                 |> sort(columns: ["_time"], desc: true)
                 |> limit(n: 1)
             `;
@@ -774,9 +775,9 @@ export class DeviceOnboardingService {
 
               for await (const { values } of queryResults) {
                 lastReportedTime = convertUTCToIST(values[2]); // Adjust this index if necessary
-                latitude = Number(values[49]); // Adjust these indices if necessary
-                longitude = Number(values[51]);
-                name = values[59]; // Adjust these indices if necessary
+                latitude = Number(values[5]); // Adjust these indices if necessary
+                longitude = Number(values[6]);
+                name = values[7]; // Adjust these indices if necessary
                 break;
               }
 
@@ -798,10 +799,11 @@ export class DeviceOnboardingService {
                 // Additional query to get the last available data packet if no data is found in the last one hour
                 const lastPacketQuery = `
                 from(bucket: "${input.accountId}")
-                  |> range(start: 0, stop: now())
+                  |> range(start: -7d, stop: now())
                   |> filter(fn: (r) => r["_measurement"] == "track")
                   |> filter(fn: (r) => r["imei"] == "${imei}")
                   |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+                  |> keep(columns: ["_time", "name", "latitude", "longitude", "accountId", "imei"])
                   |> sort(columns: ["_time"], desc: true)
                   |> limit(n: 1)
               `;
@@ -813,9 +815,9 @@ export class DeviceOnboardingService {
                 let lastPacketLongitude: number | null = null;
 
                 for await (const { values } of lastPacketResults) {
-                  lastPacketReportedTime = convertUTCToIST(values[4]); // Adjust this index if necessary
-                  lastPacketLatitude = Number(values[89]); // Adjust these indices if necessary
-                  lastPacketLongitude = Number(values[91]); // Adjust these indices if necessary
+                  lastPacketReportedTime = convertUTCToIST(values[2]); // Adjust this index if necessary
+                  lastPacketLatitude = Number(values[5]); // Adjust these indices if necessary
+                  lastPacketLongitude = Number(values[6]); // Adjust these indices if necessary
                   break;
                 }
 
@@ -825,7 +827,7 @@ export class DeviceOnboardingService {
                   name,
                   imei,
                   status: 'offline',
-                  lastPing: lastPacketReportedTime || 'Never Connected',
+                  lastPing: lastPacketReportedTime,
                   latitude: lastPacketLatitude || 0,
                   longitude: lastPacketLongitude || 0,
                 });
@@ -836,8 +838,8 @@ export class DeviceOnboardingService {
                 name: '',
                 account: input.accountId,
                 imei,
-                status: 'offline',
-                lastPing: 'N/A',
+                status: 'Never Connected',
+                lastPing: '',
                 latitude: 0,
                 longitude: 0,
               });
@@ -875,7 +877,7 @@ export class DeviceOnboardingService {
     const payloadLength = payload.length;
     const defaultBatchSize = 1000;
     const maxBatchSize = 10000;
-    const redisClient = this.redisService.getClient();
+    const redisClient = this.redisService.getClient('default-0');
 
     // Calculate batch size dynamically
     const batchSize =
@@ -962,7 +964,7 @@ export class DeviceOnboardingService {
       await toDeviceOnboardingModel.create(newDeviceOnboardingData);
       // Insert the document into the DeviceOnboardingCopyModel for logging/auditing
       await this.DeviceOnboardingCopyModel.create(newDeviceOnboardingData);
-      const redisClient = this.redisService.getClient();
+      const redisClient = this.redisService.getClient('default-0');
       const redisValue = JSON.stringify({
         accountId: toAccountId,
         imei: imei,
@@ -999,7 +1001,7 @@ export class DeviceOnboardingService {
     );
 
     // Get the Redis client
-    const redisClient = this.redisService.getClient();
+    const redisClient = this.redisService.getClient('default-0');
 
     const transferredImeis = [];
     const failedImeis = [];

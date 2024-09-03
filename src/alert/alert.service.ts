@@ -63,7 +63,7 @@ export class AlertService {
   }
 
   async setJsonValue(key: string, value: any): Promise<void> {
-    const redisClient = this.redisService.getClient();
+    const redisClient = this.redisService.getClient('default-0');
     await redisClient.set(key, JSON.stringify(value));
   }
 
@@ -329,7 +329,7 @@ export class AlertService {
             )}" )`
           : ''
       }
-      |> filter(fn: (r) => r["_field"] == "latitude" or r["_field"] == "longitude" or r["_field"] == "alertMessage" or r["_field"] == "accountId" or r["_field"] == "label")
+      |> filter(fn: (r) => r["_field"] == "latitude" or r["_field"] == "longitude" or r["_field"] == "alert" or r["_field"] == "accountId" or r["_field"] == "label")
       |> sort(columns:["_time"], desc: true)
       |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
       |> limit(n: ${payload.limit}, offset: ${skip})

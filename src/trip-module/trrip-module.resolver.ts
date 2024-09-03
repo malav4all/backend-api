@@ -1,4 +1,4 @@
-import { Resolver, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Mutation, Args, Context } from '@nestjs/graphql';
 import { InternalServerErrorException, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@imz/user/guard';
 import {
@@ -78,9 +78,15 @@ export class TripResolver {
 
   @UseGuards(new AuthGuard())
   @Mutation(() => TripResponse)
-  async tripList(@Args('input') input: TripInput) {
+  async tripList(@Args('input') input: TripInput, @Context() context) {
     try {
-      const { count, records } = await this.tripService.findAll(input);
+      const loggedInUser = {
+        userId: context?.user?._id,
+      };
+      const { count, records } = await this.tripService.findAll(
+        input,
+        loggedInUser
+      );
       return {
         paginatorInfo: {
           count,

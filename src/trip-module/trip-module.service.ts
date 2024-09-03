@@ -16,13 +16,17 @@ import {
 import { UpdateTripInput } from './dto/update-trip-module.update';
 import { generateTripID } from '@imz/helper/generateotp';
 import { InfluxdbService } from '@imz/influx-db/influx-db-.service';
+import { UserService } from '@imz/user/user.service';
+import { RedisService } from '@imz/redis/redis.service';
 
 @Injectable()
 export class TripService {
   constructor(
     @InjectConnection()
     private connection: Connection,
-    private influxDbService: InfluxdbService
+    private influxDbService: InfluxdbService,
+    private UserModel: UserService,
+    private readonly redisService: RedisService
   ) {}
 
   async getTenantModel<T>(
@@ -63,14 +67,70 @@ export class TripService {
         ...payload,
         tripId,
       });
+      const redisClient = this.redisService.getClient('additionalServer-0');
+
+      const value = JSON.stringify({
+        status: record.status,
+        tripId: record.tripId,
+        source: {
+          ...record.startPoint,
+          isAlreadyGenerateAlert: false,
+        },
+        destination: {
+          ...record.endPoint,
+          isAlreadyGenerateAlert: false,
+        },
+        battery: {
+          batteryAlertSent: false,
+          batteryAlertValue:
+            Number(record?.alertConfig['alertDetails']?.lowBattery?.value) ?? 0,
+        },
+        overSpeed: {
+          overSpeedAlertSent: false,
+          overSpeedAlertValue:
+            Number(record?.alertConfig['alertDetails']?.overSpeeding?.value) ??
+            0,
+        },
+        overStop: {
+          overStopAlertSent: false,
+          overStopDuration:
+            record?.alertConfig['alertDetails']?.overStopping?.value ?? 0,
+        },
+      });
+      await redisClient.set(record.tripData[0].imei[0], value);
       return { record, tripId };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
   }
 
-  async findAll(input: TripInput) {
+  async findAll(input: TripInput, loggedInUser: any) {
     try {
+      // Fetch user details
+      const getUser = await this.UserModel.fetchUserByUserId(
+        loggedInUser?.userId?.toString()
+      );
+
+      // Check the admin flags
+      const isAccountAdmin = getUser[0]?.isAccountAdmin || false;
+      const isSuperAdmin = getUser[0]?.isSuperAdmin || false;
+
+      // Extract IMEIs from the user's imeiList or deviceGroup
+      let imeiList = getUser[0]?.imeiList || [];
+
+      if (!imeiList.length && getUser[0]?.deviceGroup?.length) {
+        imeiList = getUser[0].deviceGroup.reduce(
+          (acc: string[], group: any) => {
+            if (group.imeiData && group.imeiData.length) {
+              acc = acc.concat(group.imeiData);
+            }
+            return acc;
+          },
+          []
+        );
+      }
+
+      // Get the trip model based on the accountId
       const tripModel = await this.getTenantModel<Trip>(
         input.accountId,
         Trip.name,
@@ -81,8 +141,19 @@ export class TripService {
       const skip = this.calculateSkip(Number(page), Number(limit));
 
       const filter: any = {};
+
       if (status) {
         filter.status = status;
+      }
+
+      // Apply IMEI filter only if both flags are false
+      if (!isAccountAdmin && !isSuperAdmin) {
+        if (imeiList.length > 0) {
+          filter['tripData.imei'] = { $in: imeiList };
+        } else {
+          // If there are no IMEIs, return an empty result
+          return { records: [], count: 0 };
+        }
       }
 
       const records = await tripModel
@@ -93,6 +164,7 @@ export class TripService {
         .exec();
 
       const count = await tripModel.countDocuments(filter);
+
       return { records, count };
     } catch (error) {
       throw new InternalServerErrorException(error.message);

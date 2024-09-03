@@ -218,7 +218,7 @@ type Geozone {
   locationId: String!
   accountId: String!
   name: String!
-  description: String!
+  description: String
   locationType: String!
   mobileNumber: Float!
   address: AddressEntityType!
@@ -470,6 +470,7 @@ type Trip {
   updatedBy: String
   createdAt: String
   lastUpdated: DateTime
+  tripVerification: JSON!
 }
 
 type TripResponse {
@@ -1501,6 +1502,7 @@ input CreateTripInput {
   metaData: JSON
   createdBy: String
   updatedBy: String
+  tripVerification: JSON
 }
 
 input TripInformationDetail {
@@ -1552,6 +1554,7 @@ input UpdateTripInput {
   metaData: JSON
   createdBy: String
   updatedBy: String
+  tripVerification: JSON
   _id: String!
 }
 
