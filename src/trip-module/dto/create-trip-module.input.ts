@@ -15,6 +15,12 @@ export class TripInformationDetail {
   tripDate: string;
 
   @Field({ nullable: true })
+  driverName: string;
+
+  @Field({ nullable: true })
+  driverContactNumber: string;
+
+  @Field({ nullable: true })
   remarks: string;
 }
 
