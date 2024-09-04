@@ -22,6 +22,7 @@ import { PubSub } from 'graphql-subscriptions';
 import axios from 'axios';
 import { InfluxdbService } from '@imz/influx-db/influx-db-.service';
 import { UserService } from '@imz/user/user.service';
+import { convertISTToUTC } from '@imz/helper/generateotp';
 
 @Injectable()
 export class AlertService {
@@ -297,11 +298,13 @@ export class AlertService {
     const page = Number(payload.page);
     const limit = Number(payload.limit);
     const skip = page === -1 ? 0 : (page - 1) * limit;
+    const start = convertISTToUTC(payload.startDate);
+    const end = convertISTToUTC(payload.endDate);
 
     // Create a Flux query for counting the total number of matching records
     const countQuery = `
     from(bucket: "${payload.accountId}")
-      |> range(start: ${payload.startDate}, stop: ${payload.endDate})
+      |> range(start: ${start}, stop: ${end})
       |> filter(fn: (r) => r["_measurement"] == "alert")
       ${
         !isAccountAdmin && !isSuperAdmin && imeiList.length
@@ -320,7 +323,7 @@ export class AlertService {
     // Create a Flux query for fetching the alert data
     const query = `
     from(bucket: "${payload.accountId}")
-      |> range(start: ${payload.startDate}, stop: ${payload.endDate})
+      |> range(start: ${start}, stop: ${end})
       |> filter(fn: (r) => r["_measurement"] == "alert")
       ${
         !isAccountAdmin && !isSuperAdmin && imeiList.length
@@ -390,10 +393,13 @@ export class AlertService {
       }
     }
 
+    const start = convertISTToUTC(payload.startDate);
+    const end = convertISTToUTC(payload.endDate);
+
     // Create a Flux query for fetching the distance data
     const fluxQuery = `
       from(bucket: "${payload.accountId}")
-        |> range(start: ${payload.startDate}, stop: ${payload.endDate})
+        |> range(start: ${start}, stop: ${end})
         |> filter(fn: (r) => r["_measurement"] == "track")
         ${
           !isAccountAdmin && !isSuperAdmin && imeiList.length
