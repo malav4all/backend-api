@@ -10,6 +10,7 @@ import {
   BatteryCheckInput,
   CreateTripInput,
   SearchTripInput,
+  TripCountInput,
   TripIDInput,
   TripInput,
 } from './dto/create-trip-module.input';
@@ -346,6 +347,41 @@ export class TripService {
       return updatedTrip;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async getActiveTripCounts(input: TripCountInput) {
+    try {
+      const tripModel = await this.getTenantModel<Trip>(
+        input.accountId,
+        Trip.name,
+        TripSchema
+      );
+      const today = new Date();
+      const todayDateString = today.toISOString().split('T')[0];
+
+      const todayActiveTripsCount = await tripModel
+        .countDocuments({
+          tripStartDate: {
+            $regex: `^${todayDateString}`, // Matches date part only
+          },
+        })
+        .exec();
+
+      const totalActiveTripsCount = await tripModel
+        .countDocuments({
+          status: 'created',
+        })
+        .exec();
+
+      return {
+        todayActiveTripsCount,
+        totalActiveTripsCount,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Failed to retrieve active trip counts: ${error.message}`
+      );
     }
   }
 }

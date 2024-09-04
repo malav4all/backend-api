@@ -12,6 +12,7 @@ import {
   DeviceOnboardingAccountIdInput,
   DeviceOnboardingFetchInput,
   DeviceOnboardingInput,
+  DeviceOnboardingSearchInput,
   DeviceTransferInput,
   GetBatteryPercentageGraphInput,
 } from './dto/create-device-onboarding.input';
@@ -140,6 +141,52 @@ export class DeviceOnboardingService {
     return page === -1 ? 0 : (page - 1) * limit;
   }
 
+  async searchDeviceOnboarding(input: DeviceOnboardingSearchInput) {
+    try {
+      let deviceOnboardingModel;
+
+      if (input.accountId) {
+        deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
+          input.accountId,
+          DeviceOnboarding.name,
+          DeviceOnboardingSchema
+        );
+      } else {
+        deviceOnboardingModel = this.DeviceOnboardingCopyModel;
+      }
+
+      // Build the search filter using a single search text input
+      const filter: any = {};
+
+      if (input.search) {
+        const searchRegex = { $regex: input.search, $options: 'i' };
+        filter.$or = [
+          { deviceOnboardingIMEINumber: searchRegex },
+          { deviceOnboardingSimNo: searchRegex },
+          { deviceName: searchRegex },
+        ];
+      }
+
+      const { page, limit } = input;
+      const skip = this.calculateSkip(Number(page), Number(limit));
+
+      const records = await deviceOnboardingModel
+        .find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit))
+        .exec();
+
+      const count = await deviceOnboardingModel.countDocuments(filter).exec();
+
+      return { records, count };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `FindAll operation failed: ${error.message}`
+      );
+    }
+  }
+
   async create(payload: DeviceOnboardingInput) {
     try {
       const deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
@@ -214,7 +261,7 @@ export class DeviceOnboardingService {
         })
         .exec();
 
-      const redisClient = this.redisService.getClient('default-${0}');
+      const redisClient = this.redisService.getClient('default-0');
 
       // Set data in Redis
       const value = JSON.stringify({
@@ -332,7 +379,7 @@ export class DeviceOnboardingService {
       const threeHoursAgoIST = new Date(convertUTCToIST(threeHoursAgo));
 
       let oneHourOfflineCount = 0;
-      // let twoHoursOfflineCount = 0;
+      let twoHoursOfflineCount = 0;
       let threeHoursOfflineCount = 0;
       let disconnectedCount = 0;
       let neverConnectedCount = 0;
@@ -392,9 +439,9 @@ export class DeviceOnboardingService {
                   lastReportedDate >= oneHourAgoIST &&
                   lastReportedDate < twoHoursAgoIST
                 ) {
-                  oneHourOfflineCount++; // Between 1 and 2 hours ago
+                  twoHoursOfflineCount++; // Between 1 and 2 hours ago
                 } else {
-                  // The device is still online or reported data within the last hour
+                  oneHourOfflineCount++; // Within 1 hour ago
                 }
               }
             } catch (error) {

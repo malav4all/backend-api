@@ -161,3 +161,9 @@ export class BatteryCheckInput {
   @Field(() => Int, { nullable: true })
   threshold: typeof Int;
 }
+
+@InputType()
+export class TripCountInput {
+  @Field({ nullable: true })
+  accountId: string;
+}

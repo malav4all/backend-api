@@ -4,6 +4,7 @@ import { AuthGuard } from '@imz/user/guard';
 import {
   BatteryResponse,
   FileUploadResponse,
+  TripCountResponse,
   TripMetricsResponseWrapper,
   TripResponse,
 } from './dto/response';
@@ -13,6 +14,7 @@ import {
   CreateTripInput,
   FileUploadInput,
   SearchTripInput,
+  TripCountInput,
   TripIDInput,
   TripInput,
   TripStatusInput,
@@ -173,7 +175,7 @@ export class TripResolver {
     }
   }
 
-  // @UseGuards(new AuthGuard())
+  @UseGuards(new AuthGuard())
   @Mutation(() => TripResponse)
   async updateTripStatus(@Args('input') input: TripStatusInput) {
     try {
@@ -186,6 +188,20 @@ export class TripResolver {
         success: 1,
         message: `Trip with ID ${updatedTrip.tripId} successfully updated to status ${updatedTrip.status}`,
         data: [updatedTrip],
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Mutation(() => TripCountResponse)
+  async tripCount(@Args('input') input: TripCountInput) {
+    try {
+      const { todayActiveTripsCount, totalActiveTripsCount } =
+        await this.tripService.getActiveTripCounts(input);
+      return {
+        todayActiveTripsCount,
+        totalActiveTripsCount,
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
