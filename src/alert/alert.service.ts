@@ -106,16 +106,16 @@ export class AlertService {
         throw new Error('Record Already Exists');
       }
       const record = await alertModel.create(payload);
-      const imeisToIterate =
-        record.alertConfig.alertImeiGroup.imei ||
-        record.alertConfig.userSelectedImei;
+      // const imeisToIterate =
+      //   record.alertConfig.alertImeiGroup.imei ||
+      //   record.alertConfig.userSelectedImei;
 
-      for (const alert of imeisToIterate) {
-        await this.setJsonValue(alert, {
-          mobileNo: record.mobileNo,
-          alarmConfig: record.alertConfig.alertData,
-        });
-      }
+      // for (const alert of imeisToIterate) {
+      //   await this.setJsonValue(alert, {
+      //     mobileNo: record.mobileNo,
+      //     alarmConfig: record.alertConfig.alertData,
+      //   });
+      // }
 
       return record;
     } catch (error) {
