@@ -332,7 +332,7 @@ export class DeviceOnboardingService {
       const threeHoursAgoIST = new Date(convertUTCToIST(threeHoursAgo));
 
       let oneHourOfflineCount = 0;
-      let twoHoursOfflineCount = 0;
+      // let twoHoursOfflineCount = 0;
       let threeHoursOfflineCount = 0;
       let disconnectedCount = 0;
       let neverConnectedCount = 0;
@@ -353,10 +353,9 @@ export class DeviceOnboardingService {
             const imei = device.deviceOnboardingIMEINumber;
             const fluxQuery = `
               from(bucket: "${input.accountId}")
-                |> range(start: 0, stop: now()) // Check data for the last 30 days to ensure we get the last reported time
+                |> range(start: 0, stop: now())
                 |> filter(fn: (r) => r["_measurement"] == "track")
                 |> filter(fn: (r) => r["imei"] == "${imei}")
-                |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
                 |> sort(columns: ["_time"], desc: true)
                 |> limit(n: 1)
             `;
@@ -368,7 +367,7 @@ export class DeviceOnboardingService {
               let lastReportedTime: string | null = null;
 
               for await (const { values } of queryResults) {
-                const timestamp = values[4]; // Assuming the timestamp is the third element
+                const timestamp = values[4];
                 if (timestamp) {
                   lastReportedTime = convertUTCToIST(timestamp);
                   break;
@@ -383,13 +382,19 @@ export class DeviceOnboardingService {
 
                 // Compare the last reported time with the current time ranges
                 if (lastReportedDate < threeHoursAgoIST) {
-                  disconnectedCount++;
-                } else if (lastReportedDate < twoHoursAgoIST) {
-                  threeHoursOfflineCount++;
-                } else if (lastReportedDate < oneHourAgoIST) {
-                  twoHoursOfflineCount++;
+                  disconnectedCount++; // More than 3 hours offline
+                } else if (
+                  lastReportedDate >= twoHoursAgoIST &&
+                  lastReportedDate < threeHoursAgoIST
+                ) {
+                  threeHoursOfflineCount++; // Between 2 and 3 hours ago
+                } else if (
+                  lastReportedDate >= oneHourAgoIST &&
+                  lastReportedDate < twoHoursAgoIST
+                ) {
+                  oneHourOfflineCount++; // Between 1 and 2 hours ago
                 } else {
-                  oneHourOfflineCount++;
+                  // The device is still online or reported data within the last hour
                 }
               }
             } catch (error) {
@@ -610,52 +615,67 @@ export class DeviceOnboardingService {
       const onlineCounts = Array(currentHour + 1).fill(0);
       const offlineCounts = Array(currentHour + 1).fill(0);
 
-      // Iterate over each hour to check device status
-      for (let i = 0; i <= currentHour; i++) {
-        const hourStartUTC = new Date(
-          now.getTime() - (i + 1) * 60 * 60 * 1000
-        ).toISOString();
-        const hourEndUTC = new Date(
-          now.getTime() - i * 60 * 60 * 1000
-        ).toISOString();
-        const hourStartIST = convertUTCToIST(hourStartUTC);
-        const hourEndIST = convertUTCToIST(hourEndUTC);
+      // Split devices into batches of 10 for parallel processing
+      const batches = [];
+      const batchSize = 10;
 
-        // Build the InfluxDB query
-        const fluxQuery = `
-          from(bucket: "${input.accountId}")
-            |> range(start: ${hourStartIST}, stop: ${hourEndIST})
-            |> filter(fn: (r) => r["_measurement"] == "track")
-            |> filter(fn: (r) => r["imei"] == "${deviceImeiList.join(
-              '" or r["imei"] == "'
-            )}")
-            |> keep(columns: ["_time"])
-        `;
-
-        try {
-          const queryResults = await this.influxDbService.executeQuery(
-            fluxQuery
-          );
-          let hasData = false;
-
-          // Check if any data is returned
-          for await (const { values } of queryResults) {
-            if (values) {
-              hasData = true;
-              break;
-            }
-          }
-
-          if (hasData) {
-            onlineCounts[i]++;
-          } else {
-            offlineCounts[i]++;
-          }
-        } catch (error) {
-          console.error(`Error executing query for hour ${i}:`, error.message);
-          offlineCounts[i]++;
-        }
+      for (let i = 0; i < deviceImeiList.length; i += batchSize) {
+        batches.push(deviceImeiList.slice(i, i + batchSize));
       }
+
+      // Iterate over batches and process devices
+      await async.eachLimit(batches, 10, async (batch) => {
+        await Promise.all(
+          batch.map(async (imei) => {
+            for (let i = 0; i <= currentHour; i++) {
+              const hourStartUTC = new Date(
+                now.getTime() - (i + 1) * 60 * 60 * 1000
+              ).toISOString();
+              const hourEndUTC = new Date(
+                now.getTime() - i * 60 * 60 * 1000
+              ).toISOString();
+              const hourStartIST = convertUTCToIST(hourStartUTC);
+              const hourEndIST = convertUTCToIST(hourEndUTC);
+
+              // Build the InfluxDB query
+              const fluxQuery = `
+              from(bucket: "${input.accountId}")
+                |> range(start: ${hourStartIST}, stop: ${hourEndIST})
+                |> filter(fn: (r) => r["_measurement"] == "track")
+                |> filter(fn: (r) => r["imei"] == "${imei}")
+                |> keep(columns: ["_time", "imei"])
+            `;
+
+              try {
+                const queryResults = await this.influxDbService.executeQuery(
+                  fluxQuery
+                );
+                let hasData = false;
+
+                // Check if any data is returned
+                for await (const { values } of queryResults) {
+                  if (values) {
+                    hasData = true;
+                    break;
+                  }
+                }
+
+                if (hasData) {
+                  onlineCounts[i]++;
+                } else {
+                  offlineCounts[i]++;
+                }
+              } catch (error) {
+                console.error(
+                  `Error executing query for hour ${i}:`,
+                  error.message
+                );
+                offlineCounts[i]++;
+              }
+            }
+          })
+        );
+      });
 
       // Prepare the result
       return {
@@ -759,7 +779,7 @@ export class DeviceOnboardingService {
                 |> filter(fn: (r) => r["_measurement"] == "track")
                 |> filter(fn: (r) => r["imei"] == "${imei}")
                 |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
-                |> keep(columns: ["_time", "name", "latitude", "longitude", "accountId", "imei"])
+                |> keep(columns: ["_time", "name", "latitude", "longitude", "accountId", "imei", "batteryPercentage", "gps"])
                 |> sort(columns: ["_time"], desc: true)
                 |> limit(n: 1)
             `;
@@ -772,12 +792,16 @@ export class DeviceOnboardingService {
               let latitude: number | null = null;
               let longitude: number | null = null;
               let name: string | '';
+              let batteryPercentage: string | '';
+              let gps: boolean;
 
               for await (const { values } of queryResults) {
-                lastReportedTime = convertUTCToIST(values[2]); // Adjust this index if necessary
-                latitude = Number(values[5]); // Adjust these indices if necessary
-                longitude = Number(values[6]);
-                name = values[7]; // Adjust these indices if necessary
+                lastReportedTime = convertUTCToIST(values[2]);
+                latitude = Number(values[7]);
+                longitude = Number(values[8]);
+                name = values[9];
+                batteryPercentage = values[5];
+                gps = Boolean(values[6]);
                 break;
               }
 
@@ -794,6 +818,8 @@ export class DeviceOnboardingService {
                   lastPing: lastReportedTime || 'N/A',
                   latitude: latitude || 0,
                   longitude: longitude || 0,
+                  batteryPercentage,
+                  gps,
                 });
               } else {
                 // Additional query to get the last available data packet if no data is found in the last one hour
@@ -803,7 +829,7 @@ export class DeviceOnboardingService {
                   |> filter(fn: (r) => r["_measurement"] == "track")
                   |> filter(fn: (r) => r["imei"] == "${imei}")
                   |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
-                  |> keep(columns: ["_time", "name", "latitude", "longitude", "accountId", "imei"])
+                  |> keep(columns: ["_time", "name", "latitude", "longitude", "accountId", "imei", "batteryPercentage", "gps"])
                   |> sort(columns: ["_time"], desc: true)
                   |> limit(n: 1)
               `;
@@ -816,8 +842,10 @@ export class DeviceOnboardingService {
 
                 for await (const { values } of lastPacketResults) {
                   lastPacketReportedTime = convertUTCToIST(values[2]); // Adjust this index if necessary
-                  lastPacketLatitude = Number(values[5]); // Adjust these indices if necessary
-                  lastPacketLongitude = Number(values[6]); // Adjust these indices if necessary
+                  lastPacketLatitude = Number(values[7]); // Adjust these indices if necessary
+                  lastPacketLongitude = Number(values[8]); // Adjust these indices if necessary
+                  batteryPercentage = values[5];
+                  gps = Boolean(values[6]);
                   break;
                 }
 
@@ -830,6 +858,8 @@ export class DeviceOnboardingService {
                   lastPing: lastPacketReportedTime,
                   latitude: lastPacketLatitude || 0,
                   longitude: lastPacketLongitude || 0,
+                  batteryPercentage,
+                  gps,
                 });
               }
             } catch (error) {

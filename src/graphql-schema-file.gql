@@ -448,6 +448,8 @@ type TripInformationData {
   imei: [String!]
   vehicleNo: String
   tripDate: String
+  driverName: String
+  driverContactNumber: String
   remarks: String
 }
 
@@ -546,6 +548,8 @@ type DeviceOnlineStatus {
   accountId: String
   imei: String
   status: String
+  gps: Boolean
+  batteryPercentage: String
   lastPing: String
   latitude: Float!
   longitude: Float!
@@ -1509,6 +1513,8 @@ input TripInformationDetail {
   imei: [String!]
   vehicleNo: String
   tripDate: String
+  driverName: String
+  driverContactNumber: String
   remarks: String
 }
 

@@ -64,6 +64,12 @@ class DeviceOnlineStatus {
   status: string;
 
   @Field({ nullable: true })
+  gps: boolean;
+
+  @Field({ nullable: true })
+  batteryPercentage: string;
+
+  @Field({ nullable: true })
   lastPing: string;
 
   @Field(() => Float)
