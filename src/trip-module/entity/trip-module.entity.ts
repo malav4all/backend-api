@@ -122,6 +122,21 @@ export class Trip {
   @Column()
   @Field(() => GraphQLJSON)
   tripVerification: typeof GraphQLJSON;
+
+  @Field({ nullable: true })
+  @Prop({ text: true })
+  @Column()
+  transitType: string;
+
+  @Field({ nullable: true })
+  @Prop({ text: true })
+  @Column()
+  otp: number;
+
+  @Field({ nullable: true })
+  @Prop({ text: true })
+  @Column()
+  otpExpiresAt: string;
 }
 
 export const TripSchema = SchemaFactory.createForClass(Trip);

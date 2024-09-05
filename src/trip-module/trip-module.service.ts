@@ -12,12 +12,16 @@ import {
   SearchTripInput,
   TripIDInput,
   TripInput,
+  TripOtpInput,
+  VerifyOtpInput,
+  VerifyTripOtpInput,
 } from './dto/create-trip-module.input';
 import { UpdateTripInput } from './dto/update-trip-module.update';
-import { generateTripID } from '@imz/helper/generateotp';
+import { generateOtp, generateTripID } from '@imz/helper/generateotp';
 import { InfluxdbService } from '@imz/influx-db/influx-db-.service';
 import { UserService } from '@imz/user/user.service';
 import { RedisService } from '@imz/redis/redis.service';
+import axios from 'axios';
 
 @Injectable()
 export class TripService {
@@ -42,16 +46,21 @@ export class TripService {
     return page === -1 ? 0 : (page - 1) * limit;
   }
 
-  private buildSearchQuery(search: string) {
-    return search
-      ? {
-          $or: [
-            { transitName: { $regex: search, $options: 'i' } },
-            { tripRate: { $regex: search, $options: 'i' } },
-            { minBatteryPercentage: { $regex: search, $options: 'i' } },
-          ],
-        }
-      : { isDelete: false };
+  private buildSearchQuery(search: string, status?: string) {
+    const query: any = {
+      $or: [
+        { transitName: { $regex: search, $options: 'i' } },
+        { tripRate: { $regex: search, $options: 'i' } },
+        { tripId: { $regex: search, $options: 'i' } },
+        { minBatteryPercentage: { $regex: search, $options: 'i' } },
+      ],
+    };
+
+    if (status) {
+      query.status = status;
+    }
+
+    return query;
   }
 
   async create(payload: CreateTripInput) {
@@ -344,6 +353,137 @@ export class TripService {
       const updatedTrip = await trip.save();
 
       return updatedTrip;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async sendOtp(payload: TripOtpInput) {
+    try {
+      const { mobileNumber, tripId, accountId } = payload;
+
+      // Generate the OTP
+      const otp = generateOtp(); // Assuming generateOtp() generates a 6-digit OTP
+      const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // OTP expires in 5 minutes
+
+      // Get the tenant model and find the trip by tripId
+      const tripModel = await this.getTenantModel<Trip>(
+        accountId,
+        Trip.name,
+        TripSchema
+      );
+
+      const trip = await tripModel.findOne({ tripId });
+
+      if (!trip) {
+        throw new BadRequestException('Trip not found.');
+      }
+
+      // Fetch the mobile number from alertConfig and compare with payload mobileNumber
+      const storedMobileNumber =
+        trip?.alertConfig?.['alertMedium']?.sms?.contact;
+      console.log({ storedMobileNumber });
+      console.log({ mobileNumber });
+      if (!storedMobileNumber) {
+        throw new BadRequestException('No mobile number found for SMS alerts.');
+      }
+
+      if (Number(storedMobileNumber) !== mobileNumber) {
+        throw new BadRequestException('Provided mobile number does not match.');
+      }
+
+      // Send the OTP to the driver using the external SMS service
+      const response = await axios.get(process.env.URL, {
+        params: {
+          method: 'SendMessage',
+          v: '1.1',
+          auth_scheme: process.env.AUTH_SCHEME,
+          msg_type: process.env.MSG_TYPE,
+          format: process.env.FORMAT,
+          msg: `IMZ - ${Number(
+            otp
+          )} is the One-Time Password (OTP) for login with IMZ`,
+          send_to: Number(mobileNumber),
+          userid: process.env.USERID,
+          password: process.env.PASSWORD,
+        },
+        timeout: 120000,
+      });
+      // Update the trip document with the OTP and expiration time
+      await tripModel.updateOne(
+        { tripId: tripId },
+        {
+          $set: {
+            otp,
+            otpExpiresAt, // Store expiration time in the document
+          },
+        }
+      );
+
+      console.log({ response });
+      return {
+        success: response.status >= 400 ? 0 : 1,
+        message:
+          response.status >= 400
+            ? 'Failed to send OTP'
+            : 'OTP sent successfully',
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async verifyOtp(
+    payload: VerifyTripOtpInput
+  ): Promise<{ isOtpValid: boolean; tripId?: string }> {
+    try {
+      const { otp, tripId, accountId, mobileNumber } = payload;
+      console.log({ mobileNumber });
+      // Get the tenant model and find the trip by tripId
+      const tripModel = await this.getTenantModel<Trip>(
+        accountId,
+        Trip.name,
+        TripSchema
+      );
+
+      const trip = await tripModel.findOne({ tripId });
+
+      if (!trip) {
+        throw new BadRequestException('Trip not found.');
+      }
+
+      // Fetch the mobile number from alertConfig and compare with payload mobileNumber
+      const storedMobileNumber =
+        trip?.alertConfig?.['alertMedium']?.sms?.contact;
+      console.log({ storedMobileNumber });
+      if (!storedMobileNumber) {
+        throw new BadRequestException('No mobile number found for SMS alerts.');
+      }
+
+      if (Number(storedMobileNumber) !== mobileNumber) {
+        throw new BadRequestException('Provided mobile number does not match.');
+      }
+
+      // Check if OTP exists and has not expired
+      const storedOtp = trip.otp;
+      const otpExpiresAt = trip.otpExpiresAt;
+
+      if (!storedOtp || !otpExpiresAt || new Date() > new Date(otpExpiresAt)) {
+        throw new BadRequestException('OTP has expired or is invalid.');
+      }
+
+      // Check if the provided OTP matches the stored OTP
+      if (storedOtp === otp) {
+        // OTP is valid, so remove it from the trip document
+        await tripModel.updateOne(
+          { _id: trip._id },
+          { $unset: { otp: 1, otpExpiresAt: 1 } } 
+        );
+
+        return { isOtpValid: true, tripId: trip.tripId };
+      } else {
+        return { isOtpValid: false };
+      }
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
