@@ -373,12 +373,10 @@ export class DeviceOnboardingService {
       const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
       const threeHoursAgo = new Date(now.getTime() - 3 * 60 * 60 * 1000);
 
-      const nowIST = new Date(convertUTCToIST(now));
       const oneHourAgoIST = new Date(convertUTCToIST(oneHourAgo));
       const twoHoursAgoIST = new Date(convertUTCToIST(twoHoursAgo));
       const threeHoursAgoIST = new Date(convertUTCToIST(threeHoursAgo));
 
-      let oneHourOfflineCount = 0;
       let twoHoursOfflineCount = 0;
       let threeHoursOfflineCount = 0;
       let disconnectedCount = 0;
@@ -440,8 +438,6 @@ export class DeviceOnboardingService {
                   lastReportedDate < twoHoursAgoIST
                 ) {
                   twoHoursOfflineCount++; // Between 1 and 2 hours ago
-                } else {
-                  oneHourOfflineCount++; // Within 1 hour ago
                 }
               }
             } catch (error) {
@@ -453,7 +449,7 @@ export class DeviceOnboardingService {
 
       return {
         series: [
-          oneHourOfflineCount,
+          twoHoursOfflineCount,
           threeHoursOfflineCount,
           disconnectedCount,
           neverConnectedCount,
@@ -959,7 +955,7 @@ export class DeviceOnboardingService {
     // Calculate batch size dynamically
     const batchSize =
       Math.min(Math.ceil(payloadLength / 10), maxBatchSize) || defaultBatchSize;
-    const results = [];
+    const results: any[] = [];
 
     const deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
       payload[0].accountId,
@@ -968,22 +964,61 @@ export class DeviceOnboardingService {
     );
 
     try {
-      for (let i = 0; i < payloadLength; i += batchSize) {
-        const batch = payload.slice(i, i + batchSize);
-        const record = await deviceOnboardingModel.insertMany(batch);
-        await this.DeviceOnboardingCopyModel.insertMany(batch);
-        results.push(...record);
-        // Set data in Redis for each device in the batch
-        for (const device of batch) {
+      // Helper function to process a single batch
+      const processBatch = async (batch: DeviceOnboardingInput[]) => {
+        // Prepare unordered bulk write operations for better performance
+        const bulkOps = batch.map((device) => ({
+          insertOne: { document: device },
+        }));
+
+        // Use unordered bulkWrite for MongoDB for performance boost
+        const [record] = await Promise.all([
+          deviceOnboardingModel.bulkWrite(bulkOps, { ordered: false }),
+          this.DeviceOnboardingCopyModel.bulkWrite(bulkOps, { ordered: false }),
+        ]);
+
+        // Extract insertedIds and push them to results
+        Object.values(record.insertedIds).forEach((insertedId) => {
+          results.push(insertedId);
+        });
+
+        // Use Redis pipeline to set data in bulk
+        const redisPipeline = redisClient.pipeline();
+        batch.forEach((device) => {
           const value = JSON.stringify({
             accountId: device.accountId,
             imei: device.deviceOnboardingIMEINumber,
           });
-          await redisClient.set(device.deviceOnboardingIMEINumber, value);
+          redisPipeline.set(device.deviceOnboardingIMEINumber, value);
+        });
+
+        // Execute Redis pipeline in a larger batch
+        const redisExecResult = await redisPipeline.exec();
+        if (redisExecResult.some(([err]) => err !== null)) {
+          throw new InternalServerErrorException('Redis operation failed.');
         }
+      };
+
+      // Increase the parallel limit to handle more concurrent batches
+      const parallelLimit = 10; // Increase to handle more concurrent batches
+      const batchPromises: Promise<void>[] = [];
+
+      for (let i = 0; i < payloadLength; i += batchSize) {
+        const batch = payload.slice(i, i + batchSize);
+        if (batchPromises.length >= parallelLimit) {
+          await Promise.all(batchPromises);
+          batchPromises.length = 0; // Clear the batch promises after resolving
+        }
+        batchPromises.push(processBatch(batch));
       }
+
+      // Wait for any remaining batches to complete
+      await Promise.all(batchPromises);
+
       return results;
     } catch (error) {
+      // Log error for debugging
+      console.error('Error in bulkDeviceAssignment:', error);
       throw new InternalServerErrorException(error.message);
     }
   }
