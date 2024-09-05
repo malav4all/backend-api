@@ -5,7 +5,10 @@ import {
   BatteryResponse,
   FileUploadResponse,
   TripCountResponse,
+  TripCountResponse,
   TripMetricsResponseWrapper,
+  TripOtpResponse,
+  TripOtpSendResponse,
   TripResponse,
 } from './dto/response';
 import { TripService } from './trip-module.service';
@@ -17,7 +20,9 @@ import {
   TripCountInput,
   TripIDInput,
   TripInput,
+  TripOtpInput,
   TripStatusInput,
+  VerifyTripOtpInput,
 } from './dto/create-trip-module.input';
 import { UpdateTripInput } from './dto/update-trip-module.update';
 import * as path from 'path';
@@ -202,6 +207,35 @@ export class TripResolver {
       return {
         todayActiveTripsCount,
         totalActiveTripsCount,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Mutation(() => TripOtpSendResponse)
+  async sendTripOtp(@Args('input') input: TripOtpInput) {
+    try {
+      const success = await this.tripService.sendOtp(input);
+      return {
+        success: success ? 1 : 0,
+        message: success
+          ? 'Otp sent successfully.'
+          : 'Technical issue please try again.',
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Mutation(() => TripOtpResponse)
+  async verifyOtp(@Args('input') input: VerifyTripOtpInput): Promise<TripOtpResponse> {
+    try {
+      const { tripId, isOtpValid } = await this.tripService.verifyOtp(input);
+      return {
+        success: isOtpValid ? 1 : 0,
+        message: isOtpValid ? 'Otp Valid.' : 'Otp not Valid.',
+        tripId: isOtpValid ? tripId : '',
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);

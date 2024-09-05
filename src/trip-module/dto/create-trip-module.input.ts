@@ -51,6 +51,9 @@ export class CreateTripInput {
   status: string;
 
   @Field({ nullable: true })
+  transitType: string;
+
+  @Field({ nullable: true })
   primaryAccount: string;
 
   @Field(() => [String], { nullable: true })
@@ -143,6 +146,9 @@ export class SearchTripInput {
   @Field({ nullable: true })
   search: string;
 
+  @Field({ nullable: true })
+  status: string;
+
   @Field(() => Int, { nullable: true })
   page: typeof Int;
 
@@ -166,4 +172,45 @@ export class BatteryCheckInput {
 export class TripCountInput {
   @Field({ nullable: true })
   accountId: string;
+}
+
+@InputType()
+export class TripOtpInput {
+  @Field({ nullable: true })
+  tripId: string;
+  @Field({ nullable: true })
+  mobileNumber: number;
+  @Field({ nullable: true })
+  accountId: string;
+}
+
+import { IsNotEmpty, IsPhoneNumber, Length } from 'class-validator';
+
+export class VerifyOtpInput {
+  @Field({ nullable: true })
+  tripId: string;
+
+  @Field({ nullable: true })
+  accountId: string;
+
+  @Field({ nullable: true })
+  mobileNumber: string;
+
+  @Field({ nullable: true })
+  otp: number;
+}
+
+@InputType()
+export class VerifyTripOtpInput {
+  @Field({ nullable: true })
+  tripId: string;
+
+  @Field({ nullable: true })
+  accountId: string;
+
+  @Field({ nullable: true })
+  mobileNumber: number;
+
+  @Field({ nullable: true })
+  otp: number;
 }

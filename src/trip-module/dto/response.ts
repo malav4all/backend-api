@@ -59,3 +59,24 @@ export class TripCountResponse {
   @Field({ nullable: true })
   totalActiveTripsCount: number;
 }
+
+@ObjectType()
+export class TripOtpSendResponse {
+  @Field({ nullable: true })
+  success: number;
+
+  @Field({ nullable: true })
+  message: string;
+}
+
+@ObjectType()
+export class TripOtpResponse {
+  @Field({ nullable: true })
+  success: number;
+
+  @Field({ nullable: true })
+  message: string;
+
+  @Field({ nullable: true })
+  tripId: string;
+}
