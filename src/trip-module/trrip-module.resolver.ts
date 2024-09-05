@@ -5,6 +5,7 @@ import {
   BatteryResponse,
   FileUploadResponse,
   TripCountResponse,
+  TripCountResponse,
   TripMetricsResponseWrapper,
   TripOtpResponse,
   TripOtpSendResponse,
