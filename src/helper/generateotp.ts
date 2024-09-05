@@ -55,3 +55,19 @@ export function convertUTCToIST(dateStr: any): string {
   const istTime = new Date(utcOffset + istOffset);
   return istTime.toISOString();
 }
+
+export function convertISTToUTC(dateStr: any): string {
+  const date = new Date(dateStr);
+
+  // UTC time in milliseconds
+  const utcTime = date.getTime();
+
+  // IST offset: subtract 5 hours 30 minutes from UTC
+  const istOffset = 5.5 * 60 * 60 * 1000; // 5 hours 30 minutes in milliseconds
+
+  // Subtract the IST offset
+  const istTime = new Date(utcTime - istOffset);
+
+  // Return the date in ISO string format
+  return istTime.toISOString();
+}

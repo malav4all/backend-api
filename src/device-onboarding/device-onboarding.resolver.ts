@@ -13,6 +13,7 @@ import {
   DeviceOnboardingAccountIdInput,
   DeviceOnboardingFetchInput,
   DeviceOnboardingInput,
+  DeviceOnboardingSearchInput,
   DeviceTransferInput,
   GetBatteryPercentageGraphInput,
 } from './dto/create-device-onboarding.input';
@@ -57,6 +58,27 @@ export class DeviceOnboardingResolver {
         ? 'Record created.'
         : 'Record not created. Please try again.',
     };
+  }
+
+  @UseGuards(new AuthGuard())
+  @Mutation(() => DeviceOnboardingResponse)
+  async searchDeviceOnboardingList(
+    @Args('input') input: DeviceOnboardingSearchInput
+  ) {
+    try {
+      const { records, count } =
+        await this.deviceOnboardingService.searchDeviceOnboarding(input);
+      return {
+        paginatorInfo: {
+          count: count,
+        },
+        success: 1,
+        message: 'Device Onboarding list available.',
+        data: records,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
   }
 
   @UseGuards(new AuthGuard())

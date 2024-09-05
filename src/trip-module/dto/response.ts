@@ -51,6 +51,14 @@ export class TripMetricsResponse {
   @Field({ nullable: true })
   count: number;
 }
+@ObjectType()
+export class TripCountResponse {
+  @Field({ nullable: true })
+  todayActiveTripsCount: number;
+
+  @Field({ nullable: true })
+  totalActiveTripsCount: number;
+}
 
 @ObjectType()
 export class TripOtpSendResponse {

@@ -169,6 +169,12 @@ export class BatteryCheckInput {
 }
 
 @InputType()
+export class TripCountInput {
+  @Field({ nullable: true })
+  accountId: string;
+}
+
+@InputType()
 export class TripOtpInput {
   @Field({ nullable: true })
   tripId: string;

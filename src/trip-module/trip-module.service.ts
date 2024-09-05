@@ -10,6 +10,7 @@ import {
   BatteryCheckInput,
   CreateTripInput,
   SearchTripInput,
+  TripCountInput,
   TripIDInput,
   TripInput,
   TripOtpInput,
@@ -358,6 +359,41 @@ export class TripService {
     }
   }
 
+  async getActiveTripCounts(input: TripCountInput) {
+    try {
+      const tripModel = await this.getTenantModel<Trip>(
+        input.accountId,
+        Trip.name,
+        TripSchema
+      );
+      const today = new Date();
+      const todayDateString = today.toISOString().split('T')[0];
+
+      const todayActiveTripsCount = await tripModel
+        .countDocuments({
+          tripStartDate: {
+            $regex: `^${todayDateString}`, // Matches date part only
+          },
+        })
+        .exec();
+
+      const totalActiveTripsCount = await tripModel
+        .countDocuments({
+          status: 'created',
+        })
+        .exec();
+
+      return {
+        todayActiveTripsCount,
+        totalActiveTripsCount,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Failed to retrieve active trip counts: ${error.message}`
+      );
+    }
+  }
+
   async sendOtp(payload: TripOtpInput) {
     try {
       const { mobileNumber, tripId, accountId } = payload;
@@ -382,8 +418,6 @@ export class TripService {
       // Fetch the mobile number from alertConfig and compare with payload mobileNumber
       const storedMobileNumber =
         trip?.alertConfig?.['alertMedium']?.sms?.contact;
-      console.log({ storedMobileNumber });
-      console.log({ mobileNumber });
       if (!storedMobileNumber) {
         throw new BadRequestException('No mobile number found for SMS alerts.');
       }
@@ -419,8 +453,6 @@ export class TripService {
           },
         }
       );
-
-      console.log({ response });
       return {
         success: response.status >= 400 ? 0 : 1,
         message:
@@ -438,8 +470,6 @@ export class TripService {
   ): Promise<{ isOtpValid: boolean; tripId?: string }> {
     try {
       const { otp, tripId, accountId, mobileNumber } = payload;
-      console.log({ mobileNumber });
-      // Get the tenant model and find the trip by tripId
       const tripModel = await this.getTenantModel<Trip>(
         accountId,
         Trip.name,
@@ -455,7 +485,6 @@ export class TripService {
       // Fetch the mobile number from alertConfig and compare with payload mobileNumber
       const storedMobileNumber =
         trip?.alertConfig?.['alertMedium']?.sms?.contact;
-      console.log({ storedMobileNumber });
       if (!storedMobileNumber) {
         throw new BadRequestException('No mobile number found for SMS alerts.');
       }
@@ -477,7 +506,7 @@ export class TripService {
         // OTP is valid, so remove it from the trip document
         await tripModel.updateOne(
           { _id: trip._id },
-          { $unset: { otp: 1, otpExpiresAt: 1 } } 
+          { $unset: { otp: 1, otpExpiresAt: 1 } }
         );
 
         return { isOtpValid: true, tripId: trip.tripId };
