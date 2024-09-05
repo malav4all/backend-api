@@ -128,6 +128,27 @@ export class AlertReportInputType {
 }
 
 @InputType()
+export class AlertTripReportInputType {
+  @Field(() => String)
+  accountId: string;
+
+  @Field(() => Int, { nullable: true })
+  page: typeof Int;
+
+  @Field(() => Int, { nullable: true })
+  limit: typeof Int;
+
+  @Field(() => String)
+  startDate: string;
+
+  @Field(() => String)
+  endDate: string;
+
+  @Field(() => String)
+  imei: string;
+}
+
+@InputType()
 export class DistanceReportInputType {
   @Field(() => String)
   accountId: string;
@@ -137,6 +158,21 @@ export class DistanceReportInputType {
 
   @Field(() => String)
   endDate: string;
+}
+
+@InputType()
+export class DistanceTripReportInputType {
+  @Field(() => String)
+  accountId: string;
+
+  @Field(() => String)
+  startDate: string;
+
+  @Field(() => String)
+  endDate: string;
+
+  @Field(() => String)
+  imei: string;
 }
 
 @InputType()

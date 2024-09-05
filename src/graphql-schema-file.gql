@@ -908,7 +908,9 @@ type Mutation {
   updateAlert(input: UpdateAlertInput!): AlertResponseData!
   searchAlert(input: SearchAlertInput!): AlertResponseData!
   getAlertData(input: AlertReportInputType!): AlertReport!
+  getTripAlertData(input: AlertTripReportInputType!): AlertReport!
   getDistanceReportData(input: DistanceReportInputType!): [DistanceReportResponse!]!
+  getDistanceTripReportData(input: DistanceTripReportInputType!): [DistanceReportResponse!]!
   getDistanceTrackPlay(input: DistanceTrackPlayInputType!): [DistanceTrackPlayResponse!]!
   viewAllDeviceMap(input: MapViewInputType!): [MapViewResponse!]!
   createDeviceGroup(input: CreateDeviceGroupInput!): DeviceGroupResponse!
@@ -1251,10 +1253,26 @@ input AlertReportInputType {
   endDate: String!
 }
 
+input AlertTripReportInputType {
+  accountId: String!
+  page: Int
+  limit: Int
+  startDate: String!
+  endDate: String!
+  imei: String!
+}
+
 input DistanceReportInputType {
   accountId: String!
   startDate: String!
   endDate: String!
+}
+
+input DistanceTripReportInputType {
+  accountId: String!
+  startDate: String!
+  endDate: String!
+  imei: String!
 }
 
 input DistanceTrackPlayInputType {

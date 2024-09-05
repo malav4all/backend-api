@@ -10,9 +10,11 @@ import {
 import {
   AlertInput,
   AlertReportInputType,
+  AlertTripReportInputType,
   CreateAlertInputType,
   DistanceReportInputType,
   DistanceTrackPlayInputType,
+  DistanceTripReportInputType,
   MapViewInputType,
   SearchAlertInput,
 } from './dto/create-alert.input';
@@ -123,6 +125,21 @@ export class AlertResolver {
   }
 
   @UseGuards(new AuthGuard())
+  @Mutation(() => AlertReport)
+  async getTripAlertData(@Args('input') input: AlertTripReportInputType) {
+    try {
+      const { rowData, totalCount } =
+        await this.alertService.fetchTripAlertReport(input);
+      return {
+        totalCount,
+        rowData,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @UseGuards(new AuthGuard())
   @Mutation(() => [DistanceReportResponse])
   async getDistanceReportData(
     @Args('input') input: DistanceReportInputType,
@@ -136,6 +153,19 @@ export class AlertResolver {
         input,
         loggedInUser
       );
+      return record;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @UseGuards(new AuthGuard())
+  @Mutation(() => [DistanceReportResponse])
+  async getDistanceTripReportData(
+    @Args('input') input: DistanceTripReportInputType
+  ) {
+    try {
+      const record = await this.alertService.distanceTripReport(input);
       return record;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
