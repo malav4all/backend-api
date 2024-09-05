@@ -473,6 +473,9 @@ type Trip {
   createdAt: String
   lastUpdated: DateTime
   tripVerification: JSON!
+  transitType: String
+  otp: Float
+  otpExpiresAt: String
 }
 
 type TripResponse {
@@ -501,6 +504,22 @@ type TripMetricsResponseWrapper {
 type TripMetricsResponse {
   status: String
   count: Float
+}
+
+type TripCountResponse {
+  todayActiveTripsCount: Float
+  totalActiveTripsCount: Float
+}
+
+type TripOtpSendResponse {
+  success: Float
+  message: String
+}
+
+type TripOtpResponse {
+  success: Float
+  message: String
+  tripId: String
 }
 
 type DeviceOnboarding {
@@ -879,7 +898,7 @@ type Mutation {
   searchUsers(input: SearchUsersInput!): UserResponse!
   refreshToken: String!
   mobileNumberExists(input: OtpInput!): MobileNumberExists!
-  verifyOtp(input: VerifyOtpInput!): OtpResponse!
+  verifyOtp(input: VerifyTripOtpInput!): TripOtpResponse!
   sendOtp(input: OtpInput!): OtpSendResponse!
   verifyOtpLogin(input: VerifyOtpInput!): OtpLoginResponse!
   fetchUserAccountWise(input: AccountIdInput!): UserResponse!
@@ -903,7 +922,9 @@ type Mutation {
   updateAlert(input: UpdateAlertInput!): AlertResponseData!
   searchAlert(input: SearchAlertInput!): AlertResponseData!
   getAlertData(input: AlertReportInputType!): AlertReport!
+  getTripAlertData(input: AlertTripReportInputType!): AlertReport!
   getDistanceReportData(input: DistanceReportInputType!): [DistanceReportResponse!]!
+  getDistanceTripReportData(input: DistanceTripReportInputType!): [DistanceReportResponse!]!
   getDistanceTrackPlay(input: DistanceTrackPlayInputType!): [DistanceTrackPlayResponse!]!
   viewAllDeviceMap(input: MapViewInputType!): [MapViewResponse!]!
   createDeviceGroup(input: CreateDeviceGroupInput!): DeviceGroupResponse!
@@ -946,8 +967,11 @@ type Mutation {
   checkBattery(input: BatteryCheckInput!): BatteryResponse!
   getTripStatusMetrics(input: TripInput!): TripMetricsResponseWrapper!
   updateTripStatus(input: TripStatusInput!): TripResponse!
+  tripCount(input: TripCountInput!): TripCountResponse!
+  sendTripOtp(input: TripOtpInput!): TripOtpSendResponse!
   filterRecordAccountId(input: DeviceOnboardingAccountIdInput!): DeviceOnboardingResponse!
   createDeviceOnboarding(input: DeviceOnboardingInput!): DeviceOnboardingResponse!
+  searchDeviceOnboardingList(input: DeviceOnboardingSearchInput!): DeviceOnboardingResponse!
   fetchDeviceOnboardingList(input: DeviceOnboardingFetchInput!): DeviceOnboardingResponse!
   updateDeviceOnboarding(input: UpdateDeviceOnboardingInput!): DeviceOnboardingResponse!
   bulkUploadDeviceAssignment(input: [DeviceOnboardingInput!]!): DeviceOnboardingResponse!
@@ -1050,6 +1074,13 @@ input SearchUsersInput {
 
 input OtpInput {
   mobileNumber: Float
+}
+
+input VerifyTripOtpInput {
+  tripId: String
+  accountId: String
+  mobileNumber: Float
+  otp: Float
 }
 
 input VerifyOtpInput {
@@ -1244,10 +1275,26 @@ input AlertReportInputType {
   endDate: String!
 }
 
+input AlertTripReportInputType {
+  accountId: String!
+  page: Int
+  limit: Int
+  startDate: String!
+  endDate: String!
+  imei: String!
+}
+
 input DistanceReportInputType {
   accountId: String!
   startDate: String!
   endDate: String!
+}
+
+input DistanceTripReportInputType {
+  accountId: String!
+  startDate: String!
+  endDate: String!
+  imei: String!
 }
 
 input DistanceTrackPlayInputType {
@@ -1494,6 +1541,7 @@ input CreateTripInput {
   accountId: String
   tripId: String
   status: String
+  transitType: String
   primaryAccount: String
   accessAccount: [String!]
   tripStartDate: String
@@ -1535,6 +1583,7 @@ input TripInput {
 input SearchTripInput {
   accountId: String
   search: String
+  status: String
   page: Int
   limit: Int
 }
@@ -1548,6 +1597,7 @@ input UpdateTripInput {
   accountId: String
   tripId: String
   status: String
+  transitType: String
   primaryAccount: String
   accessAccount: [String!]
   tripStartDate: String
@@ -1576,6 +1626,16 @@ input TripStatusInput {
   tripId: String
 }
 
+input TripCountInput {
+  accountId: String
+}
+
+input TripOtpInput {
+  tripId: String
+  mobileNumber: Float
+  accountId: String
+}
+
 input DeviceOnboardingAccountIdInput {
   accountId: String
 }
@@ -1590,6 +1650,13 @@ input DeviceOnboardingInput {
   accountTransferBy: String
   createdBy: String
   updatedBy: String
+}
+
+input DeviceOnboardingSearchInput {
+  accountId: String
+  search: String
+  page: Int
+  limit: Int
 }
 
 input DeviceOnboardingFetchInput {

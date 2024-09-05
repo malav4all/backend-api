@@ -5,7 +5,6 @@ import {
   BatteryResponse,
   FileUploadResponse,
   TripCountResponse,
-  TripCountResponse,
   TripMetricsResponseWrapper,
   TripOtpResponse,
   TripOtpSendResponse,
@@ -229,7 +228,9 @@ export class TripResolver {
   }
 
   @Mutation(() => TripOtpResponse)
-  async verifyOtp(@Args('input') input: VerifyTripOtpInput): Promise<TripOtpResponse> {
+  async verifyOtp(
+    @Args('input') input: VerifyTripOtpInput
+  ): Promise<TripOtpResponse> {
     try {
       const { tripId, isOtpValid } = await this.tripService.verifyOtp(input);
       return {
