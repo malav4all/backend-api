@@ -25,6 +25,10 @@ import axios from 'axios';
 import { InfluxdbService } from '@imz/influx-db/influx-db-.service';
 import { UserService } from '@imz/user/user.service';
 import { convertISTToUTC } from '@imz/helper/generateotp';
+import {
+  DeviceOnboarding,
+  DeviceOnboardingSchema,
+} from '@imz/device-onboarding/enities/device-onboarding.enities';
 
 @Injectable()
 export class AlertService {
@@ -263,10 +267,13 @@ export class AlertService {
     if (!payload.accountId) {
       return { rowData: [], totalCount: 0 };
     }
+
     // Fetch the logged-in user object
     const getUser = await this.userService.fetchUserByUserId(
       loggedInUser?.userId?.toString()
     );
+
+    let filter = {};
 
     // Check the admin flags
     const isAccountAdmin = getUser[0]?.isAccountAdmin || false;
@@ -291,32 +298,40 @@ export class AlertService {
         );
       }
 
-      // If there are still no IMEIs associated with the user, return an empty result
-      if (!imeiList.length) {
+      if (imeiList.length > 0) {
+        filter = { deviceOnboardingIMEINumber: { $in: imeiList } };
+      } else {
+        // If there are still no IMEIs, return an empty result
         return { rowData: [], totalCount: 0 };
       }
     }
 
+    const deviceOnboardingModel = await this.getTenantModel<DeviceOnboarding>(
+      payload.accountId,
+      DeviceOnboarding.name,
+      DeviceOnboardingSchema
+    );
+    const devices = await deviceOnboardingModel.find(filter).lean().exec();
+    const ii = devices.map((item) => item.deviceOnboardingIMEINumber);
+
     const page = Number(payload.page);
     const limit = Number(payload.limit);
     const skip = page === -1 ? 0 : (page - 1) * limit;
-    const start = convertISTToUTC(payload.startDate);
-    const end = convertISTToUTC(payload.endDate);
+    const start = payload.startDate;
+    const end = payload.endDate;
 
     // Create a Flux query for counting the total number of matching records
+    const imeiFilterCondition = `|> filter(fn: (r) => r["imei"] == "${ii.join(
+      '" or r["imei"] == "'
+    )}" )`;
+
     const countQuery = `
-    from(bucket: "${payload.accountId}")
-      |> range(start: ${start}, stop: ${end})
-      |> filter(fn: (r) => r["_measurement"] == "alert")
-      ${
-        !isAccountAdmin && !isSuperAdmin && imeiList.length
-          ? `|> filter(fn: (r) => r["imei"] == "${imeiList.join(
-              '" or r["imei"] == "'
-            )}" )`
-          : ''
-      }
-      |> count()
-  `;
+      from(bucket: "${payload.accountId}")
+        |> range(start: ${start}, stop: ${end})
+        |> filter(fn: (r) => r["_measurement"] == "alert")
+        ${imeiFilterCondition}
+        |> count()
+    `;
     const countResponse: any = await this.influxDbService.countQuery(
       countQuery
     );
@@ -324,21 +339,15 @@ export class AlertService {
 
     // Create a Flux query for fetching the alert data
     const query = `
-    from(bucket: "${payload.accountId}")
-      |> range(start: ${start}, stop: ${end})
-      |> filter(fn: (r) => r["_measurement"] == "alert")
-      ${
-        !isAccountAdmin && !isSuperAdmin && imeiList.length
-          ? `|> filter(fn: (r) => r["imei"] == "${imeiList.join(
-              '" or r["imei"] == "'
-            )}" )`
-          : ''
-      }
-      |> filter(fn: (r) => r["_field"] == "latitude" or r["_field"] == "longitude" or r["_field"] == "alert" or r["_field"] == "accountId" or r["_field"] == "label")
-      |> sort(columns:["_time"], desc: true)
-      |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
-      |> limit(n: ${payload.limit}, offset: ${skip})
-  `;
+      from(bucket: "${payload.accountId}")
+        |> range(start: ${start}, stop: ${end})
+        |> filter(fn: (r) => r["_measurement"] == "alert")
+        ${imeiFilterCondition}
+        |> filter(fn: (r) => r["_field"] == "latitude" or r["_field"] == "longitude" or r["_field"] == "alert" or r["_field"] == "accountId" or r["_field"] == "label")
+        |> sort(columns:["_time"], desc: true)
+        |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+        |> limit(n: ${payload.limit}, offset: ${skip})
+    `;
 
     const rowData = [];
     for await (const { values } of this.influxDbService.executeQuery(query)) {
@@ -366,15 +375,16 @@ export class AlertService {
     const page = Number(payload.page);
     const limit = Number(payload.limit);
     const skip = page === -1 ? 0 : (page - 1) * limit;
-    const start = convertISTToUTC(payload.startDate);
-    const end = convertISTToUTC(payload.endDate);
+    const start = payload.startDate;
+    const end = payload.endDate;
 
+    console.log(typeof payload.imei);
     // Create a Flux query for counting the total number of matching records
     const countQuery = `
     from(bucket: "${payload.accountId}")
       |> range(start: ${start}, stop: ${end})
       |> filter(fn: (r) => r["_measurement"] == "alert")
-      |> filter(fn: (r) => r["imei"] == ${payload.imei})
+      |> filter(fn: (r) => r["imei"] == "${payload.imei}")
       |> count()
   `;
     const countResponse: any = await this.influxDbService.countQuery(
@@ -387,9 +397,8 @@ export class AlertService {
     from(bucket: "${payload.accountId}")
       |> range(start: ${start}, stop: ${end})
       |> filter(fn: (r) => r["_measurement"] == "alert")
-      |> filter(fn: (r) => r["imei"] == ${payload.imei})
+      |> filter(fn: (r) => r["imei"] == "${payload.imei}")
       |> filter(fn: (r) => r["_field"] == "latitude" or r["_field"] == "longitude" or r["_field"] == "alert" or r["_field"] == "accountId" or r["_field"] == "label")
-      |> sort(columns:["_time"], desc: true)
       |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
       |> limit(n: ${payload.limit}, offset: ${skip})
   `;
@@ -449,8 +458,8 @@ export class AlertService {
       }
     }
 
-    const start = convertISTToUTC(payload.startDate);
-    const end = convertISTToUTC(payload.endDate);
+    const start = payload.startDate;
+    const end = payload.endDate;
 
     // Create a Flux query for fetching the distance data
     const fluxQuery = `
@@ -494,15 +503,15 @@ export class AlertService {
       return [];
     }
 
-    const start = convertISTToUTC(payload.startDate);
-    const end = convertISTToUTC(payload.endDate);
+    const start = payload.startDate;
+    const end = payload.endDate;
 
     // Create a Flux query for fetching the distance data
     const fluxQuery = `
       from(bucket: "${payload.accountId}")
         |> range(start: ${start}, stop: ${end})
         |> filter(fn: (r) => r["_measurement"] == "track")
-        |> filter(fn: (r) => r["imei"] == ${payload.imei})
+        |> filter(fn: (r) => r["imei"] == "${payload.imei}")
         |> filter(fn: (r) => r["_field"] == "latitude" or r["_field"] == "longitude" or r["_field"] == "imei")
         |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
     `;
@@ -529,19 +538,12 @@ export class AlertService {
   }
 
   async distanceTrackPlay(payload: DistanceTrackPlayInputType) {
-    // Create a Flux query for fetching the distance data
-    let startDate = new Date(payload.startDate);
-    let endDate = new Date(payload.endDate);
-
-    // Validate and swap if necessary
-    if (startDate > endDate) {
-      // Swap the dates
-      [startDate, endDate] = [endDate, startDate];
-    }
+    const start = payload.startDate;
+    const end = payload.endDate;
 
     const fluxQuery = `
       from(bucket: "${payload.accountId}")
-         |> range(start: ${startDate.toISOString()}, stop: ${endDate.toISOString()})
+         |> range(start: ${start}, stop: ${end})
          |> filter(fn: (r) => r["_measurement"] == "track")
          |> filter(fn: (r) => r["imei"] == "${payload.imei}")
          |> filter(fn: (r) => r["_field"] == "speed" or r["_field"] == "latitude" or r["_field"] == "longitude" or r["_field"] == "bearing")

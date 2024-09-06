@@ -288,6 +288,19 @@ type Alert {
   createdBy: String
 }
 
+type DeviceOnboarding {
+  _id: String!
+  location: String
+  deviceName: String
+  accountTransferBy: String
+  accountId: String
+  deviceOnboardingSimNo: [String!]
+  deviceOnboardingIMEINumber: String
+  businessModel: String
+  createdBy: String
+  updatedBy: String
+}
+
 type AlertResponseData {
   paginatorInfo: PaginatorInfo
   success: Float
@@ -520,19 +533,6 @@ type TripOtpResponse {
   success: Float
   message: String
   tripId: String
-}
-
-type DeviceOnboarding {
-  _id: String!
-  location: String
-  deviceName: String
-  accountTransferBy: String
-  accountId: String
-  deviceOnboardingSimNo: [String!]
-  deviceOnboardingIMEINumber: String
-  businessModel: String
-  createdBy: String
-  updatedBy: String
 }
 
 type DeviceOnboardingResponse {
