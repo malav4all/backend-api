@@ -10,19 +10,27 @@ export class RedisService {
     // Default Redis server
     const defaultDb = 0;
     this.addClient(`default-${defaultDb}`, {
-      host: '192.168.77.44',
+      host: '103.20.214.75',
       port: 6379,
-      password: 'nP76rskp1sAD',
+      password: 'Rootunlock@#2211',
       db: defaultDb,
     });
 
     // Another Redis DB on the same server
     const anotherDb = 1;
     this.addClient(`default-${anotherDb}`, {
-      host: '192.168.77.44',
+      host: '103.20.214.75',
       port: 6379,
-      password: 'nP76rskp1sAD',
+      password: 'Rootunlock@#2211',
       db: anotherDb,
+    });
+
+    // New Redis server at 103.20.214.75:6333 with DB 0
+    const additionalServerDb = 0;
+    this.addClient(`additionalServer-${additionalServerDb}`, {
+      host: '103.20.214.75',
+      port: 6333, // New port
+      db: additionalServerDb,
     });
 
     // Check connection for each DB
