@@ -77,7 +77,7 @@ export class TripService {
         ...payload,
         tripId,
       });
-      const redisClient = this.redisService.getClient('additionalServer-0');
+      const redisClient = this.redisService.getClient('default-1');
 
       const value = JSON.stringify({
         status: record.status,
