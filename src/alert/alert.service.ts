@@ -569,6 +569,70 @@ export class AlertService {
     return rowData;
   }
 
+  async distanceTrackGsmSignalPlay(payload: DistanceTrackPlayInputType) {
+    const start = payload.startDate;
+    const end = payload.endDate;
+
+    const fluxQuery = `
+      from(bucket: "${payload.accountId}")
+         |> range(start: ${start}, stop: ${end})
+         |> filter(fn: (r) => r["_measurement"] == "track")
+         |> filter(fn: (r) => r["imei"] == "${payload.imei}")
+         |> filter(fn: (r) => r["_field"] == "networkCsqSignalValue" or r["_field"] == "latitude" or r["_field"] == "longitude" or r["_field"] == "bearing")
+         |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+    `;
+
+    const rowData = [];
+
+    for await (const { values } of this.influxDbService.executeQuery(
+      fluxQuery
+    )) {
+      const [t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10] = values;
+      rowData.push({
+        time: t2,
+        imei: t6,
+        latitude: t8,
+        longitude: t9,
+        bearing: t7,
+        gsmSignal: t10,
+      });
+    }
+
+    return rowData;
+  }
+
+  async distanceTrackAlertPlay(payload: DistanceTrackPlayInputType) {
+    const start = payload.startDate;
+    const end = payload.endDate;
+
+    const fluxQuery = `
+      from(bucket: "${payload.accountId}")
+         |> range(start: ${start}, stop: ${end})
+         |> filter(fn: (r) => r["_measurement"] == "alert")
+         |> filter(fn: (r) => r["imei"] == "${payload.imei}")
+        |> filter(fn: (r) => r["_field"] == "latitude" or r["_field"] == "longitude" or r["_field"] == "alert" or r["_field"] == "accountId" or r["_field"] == "label" or r["_field"] == "bearing")
+         |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+    `;
+
+    const rowData = [];
+
+    for await (const { values } of this.influxDbService.executeQuery(
+      fluxQuery
+    )) {
+      const [t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11] = values;
+      rowData.push({
+        time: t2,
+        imei: t6,
+        latitude: t10,
+        longitude: t11,
+        bearing: t9,
+        alertMessage: t8,
+      });
+    }
+
+    return rowData;
+  }
+
   async allDeviceMapView(payload: MapViewInputType, loggedInUser: any) {
     // Fetch the logged-in user object
     if (!payload.accountId) {

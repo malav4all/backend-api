@@ -90,6 +90,48 @@ export class DistanceTrackPlayResponse {
 }
 
 @ObjectType()
+export class DistanceTrackPlayGsmResponse {
+  @Field(() => String, { nullable: true })
+  latitude: string;
+
+  @Field(() => String, { nullable: true })
+  longitude: string;
+
+  @Field(() => String, { nullable: true })
+  time: string;
+
+  @Field(() => String, { nullable: true })
+  imei: string;
+
+  @Field(() => String, { nullable: true })
+  bearing: string;
+
+  @Field(() => String, { nullable: true })
+  gsmSignal: string;
+}
+
+@ObjectType()
+export class DistanceTrackPlayAlertResponse {
+  @Field(() => String, { nullable: true })
+  latitude: string;
+
+  @Field(() => String, { nullable: true })
+  longitude: string;
+
+  @Field(() => String, { nullable: true })
+  time: string;
+
+  @Field(() => String, { nullable: true })
+  imei: string;
+
+  @Field(() => String, { nullable: true })
+  bearing: string;
+
+  @Field(() => String, { nullable: true })
+  alertMessage: string;
+}
+
+@ObjectType()
 export class MapViewResponse {
   @Field(() => String, { nullable: true })
   latitude: string;

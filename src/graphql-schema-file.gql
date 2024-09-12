@@ -343,6 +343,24 @@ type DistanceTrackPlayResponse {
   speed: String
 }
 
+type DistanceTrackPlayGsmResponse {
+  latitude: String
+  longitude: String
+  time: String
+  imei: String
+  bearing: String
+  gsmSignal: String
+}
+
+type DistanceTrackPlayAlertResponse {
+  latitude: String
+  longitude: String
+  time: String
+  imei: String
+  bearing: String
+  alertMessage: String
+}
+
 type MapViewResponse {
   latitude: String
   longitude: String
@@ -926,6 +944,8 @@ type Mutation {
   getDistanceReportData(input: DistanceReportInputType!): [DistanceReportResponse!]!
   getDistanceTripReportData(input: DistanceTripReportInputType!): [DistanceReportResponse!]!
   getDistanceTrackPlay(input: DistanceTrackPlayInputType!): [DistanceTrackPlayResponse!]!
+  getDistanceTrackGsmSignalPlay(input: DistanceTrackPlayInputType!): [DistanceTrackPlayGsmResponse!]!
+  getDistanceTrackAlertPlay(input: DistanceTrackPlayInputType!): [DistanceTrackPlayAlertResponse!]!
   viewAllDeviceMap(input: MapViewInputType!): [MapViewResponse!]!
   createDeviceGroup(input: CreateDeviceGroupInput!): DeviceGroupResponse!
   fetchDeviceGroup(input: DeviceGroupInput!): DeviceGroupResponse!

@@ -23,11 +23,12 @@ import {
   AlertReport,
   AlertResponseData,
   DistanceReportResponse,
+  DistanceTrackPlayAlertResponse,
+  DistanceTrackPlayGsmResponse,
   DistanceTrackPlayResponse,
   MapViewResponse,
 } from './dto/response';
 import { UpdateAlertInput } from './dto/update-alert';
-import { AlertResponse } from '@imz/helper';
 
 @Resolver(() => AlertResponseData)
 export class AlertResolver {
@@ -177,6 +178,32 @@ export class AlertResolver {
   async getDistanceTrackPlay(@Args('input') input: DistanceTrackPlayInputType) {
     try {
       const record = await this.alertService.distanceTrackPlay(input);
+      return record;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @UseGuards(new AuthGuard())
+  @Mutation(() => [DistanceTrackPlayGsmResponse])
+  async getDistanceTrackGsmSignalPlay(
+    @Args('input') input: DistanceTrackPlayInputType
+  ) {
+    try {
+      const record = await this.alertService.distanceTrackGsmSignalPlay(input);
+      return record;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @UseGuards(new AuthGuard())
+  @Mutation(() => [DistanceTrackPlayAlertResponse])
+  async getDistanceTrackAlertPlay(
+    @Args('input') input: DistanceTrackPlayInputType
+  ) {
+    try {
+      const record = await this.alertService.distanceTrackAlertPlay(input);
       return record;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
